@@ -58,9 +58,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.set('trust proxy', 1);
 
 // Define Routes
-app.use('/', indexRouter);
-app.use('/user', usersRouter);
-app.use('/bin', binsRoutes);
+app.use('/api', indexRouter);
+app.use('/api/user', usersRouter);
+app.use('/api/bin', binsRoutes);
 
 // 404 Error Handler
 app.use((req, res, next) => {
