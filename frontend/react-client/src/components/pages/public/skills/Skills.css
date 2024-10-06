@@ -1,0 +1,72 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+	/* Default styles for all screen sizes */
+	#skills-list {
+		@apply flex flex-wrap gap-4 justify-center;
+	}
+
+	.skills-box {
+		@apply relative bg-blue-gray-100 border-2 border-secondary rounded-xl p-3 flex flex-col items-center text-center flex-grow;
+		@apply transition-transform duration-300 ease-in-out transform-gpu;
+		@apply shadow-lg;
+		@apply hover:bg-blue-100 hover:text-letter;
+	}
+
+	.skills-box:hover {
+		@apply scale-105 shadow-xl;
+		z-index: 10;
+	}
+
+	.skill-image {
+		width: 7.5rem;
+		height: 4rem;
+		object-fit: contain;
+		@apply transition-transform duration-300 ease-in-out;
+	}
+
+	.skills-box:hover .skill-image {
+		@apply scale-110;
+	}
+
+	.skill-level {
+		@apply text-gray-700;
+		@apply transition-colors duration-700 ease-in-out;
+	}
+
+	/* Responsive styling */
+	@media screen and (min-width: 640px) {
+		#skills-page-title {
+			@apply text-4xl;
+		}
+
+		#skills-wrapper {
+			@apply p-6;
+		}
+
+		.skills-box {
+			@apply p-5;
+		}
+	}
+
+	@media screen and (min-width: 768px) {
+		#skills {
+			@apply px-12;
+		}
+	}
+
+	@media screen and (min-width: 1024px) {
+		#skills-wrapper {
+			@apply p-8;
+		}
+	}
+
+	/* Media query for screens 1536px and up: 2xl */
+	@media screen and (min-width: 1536px) {
+		#skills-page-title {
+			@apply text-5xl;
+		}
+	}
+}

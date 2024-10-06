@@ -1,0 +1,49 @@
+{
+    "Automation": {
+        "LEDs": {
+            "LED-1": {
+                "lastUpdated": "01/10/2024, 18:26:09",
+                "location": "Main Hall",
+                "state": 1
+            },
+            "LED-2": {
+                "lastUpdated": "01/10/2024, 18:26:09",
+                "location": "Corridor",
+                "state": 1
+            },
+            "LED-3": {
+                "lastUpdated": "01/10/2024, 18:26:09",
+                "location": "Gym Area",
+                "state": 1
+            },
+            "LED-4": {
+                "lastUpdated": "",
+                "location": "Library",
+                "state": 0
+            }
+        }
+    },
+    "Trash-Bins": {
+        "Canteen": {
+            "Bin-1": {
+                "binLidStatus": "CLOSED",
+                "binLocation": "Canteen",
+                "binStatus": "Active",
+                "binType": "Plastic",
+                "createdAt": "05/10/2024, 01:14:07 PM",
+                "distance": 35,
+                "filledBinPercentage": 50,
+                "geoLocation": {
+                    "latitude": "13.0878",
+                    "longitude": "80.2785"
+                },
+                "id": 1,
+                "lastMaintenance": "",
+                "lastUpdated": "05/10/2024, 01:15:05 PM",
+                "maxBinCapacity": 50,
+                "microProcessorStatus": "OFF",
+                "sensorStatus": "OFF"
+            }
+        }
+    }
+}

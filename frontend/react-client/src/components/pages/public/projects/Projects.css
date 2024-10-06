@@ -1,0 +1,89 @@
+/* Base and Tailwind utilities */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+	/* Styles for all screen sizes */
+
+	/* Pagination Buttons */
+	#pagination-btns {
+		@apply w-[4.5rem] flex items-center justify-center gap-2 rounded-full text-tertiary bg-primary hover:bg-blue-800 transition-all duration-300;
+	}
+
+	/* Card */
+	#card {
+		@apply relative flex h-[35rem] cursor-pointer w-full max-w-[30rem] flex-grow flex-col justify-between bg-gradient-to-br from-blue-500 to-indigo-700 shadow-lg rounded-lg overflow-hidden transition-transform duration-300 transform;
+	}
+
+	/* Card Image */
+	#card img {
+		@apply transition-transform duration-300 transform;
+	}
+
+	/* Card Hover Image Effect */
+	#card:hover img {
+		transform: scale(1.05); /* Use standard CSS property */
+	}
+
+	/* Card Absolute Positioned Element */
+	#card #absolute {
+		@apply bg-black opacity-0 transition-opacity duration-300 flex items-center justify-center text-white p-6;
+	}
+
+	/* Card Hover Absolute Positioned Element */
+	#card:hover #absolute {
+		opacity: 1; /* Use standard CSS property */
+	}
+
+	/* Disabled Pagination Buttons */
+	#pagination-btns[disabled] {
+		@apply bg-gray-600 text-gray-300 cursor-not-allowed;
+	}
+
+	/* Error Message */
+	.error-message {
+		@apply text-2xl text-white bg-red-800 rounded-full p-5 shadow-md;
+	}
+
+	/* Media Queries for Responsive Design */
+
+	/* Medium screens (640px and up) */
+	@media (min-width: 640px) {
+		#projects-page-title {
+			@apply text-4xl; /* Medium screens title size */
+		}
+		#pagination-btns {
+			@apply w-[4rem]; /* Slightly smaller pagination buttons */
+		}
+	}
+
+	/* Large screens (768px and up) */
+	@media (min-width: 768px) {
+		#pagination-btns {
+			@apply w-[4.5rem]; /* Standard pagination button size */
+		}
+
+		#projects {
+			@apply px-10; /* Extra padding for larger screens */
+		}
+	}
+
+	/* Extra Large screens (1024px and up) */
+	@media (min-width: 1024px) {
+		#pagination-btns {
+			@apply w-[5rem]; /* Larger pagination buttons */
+		}
+
+		#projects {
+			@apply px-12; /* Extra padding for extra large screens */
+		}
+	}
+
+	/* Media query for screens 1536px and up: 2xl */
+	@media screen and (min-width: 1536px) {
+		#projects-page-title {
+			@apply text-5xl;
+		}
+	}
+}

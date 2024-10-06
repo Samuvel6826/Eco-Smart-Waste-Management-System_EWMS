@@ -1,0 +1,86 @@
+/* Contact */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+	/* Default styles for all screen sizes */
+	#contact-form {
+		@apply flex flex-col gap-2;
+	}
+
+	#nameContainer,
+	#mobileContainer,
+	#subjectContainer,
+	#emailContainer,
+	#fileContainer {
+		@apply w-full h-[15%] p-2 text-letter bg-secondary flex;
+	}
+
+	#msgContainer {
+		@apply w-full h-full p-2 bg-secondary flex;
+	}
+
+	#your_name,
+	#your_mobile,
+	#your_email,
+	#your_subject,
+	#message,
+	#fileUpload {
+		@apply w-full h-full bg-letter p-2 text-secondary;
+	}
+
+	#your_name::placeholder,
+	#your_mobile::placeholder,
+	#your_email::placeholder,
+	#your_subject::placeholder,
+	#message::placeholder {
+		@apply text-cyan-900;
+	}
+
+	#require {
+		@apply flex items-center p-2;
+	}
+
+	/* Media query for screens 640px and up: sm */
+	@media screen and (min-width: 640px) {
+		#contact-page-title {
+			@apply text-4xl;
+		}
+	}
+
+	/* Media query for screens 768px and up: md */
+	@media screen and (min-width: 768px) {
+		#contact {
+			@apply px-10;
+		}
+
+		#contact-wrapper {
+			@apply flex-row gap-5;
+		}
+
+		#contact-form {
+			@apply w-1/2;
+		}
+
+		#map-container {
+			@apply w-1/2;
+		}
+	}
+
+	/* Media query for screens 1024px and up: lg */
+	@media screen and (min-width: 1024px) {
+	}
+
+	/* Media query for screens 1280px and up: xl */
+	@media screen and (min-width: 1280px) {
+	}
+
+	/* Media query for screens 1536px and up: 2xl */
+	@media screen and (min-width: 1536px) {
+		#contact-page-title {
+			@apply text-5xl;
+		}
+	}
+}

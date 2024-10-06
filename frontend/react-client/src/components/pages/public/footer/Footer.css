@@ -1,0 +1,134 @@
+/* Footer */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+	/* Default styles for all screen sizes */
+
+	/* Enhanced Tailwind CSS for a universal button */
+	/* Enhanced Tailwind CSS for a stylish button without background color */
+	#footer button {
+		@apply px-4 py-2 rounded-lg font-semibold border border-blue-600  hover:bg-blue-600 text-letter active:bg-blue-700 shadow-md transition-transform duration-300 transform focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50;
+	}
+
+	/* Hover effect to enlarge and change background color */
+	#footer button:hover {
+		@apply scale-105 bg-blue-600;
+	}
+
+	/* Focus effect to add a ring around the button without a white border */
+	#footer button:focus {
+		@apply ring-offset-2 ring-blue-500 ring-2;
+	}
+
+	/* Active effect to slightly shrink and change background color */
+	#footer button:active {
+		@apply scale-95 bg-blue-700;
+	}
+	#footer #headings {
+		@apply text-primary text-3xl font-bold;
+	}
+	#footer #foot-containers {
+		@apply flex h-full flex-col items-center justify-center gap-4;
+	}
+	#footer .btns-container {
+		@apply flex flex-col gap-3;
+	}
+	#footer .btns-container-menu {
+		@apply flex flex-col gap-3 text-lg;
+	}
+	#footer .btns-container button {
+		@apply w-80 border-2 rounded-2xl gap-2 p-4 text-lg flex items-center justify-center text-center;
+	}
+	#footer #foot-socials-container {
+		@apply gap-8;
+	}
+
+	/* Media query for screens 640px and up: sm */
+	@media screen and (min-width: 640px) {
+		#footer .btns-container button {
+			@apply w-96 gap-3 text-xl;
+		}
+		#footer #foot-socials-container a {
+			@apply text-4xl;
+		}
+	}
+
+	/* Media query for screens 768px and up: md */
+	@media screen and (min-width: 768px) {
+	}
+
+	/* Media query for screens 1024px and up: lg */
+	@media screen and (min-width: 1024px) {
+		#footer #footer-container {
+			@apply justify-between;
+		}
+		#footer #footer-top {
+			@apply flex-row justify-between;
+		}
+		#footer #headings {
+			@apply text-2xl;
+		}
+		#footer #footer-bottom {
+			@apply flex-row;
+		}
+		#footer .btns-container button {
+			@apply w-72 gap-2 text-base;
+		}
+		#footer .btns-container-menu {
+			@apply text-base gap-2;
+		}
+		#footer #support-btns button {
+			@apply w-60;
+		}
+		#footer #foot-socials-container {
+			@apply gap-4;
+		}
+		#footer #foot-socials-container a {
+			@apply text-2xl;
+		}
+	}
+
+	/* Media query for screens 1280px and up: xl */
+	@media screen and (min-width: 1280px) {
+		#footer #headings {
+			@apply text-3xl;
+		}
+		#footer .btns-container button {
+			@apply w-80 gap-3 text-lg;
+		}
+		#footer .btns-container-menu {
+			@apply text-lg gap-3;
+		}
+		#footer #support-btns button {
+			@apply w-80;
+		}
+		#footer #foot-socials-container {
+			@apply gap-6;
+		}
+		#footer #foot-socials-container a {
+			@apply text-3xl;
+		}
+	}
+
+	/* Media query for screens 1536px and up: 2xl */
+	@media screen and (min-width: 1536px) {
+		#footer .btns-container button {
+			@apply w-96 text-xl;
+		}
+		#footer .btns-container-menu {
+			@apply text-xl;
+		}
+		#footer #support-btns button {
+			@apply w-96;
+		}
+		#footer #foot-socials-container {
+			@apply gap-8;
+		}
+		#footer #foot-socials-container a {
+			@apply text-4xl;
+		}
+	}
+}
