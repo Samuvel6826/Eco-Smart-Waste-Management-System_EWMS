@@ -20,7 +20,7 @@ const phoneValidator = {
 };
 
 // User Schema
-const userSchema = new mongoose.Schema({
+const usersSchema = new mongoose.Schema({
   employeeId: {
     type: String,
     required: [true, 'Employee ID is required'],
@@ -81,7 +81,7 @@ const userSchema = new mongoose.Schema({
   });
 
 // Middleware to format timestamps
-userSchema.pre('save', function (next) {
+usersSchema.pre('save', function (next) {
   const currentDate = new Date().toLocaleString();
   this.createdAt = this.createdAt || currentDate;
   this.updatedAt = currentDate;
@@ -89,6 +89,6 @@ userSchema.pre('save', function (next) {
 });
 
 // User Model
-const userModel = mongoose.model('ewms-users', userSchema);
+const usersModel = mongoose.model('ewms-users', usersSchema);
 
-module.exports = userModel;
+module.exports = usersModel;

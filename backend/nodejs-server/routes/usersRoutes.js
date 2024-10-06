@@ -1,5 +1,5 @@
 const express = require('express');
-const UsersController = require('../controllers/users');
+const UsersController = require('../controllers/usersController');
 const router = express.Router();
 const auth = require('../common/Auth');
 const { logger } = require('../utils/logger'); // Import custom logger

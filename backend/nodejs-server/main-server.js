@@ -16,7 +16,7 @@ initializeFirebase();
 // Importing Routes
 const indexRouter = require('./routes/indexRoutes');
 const usersRouter = require('./routes/usersRoutes');
-const binsRoutes = require('./routes/binsRoutes');
+const binsRouter = require('./routes/binsRoutes');
 const connectToDatabase = require('./config/mongoDBconfig');
 
 // Initialize Express app
@@ -60,7 +60,7 @@ app.set('trust proxy', 1);
 // Define Routes
 app.use('/api', indexRouter);
 app.use('/api/user', usersRouter);
-app.use('/api/bin', binsRoutes);
+app.use('/api/bin', binsRouter);
 
 // 404 Error Handler
 app.use((req, res, next) => {

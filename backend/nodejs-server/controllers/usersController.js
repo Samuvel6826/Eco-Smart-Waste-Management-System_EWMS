@@ -1,5 +1,5 @@
 const sanitize = require('../common/Sanitize');
-const userModel = require('../models/users');
+const userModel = require('../models/usersModel');
 const auth = require('../common/Auth');
 
 // Helper functions for error handling
