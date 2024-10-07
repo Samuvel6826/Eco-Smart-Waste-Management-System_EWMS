@@ -31,22 +31,22 @@ router.get('/:id', auth.validate, (req, res, next) => {
     UsersController.getUserById(req, res, next);
 }); // Authenticated access
 
-router.post('/', (req, res, next) => {
+router.post('/create', (req, res, next) => {
     logger.info('Creating a new user'); // Log the request action
     UsersController.createUser(req, res, next);
 }); // Create a new user
 
-router.put('/:id', auth.validate, auth.roleGuard('Admin', 'Manager'), (req, res, next) => {
+router.put('/edit/:id', auth.validate, auth.roleGuard('Admin', 'Manager'), (req, res, next) => {
     logger.info(`Editing user with ID: ${req.params.id}`);
     UsersController.editUserById(req, res, next);
 });
 
-router.delete('/:id', auth.validate, auth.roleGuard('Admin', 'Manager'), (req, res, next) => {
+router.delete('/delete/:id', auth.validate, auth.roleGuard('Admin', 'Manager'), (req, res, next) => {
     logger.info(`Deleting user with ID: ${req.params.id}`);
     UsersController.deleteUserById(req, res, next);
 });
 
-router.patch('/assign-bins/:id', auth.validate, auth.roleGuard('Admin', 'Manager'), (req, res, next) => {
+router.patch('/assign-binlocations/:id', auth.validate, auth.roleGuard('Admin', 'Manager'), (req, res, next) => {
     logger.info(`Assigning bins to user with ID: ${req.params.id}`);
     UsersController.assignBins(req, res, next);
 });
