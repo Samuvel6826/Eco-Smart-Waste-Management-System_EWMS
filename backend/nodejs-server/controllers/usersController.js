@@ -1,45 +1,60 @@
 const sanitize = require('../common/Sanitize');
-const userModel = require('../models/usersModel');
+const UsersModel = require('../models/usersModel');
 const auth = require('../common/Auth');
+const { logger } = require('../utils/logger');
 
 // Helper functions for error handling
 const handleClientError = (res, message) => {
-    res.status(400).send({ message });
-};
-
-const handleServerError = (res, error) => {
-    console.error('Error:', error.message);
-    res.status(500).send({
-        message: 'Internal Server Error',
-        errorMessage: error.message,
+    logger.error(`Client Error: ${message}`);
+    res.status(400).json({
+        message,
+        error: {
+            code: 400,
+            detail: message
+        }
     });
 };
 
-const getUsers = async (req, res) => {
-    try {
-        const data = await userModel.find().sort({ _id: 1 });
+const handleServerError = (res, error) => {
+    logger.error('Server Error:', error.message);
+    res.status(500).json({
+        message: 'Internal Server Error',
+        error: {
+            code: 500,
+            detail: error.message
+        }
+    });
+};
 
-        res.status(200).send({
+const getAllUsers = async (req, res) => {
+    try {
+        const data = await UsersModel.find()
+            .sort({ employeeId: 1 })  // Sort by employeeId in ascending order
+            .select('-password');     // Exclude password from the response
+
+        res.status(200).json({
             data,
-            message: 'User Data Fetch Successful',
+            message: 'Users fetched successfully'
         });
     } catch (error) {
         handleServerError(res, error);
     }
 };
 
-const getUserById = async (req, res) => {
+const getUserByEmployeeId = async (req, res) => {
     try {
-        const userId = sanitize.isString(req.params.id);
-        const data = await userModel.findById(userId);
-        if (data) {
-            res.status(200).send({
-                data,
-                message: `User Data Fetch Successful for ${userId}`,
-            });
-        } else {
-            handleClientError(res, 'User not found with the provided ID');
+        const employeeId = sanitize.isString(req.query.employeeId);
+        const data = await UsersModel.findOne({ employeeId })
+            .select('-password');  // Exclude password from response
+
+        if (!data) {
+            return handleClientError(res, `User not found with employeeId: ${employeeId}`);
         }
+
+        res.status(200).json({
+            data,
+            message: `User fetched successfully with employeeId: ${employeeId}`
+        });
     } catch (error) {
         handleServerError(res, error);
     }
@@ -56,23 +71,30 @@ const createUser = async (req, res) => {
             phoneNumber,
             profilePic,
             assignedBinLocations,
-            employeeId // Make sure to include employeeId in your request
+            employeeId
         } = req.body;
 
-        // Check if any required fields are missing
+        // Validate required fields
         if (!firstName || !lastName || !email || !password || !role || !employeeId) {
             return handleClientError(res, 'Missing required fields: firstName, lastName, email, password, role, or employeeId');
         }
 
-        // Hash the password before saving
-        const hashedPassword = await auth.hashPassword(password);
+        // Check for existing user by email or employeeId
+        const existingUser = await UsersModel.findOne({
+            $or: [{ email }, { employeeId }]
+        });
 
-        const existingUser = await userModel.findOne({ email });
         if (existingUser) {
-            return handleClientError(res, `Email ${email} already exists`);
+            return handleClientError(res,
+                existingUser.email === email
+                    ? `Email ${email} already exists`
+                    : `Employee ID ${employeeId} already exists`
+            );
         }
 
-        await userModel.create({
+        const hashedPassword = await auth.hashPassword(password);
+
+        await UsersModel.create({
             firstName,
             lastName,
             email,
@@ -81,59 +103,66 @@ const createUser = async (req, res) => {
             role,
             password: hashedPassword,
             assignedBinLocations,
-            employeeId, // Include employeeId when creating the user
+            employeeId,
+            createdAt: new Date(),
+            updatedAt: new Date()
         });
 
-        res.status(201).send({
-            message: `User Created Successfully with ${employeeId}`,
+        res.status(201).json({
+            message: `User created successfully with employeeId: ${employeeId}`
         });
     } catch (error) {
         handleServerError(res, error);
     }
 };
 
-const editUserById = async (req, res) => {
+const editUserByEmployeeId = async (req, res) => {
     try {
-        const { firstName, lastName, email, role, phoneNumber, profilePic, assignedBinLocations } = req.body;
-        const userId = sanitize.isString(req.params.id);
+        const employeeId = sanitize.isString(req.query.employeeId);
+        const {
+            firstName,
+            lastName,
+            email,
+            role,
+            phoneNumber,
+            profilePic,
+            assignedBinLocations
+        } = req.body;
 
-        const user = await userModel.findById(userId);
-        if (user) {
-            // Update only fields that are provided
-            user.firstName = firstName || user.firstName;
-            user.lastName = lastName || user.lastName;
-            user.email = email || user.email;
-            user.role = role || user.role;
-            user.phoneNumber = phoneNumber || user.phoneNumber;
-            user.profilePic = profilePic || user.profilePic;
-            user.assignedBinLocations = assignedBinLocations || user.assignedBinLocations;
+        const updatedUser = await UsersModel.findOneAndUpdate(
+            { employeeId },
+            {
+                ...req.body,
+                updatedAt: new Date()
+            },
+            { new: true, runValidators: true }
+        ).select('-password');
 
-            await user.save();
-
-            res.status(200).send({
-                message: `User data Edited Successfully with ${userId}`,
-            });
-        } else {
-            handleClientError(res, 'User not found with the provided ID');
+        if (!updatedUser) {
+            return handleClientError(res, `User not found with employeeId: ${employeeId}`);
         }
+
+        res.status(200).json({
+            message: `User updated successfully with employeeId: ${employeeId}`,
+            data: updatedUser
+        });
     } catch (error) {
         handleServerError(res, error);
     }
 };
 
-const deleteUserById = async (req, res) => {
+const deleteUserByEmployeeId = async (req, res) => {
     try {
-        const userId = sanitize.isString(req.params.id);
-        const user = await userModel.findById(userId);
+        const employeeId = sanitize.isString(req.query.employeeId);
+        const deletedUser = await UsersModel.findOneAndDelete({ employeeId });
 
-        if (user) {
-            await userModel.deleteOne({ _id: userId });
-            res.status(200).send({
-                message: `User Deleted Successfully with ${userId} `,
-            });
-        } else {
-            handleClientError(res, 'User not found with the provided ID');
+        if (!deletedUser) {
+            return handleClientError(res, `User not found with employeeId: ${employeeId}`);
         }
+
+        res.status(200).json({
+            message: `User deleted successfully with employeeId: ${employeeId}`
+        });
     } catch (error) {
         handleServerError(res, error);
     }
@@ -143,27 +172,31 @@ const loginUser = async (req, res) => {
     try {
         const email = sanitize.isString(req.body.email);
         const password = sanitize.isString(req.body.password);
-        const user = await userModel.findOne({ email });
 
-        if (user) {
-            if (await auth.comparePassword(password, user.password)) {
-                const token = await auth.createToken({
-                    email: user.email,
-                    role: user.role,
-                    firstName: user.firstName,
-                    lastName: user.lastName,
-                });
-                res.status(200).send({
-                    message: 'Login Successful',
-                    token,
-                    role: user.role
-                });
-            } else {
-                handleClientError(res, 'Invalid password');
-            }
-        } else {
-            handleClientError(res, 'No user found with the provided email');
+        const user = await UsersModel.findOne({ email });
+
+        if (!user) {
+            return handleClientError(res, 'Invalid email or password');
         }
+
+        const isValidPassword = await auth.comparePassword(password, user.password);
+        if (!isValidPassword) {
+            return handleClientError(res, 'Invalid email or password');
+        }
+
+        const token = await auth.createToken({
+            email: user.email,
+            role: user.role,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            employeeId: user.employeeId
+        });
+
+        res.status(200).json({
+            message: 'Login successful',
+            token,
+            role: user.role
+        });
     } catch (error) {
         handleServerError(res, error);
     }
@@ -171,55 +204,73 @@ const loginUser = async (req, res) => {
 
 const changePassword = async (req, res) => {
     try {
-        const userId = sanitize.isString(req.params.id);
-        const password = sanitize.isString(req.body.password);
-        const user = await userModel.findById(userId);
+        const employeeId = sanitize.isString(req.query.employeeId);
+        const { password, confirmPassword } = req.body;
 
-        if (user) {
-            user.password = await auth.hashPassword(password);
-            await user.save();
-            res.status(200).send({
-                message: `Password Changed Successfully with ${userId}`,
-            });
-        } else {
-            handleClientError(res, 'User not found with the provided ID');
+        if (!password || !confirmPassword) {
+            return handleClientError(res, 'Password and confirm password are required');
         }
+
+        if (password !== confirmPassword) {
+            return handleClientError(res, 'Passwords do not match');
+        }
+
+        const user = await UsersModel.findOne({ employeeId: employeeId });
+        if (!user) {
+            return handleClientError(res, 'User not found with the provided employeeId');
+        }
+
+        user.password = await auth.hashPassword(password);
+        user.updatedAt = new Date();
+        await user.save();
+
+        res.status(200).json({
+            message: `Password changed successfully with employeeId: ${employeeId}`
+        });
     } catch (error) {
         handleServerError(res, error);
     }
 };
 
-const assignBins = async (req, res) => {
-    const { bins, supervisorId } = req.body;
-    const userId = sanitize.isString(req.params.id);
-
+const assignBinsByEmployeeId = async (req, res) => {
     try {
-        const user = await userModel.findByIdAndUpdate(
-            userId,
+        const { bins, supervisorId } = req.body;
+        const employeeId = sanitize.isString(req.query.employeeId);
+
+        if (!bins || !Array.isArray(bins)) {
+            return handleClientError(res, 'Invalid bins data');
+        }
+
+        const updatedUser = await UsersModel.findOneAndUpdate(
+            { employeeId },
             {
                 assignedBinLocations: bins,
-                supervisorId
+                supervisorId,
+                updatedAt: new Date()
             },
             { new: true, runValidators: true }
         );
 
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
+        if (!updatedUser) {
+            return handleClientError(res, `User not found with employeeId: ${employeeId}`);
         }
 
-        res.status(200).json({ message: `Bins assigned successfully with ${supervisorId}`, user });
+        res.status(200).json({
+            message: `Bins assigned successfully with employeeId: ${employeeId}`,
+            data: updatedUser
+        });
     } catch (error) {
-        res.status(500).json({ message: `Error assigning bins with ${supervisorId}`, error: error.message });
+        handleServerError(res, error);
     }
 };
 
 module.exports = {
-    getUsers,
-    getUserById,
+    getAllUsers,
+    getUserByEmployeeId,
     createUser,
-    editUserById,
-    deleteUserById,
+    editUserByEmployeeId,
+    deleteUserByEmployeeId,
     loginUser,
     changePassword,
-    assignBins
+    assignBinsByEmployeeId
 };

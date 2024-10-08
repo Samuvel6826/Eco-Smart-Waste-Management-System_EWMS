@@ -2,11 +2,12 @@ const express = require('express');
 const UsersController = require('../controllers/usersController');
 const router = express.Router();
 const auth = require('../common/Auth');
-const { logger } = require('../utils/logger'); // Import custom logger
+const { logger } = require('../utils/logger');
+const UsersRateLimiter = require('../middlewares/usersRateLimiter');
 
-// Middleware to handle errors
+// Error handling middleware
 const errorHandler = (err, req, res, next) => {
-    logger.error(`Error: ${err.message}`); // Replace console.error with logger.error
+    logger.error(`Error: ${err.message}`);
     const status = err.status || 500;
     const message = err.message || 'An unexpected error occurred. Please try again later.';
 
@@ -19,51 +20,85 @@ const errorHandler = (err, req, res, next) => {
     });
 };
 
-// Group user-related routes under /users
+// User management routes
+router.get('/list',
+    UsersRateLimiter.getAllUsersLimiter,
+    auth.validate,
+    auth.roleGuard('Admin', 'Manager'),
+    (req, res, next) => {
+        logger.info('Fetching all users');
+        UsersController.getAllUsers(req, res, next);
+    }
+);
 
-router.get('/list', auth.validate, auth.roleGuard('Admin', 'Manager'), (req, res, next) => {
-    logger.info('Fetching all users'); // Log the request details
-    UsersController.getUsers(req, res, next);
-});
+// Get user by employeeId
+router.get('/get/employeeId',
+    UsersRateLimiter.getUserByIdLimiter,
+    auth.validate,
+    (req, res, next) => {
+        logger.info(`Fetching user with employeeId: ${req.query.employeeId}`);
+        UsersController.getUserByEmployeeId(req, res, next);
+    }
+);
 
-router.get('/:id', auth.validate, (req, res, next) => {
-    logger.info(`Fetching user with ID: ${req.params.id}`);
-    UsersController.getUserById(req, res, next);
-}); // Authenticated access
+router.post('/create',
+    UsersRateLimiter.createUserLimiter,
+    (req, res, next) => {
+        logger.info('Creating a new user');
+        UsersController.createUser(req, res, next);
+    }
+);
 
-router.post('/create', (req, res, next) => {
-    logger.info('Creating a new user'); // Log the request action
-    UsersController.createUser(req, res, next);
-}); // Create a new user
+router.put('/edit/employeeId',
+    UsersRateLimiter.editUserLimiter,
+    auth.validate,
+    auth.roleGuard('Admin', 'Manager'),
+    (req, res, next) => {
+        logger.info(`Editing user with employeeId: ${req.query.employeeId}`);
+        UsersController.editUserByEmployeeId(req, res, next);
+    }
+);
 
-router.put('/edit/:id', auth.validate, auth.roleGuard('Admin', 'Manager'), (req, res, next) => {
-    logger.info(`Editing user with ID: ${req.params.id}`);
-    UsersController.editUserById(req, res, next);
-});
+router.delete('/delete/employeeId',
+    UsersRateLimiter.deleteUserLimiter,
+    auth.validate,
+    auth.roleGuard('Admin', 'Manager'),
+    (req, res, next) => {
+        logger.info(`Deleting user with employeeId: ${req.query.employeeId}`);
+        UsersController.deleteUserByEmployeeId(req, res, next);
+    }
+);
 
-router.delete('/delete/:id', auth.validate, auth.roleGuard('Admin', 'Manager'), (req, res, next) => {
-    logger.info(`Deleting user with ID: ${req.params.id}`);
-    UsersController.deleteUserById(req, res, next);
-});
-
-router.patch('/assign-binlocations/:id', auth.validate, auth.roleGuard('Admin', 'Manager'), (req, res, next) => {
-    logger.info(`Assigning bins to user with ID: ${req.params.id}`);
-    UsersController.assignBins(req, res, next);
-});
+router.patch('/assign-binlocations/employeeId',
+    UsersRateLimiter.assignBinsLimiter,
+    auth.validate,
+    auth.roleGuard('Admin', 'Manager'),
+    (req, res, next) => {
+        logger.info(`Assigning bins to user with employeeId: ${req.query.employeeId}`);
+        UsersController.assignBinsByEmployeeId(req, res, next);
+    }
+);
 
 // Authentication routes
+router.post('/login',
+    UsersRateLimiter.loginLimiter,
+    (req, res, next) => {
+        logger.info(`User login attempt: ${req.body.email}`);
+        UsersController.loginUser(req, res, next);
+    }
+);
 
-router.post('/login', (req, res, next) => {
-    logger.info(`User login attempt: ${req.body.email}`);
-    UsersController.loginUser(req, res, next);
-}); // User login
+router.put('/change-password/employeeId',
+    UsersRateLimiter.changePasswordLimiter,
+    auth.validate,
+    auth.roleGuard('Admin'),
+    (req, res, next) => {
+        logger.info(`Changing password for user with employeeId: ${req.query.employeeId}`);
+        UsersController.changePassword(req, res, next);
+    }
+);
 
-router.put('/change-password/:id', auth.validate, auth.roleGuard('Admin'), (req, res, next) => {
-    logger.info(`Changing password for user with ID: ${req.params.id}`);
-    UsersController.changePassword(req, res, next);
-}); // Admin access only
-
-// Add error handling middleware
+// Apply error handling middleware
 router.use(errorHandler);
 
 module.exports = router;

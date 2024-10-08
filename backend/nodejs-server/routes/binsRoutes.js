@@ -4,15 +4,7 @@ const BinsController = require('../controllers/binsController');
 const router = express.Router();
 const auth = require('../common/Auth');
 const { logger } = require('../utils/logger');
-const {
-    createBinLimiter,
-    sensorDistanceLimiter,
-    heartbeatLimiter,
-    getBinsLimiter,
-    getBinByIdLimiter,
-    editBinLimiter,
-    deleteBinLimiter
-} = require('../middlewares/rateLimiter');
+const BinsRateLimiter = require('../middlewares/binsRateLimiter');
 
 // Error handling middleware
 const errorHandler = (err, req, res, next) => {
@@ -29,44 +21,73 @@ const errorHandler = (err, req, res, next) => {
     });
 };
 
-// Bin-related routes with rate limiting
-router.post('/create', createBinLimiter, (req, res, next) => {
-    logger.info('Creating a new bin');
-    BinsController.createBin(req, res, next);
-});
+// Bin management routes
+router.get('/list',
+    BinsRateLimiter.getBinsLimiter,
+    auth.validate,
+    auth.roleGuard('Admin', 'Manager'),
+    (req, res, next) => {
+        logger.info('Fetching all bins');
+        BinsController.getBins(req, res, next);
+    }
+);
 
-router.patch('/sensor-distance', sensorDistanceLimiter, (req, res, next) => {
-    logger.info(`Updating sensor distance for bin: ${req.body.id} at location: ${req.body.binLocation}`);
-    BinsController.updateSensorDistance(req, res, next);
-});
+router.get('/getBinByLocationAndId',
+    BinsRateLimiter.getBinByIdLimiter,
+    auth.validate,
+    (req, res, next) => {
+        logger.info(`Fetching bin with location: ${req.query.location} and  ID: ${req.query.id}`);
+        BinsController.getBinByLocationAndId(req, res, next);
+    }
+);
 
-router.patch('/sensor-heartbeat', heartbeatLimiter, (req, res, next) => {
-    logger.info(`Updating heartbeat for bin: ${req.body.id} at location: ${req.body.binLocation}`);
-    BinsController.updateHeartbeat(req, res, next);
-});
+router.post('/create',
+    BinsRateLimiter.createBinLimiter,
+    auth.validate,
+    auth.roleGuard('Admin', 'Manager'),
+    (req, res, next) => {
+        logger.info('Creating a new bin');
+        BinsController.createBin(req, res, next);
+    }
+);
 
-router.get('/list', getBinsLimiter, (req, res, next) => {
-    logger.info('Fetching all bins');
-    BinsController.getBins(req, res, next);
-});
+router.put('/edit',
+    BinsRateLimiter.editBinLimiter,
+    auth.validate,
+    auth.roleGuard('Admin', 'Manager'),
+    (req, res, next) => {
+        logger.info(`Editing bin with location: ${req.query.location} and  ID: ${req.query.id}`);
+        BinsController.editBinByLocationAndId(req, res, next);
+    }
+);
 
-router.get('/', getBinByIdLimiter, (req, res, next) => {
-    const { location, id } = req.query;
-    logger.info(`Fetching bin with ID: ${id} at location: ${location}`);
-    BinsController.getBinByLocationAndId(req, res, next);
-});
+router.delete('/delete',
+    BinsRateLimiter.deleteBinLimiter,
+    auth.validate,
+    auth.roleGuard('Admin', 'Manager'),
+    (req, res, next) => {
+        logger.info(`Deleting bin with location: ${req.query.location} and  ID: ${req.query.id}`);
+        BinsController.deleteBinByLocationAndId(req, res, next);
+    }
+);
 
-router.put('/edit', editBinLimiter, (req, res, next) => {
-    const { location, id } = req.query;
-    logger.info(`Editing bin with ID: ${id} at location: ${location}`);
-    BinsController.editBinByLocationAndId(req, res, next);
-});
+router.patch('/sensor-distance',
+    BinsRateLimiter.sensorDistanceLimiter,
+    auth.validate,
+    (req, res, next) => {
+        logger.info(`Updating sensor distance for bin location: ${req.query.location} and ID: ${req.query.id}`);
+        BinsController.updateSensorDistance(req, res, next);
+    }
+);
 
-router.delete('/delete', deleteBinLimiter, (req, res, next) => {
-    const { location, id } = req.query;
-    logger.info(`Deleting bin with ID: ${id} at location: ${location}`);
-    BinsController.deleteBinByLocationAndId(req, res, next);
-});
+router.patch('/sensor-heartbeat',
+    BinsRateLimiter.heartbeatLimiter,
+    auth.validate,
+    (req, res, next) => {
+        logger.info(`Updating heartbeat for bin location: ${req.query.location} and ID: ${req.query.id}`);
+        BinsController.updateHeartbeat(req, res, next);
+    }
+);
 
 // Apply error handling middleware
 router.use(errorHandler);
