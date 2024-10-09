@@ -1,13 +1,9 @@
 import { Navigate } from "react-router-dom";
-import { useUserAuth } from "../../contexts/UserAuthContext";
+import { useAuth } from "../../contexts/AuthContext";
 
 const ProtectedRoute = ({ children }) => {
-    const { user, loading, error } = useUserAuth();
+    const { user, loading, error } = useAuth();
 
-    // Debugging: Check the user object
-    // console.log("Check user in ProtectedRoute: ", user);
-
-    // If loading, show a loading indicator
     if (loading) {
         return (
             <div className="flex h-screen items-center justify-center">
@@ -18,9 +14,10 @@ const ProtectedRoute = ({ children }) => {
         );
     }
 
-    // If there is an error, display an error message or redirect accordingly
+    // If an error occurred during authentication, show error message
     if (error) {
-        return <Navigate to="/error" />; // Change this to show an error message if needed
+        console.error("Error in authentication: ", error);
+        return <Navigate to="/error" />;
     }
 
     // If user is not authenticated, redirect to the login page
@@ -28,7 +25,7 @@ const ProtectedRoute = ({ children }) => {
         return <Navigate to="/login" />;
     }
 
-    // Render children if user is authenticated
+    // If authenticated, render the children components
     return children;
 };
 

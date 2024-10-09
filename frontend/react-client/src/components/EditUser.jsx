@@ -15,8 +15,8 @@ import {
     Typography,
 } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useUserAuth } from '../contexts/UserAuthContext';
-import { useUserContext } from '../contexts/UserContext';
+import { useUserAuth } from '../contexts/AuthContext';
+import { useUserContext } from '../contexts/UsersContext';
 import axios from 'axios';
 import Navbar from './common/Navbar';
 

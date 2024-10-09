@@ -8,9 +8,9 @@ import { Toaster } from 'react-hot-toast';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import ScrollToTopButton from './components/common/ScrollTopBtn';
 import ProtectedRoute from "./components/authentication/ProtectedRoute";
-import { UserAuthContextProvider } from "./contexts/UserAuthContext";
-import { BinProvider } from './contexts/BinContext'; // Adjust the path as necessary
-import { UserProvider } from './contexts/UserContext'; // Adjust the path as necessary
+import { AuthProvider } from "./contexts/AuthContext";
+import { BinsProvider } from './contexts/BinsContext'; // Adjust the path as necessary
+import { UsersProvider } from './contexts/UsersContext'; // Adjust the path as necessary
 
 // Lazy-load components
 const Login = lazy(() => import('./components/authentication/Login'));
@@ -30,9 +30,9 @@ function App() {
 
   return (
     <Router>
-      <UserAuthContextProvider>
-        <UserProvider>
-          <BinProvider>
+      <AuthProvider>
+        <UsersProvider>
+          <BinsProvider>
             <main id='App'>
               <Suspense fallback={<PreLoader />}>
                 {/* Scroll To Top Button for better UX */}
@@ -121,9 +121,9 @@ function App() {
                 </ErrorBoundary>
               </Suspense>
             </main>
-          </BinProvider>
-        </UserProvider>
-      </UserAuthContextProvider>
+          </BinsProvider>
+        </UsersProvider>
+      </AuthProvider>
     </Router>
   );
 }

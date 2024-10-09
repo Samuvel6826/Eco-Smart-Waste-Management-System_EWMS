@@ -35,6 +35,7 @@ router.get('/list',
 router.get('/get/employeeId',
     UsersRateLimiter.getUserByIdLimiter,
     auth.validate,
+    auth.roleGuard('Admin', 'Manager'),
     (req, res, next) => {
         logger.info(`Fetching user with employeeId: ${req.query.employeeId}`);
         UsersController.getUserByEmployeeId(req, res, next);
@@ -43,6 +44,8 @@ router.get('/get/employeeId',
 
 router.post('/create',
     UsersRateLimiter.createUserLimiter,
+    auth.validate,
+    auth.roleGuard('Admin', 'Manager', 'Technician'),
     (req, res, next) => {
         logger.info('Creating a new user');
         UsersController.createUser(req, res, next);

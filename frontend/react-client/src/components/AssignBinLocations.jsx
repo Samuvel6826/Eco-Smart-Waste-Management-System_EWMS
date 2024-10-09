@@ -17,34 +17,35 @@ import {
     IconButton,
 } from '@mui/material';
 import { toast } from 'react-hot-toast';
-import { useUserAuth } from '../contexts/UserAuthContext';
-import { useUserContext } from '../contexts/UserContext';
-import { useBinContext } from '../contexts/BinContext';
-import axios from 'axios';
+import { useUserAuth } from '../contexts/AuthContext';
+import { useUserContext } from '../contexts/UsersContext';
+import { useBinContext } from '../contexts/BinsContext';
 import ClearIcon from '@mui/icons-material/Clear';
 
-function AssignBinLocations({ open, onClose, userId, refreshData }) {
+function AssignBinLocations({ open, onClose, refreshData }) {
     const { logOut } = useUserAuth();
     const { users } = useUserContext();
-    const { bins, loading, error, fetchAllBinData } = useBinContext();
+    const { bins, loading, error, fetchAllBinData, assignBinsToSupervisor } = useBinContext();
 
     const [selectedBins, setSelectedBins] = useState([]);
     const [supervisorId, setSupervisorId] = useState('');
     const [loadingAssign, setLoadingAssign] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
-    const token = sessionStorage.getItem('token');
 
+    // Filter the supervisors from the user context
     const supervisors = useMemo(
         () => users.filter(user => user.role === 'Supervisor'),
         [users]
     );
 
+    // Fetch bin data only if the dialog is opened
     useEffect(() => {
         if (open) {
-            fetchAllBinData();
+            fetchAllBinData(); // Fetch bin data using the context function
         }
     }, [open, fetchAllBinData]);
 
+    // Assign selected bins to the chosen supervisor
     const handleAssignBins = async () => {
         if (!supervisorId) {
             toast.error('Please select a supervisor.');
@@ -57,25 +58,15 @@ function AssignBinLocations({ open, onClose, userId, refreshData }) {
 
         setLoadingAssign(true);
         try {
-            const res = await axios.patch(
-                `${import.meta.env.VITE_SERVER_HOST_URL}/assign-bins/${supervisorId}`,
-                { bins: selectedBins },
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
-
-            if (res.status === 200) {
-                toast.success(res.data.message);
-                refreshData();
-                onClose();
-            }
+            // Use the context function to assign bins
+            const successMessage = await assignBinsToSupervisor(supervisorId, selectedBins);
+            toast.success(successMessage);
+            refreshData();
+            onClose();
         } catch (error) {
             console.error('Error assigning bins:', error);
-            toast.error(error.response?.data?.message || 'An error occurred. Please try again.');
-            if (error.response?.status === 401) {
+            toast.error(error.message || 'An error occurred. Please try again.');
+            if (error.status === 401) {
                 logOut();
             }
         } finally {
@@ -83,27 +74,15 @@ function AssignBinLocations({ open, onClose, userId, refreshData }) {
         }
     };
 
+    // Bin locations available for assignment
     const binLocations = useMemo(() => Object.keys(bins), [bins]);
 
     // Filtered bin locations based on the search term
     const filteredBins = useMemo(() => {
-        // Prioritize unassigned bins
-        const prioritizedBins = binLocations.filter(location => {
-            // Assuming `bins` object has a structure where we can check if a location is assigned
-            return !bins[location].assignedTo; // Change this based on your actual data structure
-        });
+        const prioritizedBins = binLocations.filter(location => !bins[location].assignedTo);
+        const assignedBins = binLocations.filter(location => bins[location].assignedTo);
 
-        const assignedBins = binLocations.filter(location => {
-            return bins[location].assignedTo; // Change this based on your actual data structure
-        });
-
-        // Combine prioritized and assigned, then sort
-        const sortedBins = [
-            ...prioritizedBins.sort(),
-            ...assignedBins.sort(),
-        ];
-
-        return sortedBins.filter(location =>
+        return [...prioritizedBins.sort(), ...assignedBins.sort()].filter(location =>
             location.toLowerCase().includes(searchTerm.toLowerCase())
         );
     }, [searchTerm, binLocations, bins]);
@@ -162,22 +141,19 @@ function AssignBinLocations({ open, onClose, userId, refreshData }) {
                         borderColor="grey.300"
                         borderRadius={2}
                         p={1}
-                        maxHeight={200} // Set max height
-                        overflow="auto" // Enable scrolling
+                        maxHeight={200}
+                        overflow="auto"
                     >
                         {filteredBins.length > 0 ? (
-                            filteredBins.slice(0, 7).map((location) => ( // Limit to 7 locations
+                            filteredBins.map((location) => (
                                 <Box
                                     key={location}
                                     onClick={() => {
-                                        setSelectedBins((prev) => {
-                                            // Toggle selection
-                                            if (prev.includes(location)) {
-                                                return prev.filter(bin => bin !== location);
-                                            } else {
-                                                return [...prev, location];
-                                            }
-                                        });
+                                        setSelectedBins((prev) =>
+                                            prev.includes(location)
+                                                ? prev.filter(bin => bin !== location)
+                                                : [...prev, location]
+                                        );
                                     }}
                                     display="flex"
                                     justifyContent="space-between"
@@ -205,11 +181,7 @@ function AssignBinLocations({ open, onClose, userId, refreshData }) {
             </DialogContent>
             <DialogActions>
                 <Button onClick={onClose} color="secondary">Cancel</Button>
-                <Button
-                    onClick={handleAssignBins}
-                    color="primary"
-                    disabled={loadingAssign}
-                >
+                <Button onClick={handleAssignBins} color="primary" disabled={loadingAssign}>
                     {loadingAssign ? <CircularProgress size={24} /> : 'Assign'}
                 </Button>
             </DialogActions>

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useUserAuth } from "./UserAuthContext";
+import { useUserAuth } from "./AuthContext";
 import toast, { Toaster } from "react-hot-toast";
 
 const Signup = () => {

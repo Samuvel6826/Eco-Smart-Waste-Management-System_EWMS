@@ -5,7 +5,7 @@ import Navbar from './common/Navbar';
 import { Button, TextField, Container, Typography, CircularProgress, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { useUserContext } from '../contexts/UserContext'; // Import UserContext
+import { useUserContext } from '../contexts/UsersContext'; // Import UserContext
 
 // Validation schema using Yup
 const validationSchema = Yup.object().shape({

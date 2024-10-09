@@ -74,6 +74,8 @@ router.delete('/delete',
 router.patch('/sensor-distance',
     BinsRateLimiter.sensorDistanceLimiter,
     auth.validate,
+    auth.roleGuard('Admin', 'Technician'),
+
     (req, res, next) => {
         logger.info(`Updating sensor distance for bin location: ${req.query.location} and ID: ${req.query.id}`);
         BinsController.updateSensorDistance(req, res, next);
@@ -83,6 +85,7 @@ router.patch('/sensor-distance',
 router.patch('/sensor-heartbeat',
     BinsRateLimiter.heartbeatLimiter,
     auth.validate,
+    auth.roleGuard('Admin', 'Technician'),
     (req, res, next) => {
         logger.info(`Updating heartbeat for bin location: ${req.query.location} and ID: ${req.query.id}`);
         BinsController.updateHeartbeat(req, res, next);

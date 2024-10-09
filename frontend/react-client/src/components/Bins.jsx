@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { toast, Toaster } from 'react-hot-toast';
 import Navbar from './common/Navbar';
 import Bin from './Bin';
-import { useBinContext } from '../contexts/BinContext';
+import { useBinContext } from '../contexts/BinsContext';
 
 const Bins = () => {
   const { bins, locations, binLoading, binError, deleteBin } = useBinContext();

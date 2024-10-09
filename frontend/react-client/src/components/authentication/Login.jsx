@@ -3,8 +3,8 @@ import { Formik, Field, Form, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import toast, { Toaster } from 'react-hot-toast';
-import { useUserAuth } from '../../contexts/UserAuthContext'; // Import the hook
+import { toast } from 'react-hot-toast';
+import { useAuth } from '../../contexts/AuthContext'; // Import the hook
 import { decodeToken } from './authUtils'; // Import the decodeToken function
 
 // Define the validation schema for the login form using Yup
@@ -44,13 +44,13 @@ const DemoLoginButton = ({ role, isLoading, onClick, children, color }) => (
 function Login() {
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
-    const { setUser } = useUserAuth(); // Access setUser from context
+    const { setUser } = useAuth(); // Access setUser from context
 
     // Function to handle the login process
     const handleLogin = async (values) => {
         try {
             setIsLoading(true);
-            const res = await axios.post(`${import.meta.env.VITE_SERVER_HOST_URL}/login`, values);
+            const res = await axios.post(`${import.meta.env.VITE_SERVER_HOST_URL}/api/user/login`, values);
 
             if (res.status === 200) {
                 sessionStorage.setItem('token', res.data.token);
@@ -63,6 +63,7 @@ function Login() {
             }
         } catch (error) {
             setIsLoading(false); // Ensure loading state is reset
+            console.log('Logging in with:', values);
             console.error("Login error: ", error); // Log the full error
             toast.error(error.response?.data?.message || 'Login failed. Please try again.');
         } finally {
@@ -84,7 +85,7 @@ function Login() {
 
     return (
         <div id="loginCTN" className="flex min-h-screen flex-col items-center justify-center bg-gray-50">
-            <Toaster /> {/* Include the Toaster for toast notifications */}
+
             <div id="loginBorder" className="w-full max-w-md rounded-lg bg-white p-6 shadow-md">
                 <div id="loginImgCTN" className="mb-4 flex justify-center">
                     <img

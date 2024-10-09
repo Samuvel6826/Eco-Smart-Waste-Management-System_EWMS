@@ -5,7 +5,7 @@ import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { database, ref, set } from '../firebase.config';
 import { TextField, Button, Container, Typography, CircularProgress, MenuItem, Autocomplete, Tooltip } from '@mui/material';
-import { useBinContext } from '../contexts/BinContext';
+import { useBinContext } from '../contexts/BinsContext';
 import Navbar from './common/Navbar';
 
 const CreateBin = () => {
