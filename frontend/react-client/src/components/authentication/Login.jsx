@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
 import { Formik, Field, Form, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import { useAuth } from '../../contexts/AuthContext'; // Import the hook
-import { decodeToken } from './authUtils'; // Import the decodeToken function
+import { useAuth } from '../../contexts/AuthContext'; // Ensure the path is correct
 
 // Define the validation schema for the login form using Yup
 const LoginSchema = Yup.object().shape({
@@ -44,27 +42,17 @@ const DemoLoginButton = ({ role, isLoading, onClick, children, color }) => (
 function Login() {
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
-    const { setUser } = useAuth(); // Access setUser from context
+    const { login } = useAuth(); // Use login method from context
 
     // Function to handle the login process
     const handleLogin = async (values) => {
         try {
             setIsLoading(true);
-            const res = await axios.post(`${import.meta.env.VITE_SERVER_HOST_URL}/api/user/login`, values);
-
-            if (res.status === 200) {
-                sessionStorage.setItem('token', res.data.token);
-
-                // Decode the token to get user info
-                const decodedUser = decodeToken(res.data.token); // Ensure decodeToken is available
-                setUser(decodedUser); // Set user in context
-                toast.success(res.data.message);
-                navigate(res.data.role === 'Admin' ? '/dashboard' : '/users/bins');
-            }
+            const decodedUser = await login(values.email, values.password); // Use the login method
+            toast.success('Login successful!');
+            navigate(decodedUser.role === 'Admin' ? '/dashboard' : '/users/bins');
         } catch (error) {
-            setIsLoading(false); // Ensure loading state is reset
-            console.log('Logging in with:', values);
-            console.error("Login error: ", error); // Log the full error
+            console.error("Login error: ", error);
             toast.error(error.response?.data?.message || 'Login failed. Please try again.');
         } finally {
             setIsLoading(false);
@@ -72,7 +60,7 @@ function Login() {
     };
 
     // Demo account login handler
-    const handleDemoLogin = async (role, setFieldValue) => {
+    const handleDemoLogin = (role, setFieldValue) => {
         const demoCredentials = {
             Admin: { email: 'samuvel6826@gmail.com', password: '1' },
             Manager: { email: 'jenitharajan029@gmail.com', password: '1' },
@@ -85,7 +73,6 @@ function Login() {
 
     return (
         <div id="loginCTN" className="flex min-h-screen flex-col items-center justify-center bg-gray-50">
-
             <div id="loginBorder" className="w-full max-w-md rounded-lg bg-white p-6 shadow-md">
                 <div id="loginImgCTN" className="mb-4 flex justify-center">
                     <img

@@ -1,23 +1,25 @@
+// AuthContext.js
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
-import { decodeToken } from '../components/authentication/authUtils'; // Assume this utility function exists
+import { decodeToken } from '../components/authentication/authUtils'; // Adjust the path as necessary
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null); // Added error state
 
     useEffect(() => {
         const token = sessionStorage.getItem('token');
         if (token) {
-            // Instead of verifying, we'll decode the token and set the user
             try {
                 const decodedUser = decodeToken(token);
                 setUser(decodedUser);
             } catch (error) {
                 console.error('Invalid token:', error);
                 sessionStorage.removeItem('token');
+                setError(error); // Set error state
             }
         }
         setLoading(false);
@@ -30,9 +32,11 @@ export const AuthProvider = ({ children }) => {
             sessionStorage.setItem('token', token);
             const decodedUser = decodeToken(token);
             setUser(decodedUser);
+            setError(null); // Clear error on successful login
             return decodedUser;
         } catch (error) {
             console.error('Login failed:', error);
+            setError(error); // Set error state
             throw error;
         }
     };
@@ -40,10 +44,11 @@ export const AuthProvider = ({ children }) => {
     const logout = () => {
         sessionStorage.removeItem('token');
         setUser(null);
+        setError(null); // Clear error on logout
     };
 
     return (
-        <AuthContext.Provider value={{ user, loading, login, logout }}>
+        <AuthContext.Provider value={{ user, loading, error, setUser, login, logout }}>
             {children}
         </AuthContext.Provider>
     );

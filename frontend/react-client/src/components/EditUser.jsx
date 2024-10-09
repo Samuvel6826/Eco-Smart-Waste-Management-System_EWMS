@@ -1,273 +1,259 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
+import Navbar from './common/Navbar';
 import {
     Button,
-    CircularProgress,
-    Snackbar,
-    Alert,
     TextField,
-    Select,
-    MenuItem,
+    Container,
+    Typography,
+    CircularProgress,
     FormControl,
     InputLabel,
-    Box,
-    Typography,
+    Select,
+    MenuItem,
 } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useUserAuth } from '../contexts/AuthContext';
-import { useUserContext } from '../contexts/UsersContext';
-import axios from 'axios';
-import Navbar from './common/Navbar';
+import { useUsersContext } from '../contexts/UsersContext';
+import { toast } from 'react-hot-toast';
 
-// Validation schema
+// Validation schema for form fields
 const validationSchema = Yup.object().shape({
+    employeeId: Yup.string().required('Employee ID is required'),
     firstName: Yup.string().required('First Name is required'),
     lastName: Yup.string().required('Last Name is required'),
-    email: Yup.string().email('Invalid email format').required('Email is required'),
-    phoneNumber: Yup.string().matches(/^\d{10}$/, 'Phone number must be 10 digits'),
+    email: Yup.string().email('Invalid email').required('Email is required'),
     role: Yup.string().required('Role is required'),
-    assignedBinLocations: Yup.array().of(Yup.string()).min(1, 'At least one bin location is required'),
-    profilePic: Yup.string().url('Must be a valid URL').required('Profile picture URL is required'),
+    phoneNumber: Yup.string(),
+    profilePic: Yup.string().url('Must be a valid URL'),
+    userDesc: Yup.string(),
 });
 
+// Available role options for user selection
+const roleOptions = ['Admin', 'Manager', 'Supervisor', 'Technician'];
+
 function EditUser() {
-    const { logout, user } = useUserAuth();
-    const { fetchUsers } = useUserContext();
     const navigate = useNavigate();
-    const { id } = useParams();
+    const { id } = useParams(); // Get user ID from URL parameters
+    const { users, loading, error, editUser } = useUsersContext(); // Extract context values
 
-    const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
-    const [isLoading, setIsLoading] = useState(true);
+    // Initial values for the form
+    const [initialValues, setInitialValues] = useState({
+        employeeId: '',
+        firstName: '',
+        lastName: '',
+        email: '',
+        role: '',
+        phoneNumber: '',
+        profilePic: '',
+        userDesc: '',
+    });
 
-    // Fetch user data
-    const fetchUserData = useCallback(async () => {
-        try {
-            setIsLoading(true);
-            const response = await axios.get(`${import.meta.env.VITE_SERVER_HOST_URL}/${id}`, {
-                headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` },
-            });
-            const userData = response.data.data;
-            formik.setValues({
-                firstName: userData.firstName,
-                lastName: userData.lastName,
-                email: userData.email,
-                phoneNumber: userData.phoneNumber || '',
-                role: userData.role,
-                assignedBinLocations: userData.assignedBinLocations || [],
-                profilePic: userData.profilePic || '',
-                employeeId: userData.employeeId || id,
-            });
-        } catch (error) {
-            console.error('Error fetching user data:', error);
-            setSnackbar({
-                open: true,
-                message: 'Failed to fetch user data. Please try again.',
-                severity: 'error',
-            });
-        } finally {
-            setIsLoading(false);
-        }
-    }, [id]);
-
+    // Fetch user data based on user ID from URL
     useEffect(() => {
-        fetchUserData();
-    }, [fetchUserData]);
+        const fetchUserData = async () => {
+            // Commented out console logs for debugging
+            // console.log('Users:', users); 
+            // console.log('User ID from URL:', id);
 
-    const formik = useFormik({
-        initialValues: {
-            firstName: '',
-            lastName: '',
-            email: '',
-            phoneNumber: '',
-            role: '',
-            assignedBinLocations: [],
-            profilePic: '',
-            employeeId: id,
-        },
-        validationSchema,
-        onSubmit: async (values) => {
-            try {
-                setIsLoading(true);
-                const response = await axios.put(
-                    `${import.meta.env.VITE_SERVER_HOST_URL}/${id}`,
-                    values,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${sessionStorage.getItem('token')}`,
-                            'Content-Type': 'application/json',
-                        },
-                    }
-                );
+            // Find the user in the users array
+            const user = users.find((u) => u.employeeId === id);
+            // console.log('Found User:', user);
 
-                if (response.status === 200) {
-                    setSnackbar({
-                        open: true,
-                        message: 'User updated successfully!',
-                        severity: 'success',
-                    });
-                    fetchUsers();
-                    navigate('/dashboard');
-                }
-            } catch (error) {
-                console.error('Error updating user:', error);
-                setSnackbar({
-                    open: true,
-                    message: 'Error updating user. Please try again.',
-                    severity: 'error',
+            if (user) {
+                // Set the initial values for the form
+                setInitialValues({
+                    employeeId: user.employeeId,
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    email: user.email,
+                    role: user.role,
+                    phoneNumber: user.phoneNumber || '',
+                    profilePic: user.profilePic || '',
+                    userDesc: user.userDesc || '',
                 });
+            } else {
+                // Show an error message and redirect if user not found
+                toast.error('User not found!');
+                navigate('/dashboard'); // Redirect to dashboard if user not found
+            }
+        };
+
+        fetchUserData();
+    }, [users, id, navigate]);
+
+    // Formik hook for managing form state and validation
+    const formik = useFormik({
+        initialValues,
+        validationSchema,
+        enableReinitialize: true, // Reinitialize form with new values
+        onSubmit: async (values, { setSubmitting }) => {
+            try {
+                setSubmitting(true);
+                await editUser(id, values); // Update user with new values
+                toast.success('User updated successfully!');
+                navigate('/dashboard'); // Redirect after successful update
+            } catch (error) {
+                console.error('Error in onSubmit:', error);
+                toast.error('Failed to update user. Please try again.'); // Show error message
             } finally {
-                setIsLoading(false);
+                setSubmitting(false); // Reset submitting state
             }
         },
     });
 
-    if (isLoading) {
-        return <CircularProgress />;
+    // Show loading spinner while data is being fetched
+    if (loading) {
+        return (
+            <Container maxWidth="sm" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+                <CircularProgress />
+            </Container>
+        );
+    }
+
+    // Show error message if there's an error fetching data
+    if (error) {
+        return (
+            <Container maxWidth="sm" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+                <Typography color="error">Error: {error}</Typography>
+            </Container>
+        );
     }
 
     return (
-        <Box className="min-h-screen bg-gray-100">
-            <Navbar />
-            <Box className="container mx-auto py-10">
-                <Box className="mx-auto max-w-3xl rounded-lg bg-white p-6 shadow-lg">
-                    <Typography variant="h4" className="mb-4 text-center font-bold text-gray-800">
-                        Edit User Information
-                    </Typography>
-                    <form onSubmit={formik.handleSubmit}>
-                        <TextField
-                            fullWidth
-                            id="employeeId"
-                            name="employeeId"
-                            label="Employee ID"
-                            value={formik.values.employeeId}
-                            margin="normal"
-                            InputProps={{
-                                readOnly: true,
-                            }}
-                        />
-                        <TextField
-                            fullWidth
-                            id="firstName"
-                            name="firstName"
-                            label="First Name"
-                            value={formik.values.firstName}
+        <div>
+            <Navbar title={'Edit User'} /> {/* Navigation bar with title */}
+            <Typography variant="h4" align="center" margin="1rem 0">
+                Edit User
+            </Typography>
+            <Container maxWidth="sm" style={{ backgroundColor: '#f5f5f5', padding: '2rem', borderRadius: '8px' }}>
+                <form onSubmit={formik.handleSubmit}>
+                    {/* Form fields for user details */}
+                    <TextField
+                        fullWidth
+                        margin="normal"
+                        label="Employee ID"
+                        variant="outlined"
+                        name="employeeId"
+                        value={formik.values.employeeId}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        error={formik.touched.employeeId && Boolean(formik.errors.employeeId)}
+                        helperText={formik.touched.employeeId && formik.errors.employeeId}
+                        InputProps={{
+                            readOnly: true, // Make this field read-only
+                        }}
+                    />
+
+                    <TextField
+                        fullWidth
+                        margin="normal"
+                        label="First Name"
+                        variant="outlined"
+                        name="firstName"
+                        value={formik.values.firstName}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        error={formik.touched.firstName && Boolean(formik.errors.firstName)}
+                        helperText={formik.touched.firstName && formik.errors.firstName}
+                    />
+
+                    <TextField
+                        fullWidth
+                        margin="normal"
+                        label="Last Name"
+                        variant="outlined"
+                        name="lastName"
+                        value={formik.values.lastName}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        error={formik.touched.lastName && Boolean(formik.errors.lastName)}
+                        helperText={formik.touched.lastName && formik.errors.lastName}
+                    />
+
+                    <TextField
+                        fullWidth
+                        margin="normal"
+                        label="Email"
+                        variant="outlined"
+                        name="email"
+                        value={formik.values.email}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        error={formik.touched.email && Boolean(formik.errors.email)}
+                        helperText={formik.touched.email && formik.errors.email}
+                    />
+
+                    <FormControl fullWidth margin="normal" variant="outlined" error={formik.touched.role && Boolean(formik.errors.role)}>
+                        <InputLabel>Role</InputLabel>
+                        <Select
+                            name="role"
+                            value={formik.values.role}
                             onChange={formik.handleChange}
-                            error={formik.touched.firstName && Boolean(formik.errors.firstName)}
-                            helperText={formik.touched.firstName && formik.errors.firstName}
-                            margin="normal"
-                        />
-                        <TextField
-                            fullWidth
-                            id="lastName"
-                            name="lastName"
-                            label="Last Name"
-                            value={formik.values.lastName}
-                            onChange={formik.handleChange}
-                            error={formik.touched.lastName && Boolean(formik.errors.lastName)}
-                            helperText={formik.touched.lastName && formik.errors.lastName}
-                            margin="normal"
-                        />
-                        <TextField
-                            fullWidth
-                            id="email"
-                            name="email"
-                            label="Email"
-                            value={formik.values.email}
-                            onChange={formik.handleChange}
-                            error={formik.touched.email && Boolean(formik.errors.email)}
-                            helperText={formik.touched.email && formik.errors.email}
-                            margin="normal"
-                        />
-                        <TextField
-                            fullWidth
-                            id="phoneNumber"
-                            name="phoneNumber"
-                            label="Phone Number"
-                            value={formik.values.phoneNumber}
-                            onChange={formik.handleChange}
-                            error={formik.touched.phoneNumber && Boolean(formik.errors.phoneNumber)}
-                            helperText={formik.touched.phoneNumber && formik.errors.phoneNumber}
-                            margin="normal"
-                        />
-                        <FormControl fullWidth margin="normal">
-                            <InputLabel id="role-label">Role</InputLabel>
-                            <Select
-                                labelId="role-label"
-                                id="role"
-                                name="role"
-                                value={formik.values.role}
-                                onChange={formik.handleChange}
-                                error={formik.touched.role && Boolean(formik.errors.role)}
-                            >
-                                <MenuItem value="Admin">Admin</MenuItem>
-                                <MenuItem value="Manager">Manager</MenuItem>
-                                <MenuItem value="Supervisor">Supervisor</MenuItem>
-                            </Select>
-                        </FormControl>
-                        <TextField
-                            fullWidth
-                            id="assignedBinLocations"
-                            name="assignedBinLocations"
-                            label="Assigned Bin Locations"
-                            value={formik.values.assignedBinLocations.join(', ')}
-                            margin="normal"
-                            InputProps={{
-                                readOnly: true,
-                            }}
-                        />
-                        <Box className="mb-6">
-                            <Typography variant="subtitle1" className="mb-1 font-medium text-gray-700">
-                                Profile Picture
-                            </Typography>
-                            {formik.values.profilePic && (
-                                <Box mt={2} mb={2}>
-                                    <img
-                                        src={formik.values.profilePic}
-                                        alt="Profile Preview"
-                                        style={{ width: '100px', height: '100px', objectFit: 'cover' }}
-                                    />
-                                </Box>
-                            )}
-                            <TextField
-                                fullWidth
-                                id="profilePic"
-                                name="profilePic"
-                                label="Profile Picture URL"
-                                value={formik.values.profilePic}
-                                onChange={formik.handleChange}
-                                error={formik.touched.profilePic && Boolean(formik.errors.profilePic)}
-                                helperText={formik.touched.profilePic && formik.errors.profilePic}
-                                margin="normal"
-                            />
-                        </Box>
-                        <Box className="mt-6 flex justify-center">
-                            <Button
-                                type="submit"
-                                variant="contained"
-                                color="primary"
-                                disabled={formik.isSubmitting || isLoading}
-                                className="mr-4"
-                            >
-                                {formik.isSubmitting || isLoading ? <CircularProgress size={24} /> : 'Update User'}
-                            </Button>
-                            <Button variant="outlined" onClick={() => navigate('/dashboard')}>
-                                Cancel
-                            </Button>
-                        </Box>
-                    </form>
-                </Box>
-            </Box>
-            <Snackbar
-                open={snackbar.open}
-                autoHideDuration={6000}
-                onClose={() => setSnackbar({ ...snackbar, open: false })}
-            >
-                <Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity}>
-                    {snackbar.message}
-                </Alert>
-            </Snackbar>
-        </Box>
+                            onBlur={formik.handleBlur}
+                            label="Role"
+                        >
+                            {roleOptions.map((role) => (
+                                <MenuItem key={role} value={role}>
+                                    {role}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                        {formik.touched.role && formik.errors.role && (
+                            <div className="error" style={{ color: 'red', marginTop: '0.5rem' }}>
+                                {formik.errors.role}
+                            </div>
+                        )}
+                    </FormControl>
+
+                    <TextField
+                        fullWidth
+                        margin="normal"
+                        label="Phone Number"
+                        variant="outlined"
+                        name="phoneNumber"
+                        value={formik.values.phoneNumber}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        error={formik.touched.phoneNumber && Boolean(formik.errors.phoneNumber)}
+                        helperText={formik.touched.phoneNumber && formik.errors.phoneNumber}
+                    />
+
+                    <TextField
+                        fullWidth
+                        margin="normal"
+                        label="Profile Picture URL"
+                        variant="outlined"
+                        name="profilePic"
+                        value={formik.values.profilePic}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        error={formik.touched.profilePic && Boolean(formik.errors.profilePic)}
+                        helperText={formik.touched.profilePic && formik.errors.profilePic}
+                    />
+
+                    <TextField
+                        fullWidth
+                        margin="normal"
+                        label="User Description"
+                        variant="outlined"
+                        name="userDesc"
+                        value={formik.values.userDesc}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        error={formik.touched.userDesc && Boolean(formik.errors.userDesc)}
+                        helperText={formik.touched.userDesc && formik.errors.userDesc}
+                    />
+
+                    {/* Submit button */}
+                    <div className="text-center">
+                        <Button variant="contained" color="primary" type="submit" style={{ width: '35%', marginTop: '1rem' }}>
+                            {formik.isSubmitting ? <CircularProgress size={24} /> : 'Update'}
+                        </Button>
+                    </div>
+                </form>
+            </Container>
+        </div>
     );
 }
 

@@ -55,6 +55,11 @@ const usersSchema = new mongoose.Schema({
     default: "",
     trim: true
   },
+  userDesc: {
+    type: String,
+    default: "",
+    trim: true
+  },
   profilePic: {
     type: String,
     default: "",

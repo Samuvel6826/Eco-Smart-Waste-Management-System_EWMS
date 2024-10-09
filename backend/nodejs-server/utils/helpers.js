@@ -1,37 +1,31 @@
 // utils/helpers.js
-const dayjs = require('dayjs');
-const utc = require('dayjs/plugin/utc');
-const timezone = require('dayjs/plugin/timezone');
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
+const { DateTime } = require('luxon');
 
 exports.getFormattedDate = () => {
-    return dayjs().tz('Asia/Kolkata').format('DD/MM/YYYY, hh:mm:ss A').toUpperCase();
+    return DateTime.now().setZone('Asia/Kolkata').toFormat('dd/MM/yyyy, hh:mm:ss a').toUpperCase();
 };
 
 const deviceStatusTracker = new Map();
 
 exports.updateDeviceStatus = (binLocation, binId, type) => {
     const deviceKey = `${binLocation}-${binId}`;
-    const now = Date.now();
+    const now = DateTime.now();
 
     if (!deviceStatusTracker.has(deviceKey)) {
         deviceStatusTracker.set(deviceKey, {
-            lastHeartbeat: 0,
-            lastSensorDistance: 0,
+            lastHeartbeat: null,
+            lastSensorDistance: null,
             isOnline: false
         });
     }
 
     const status = deviceStatusTracker.get(deviceKey);
     if (type === 'heartbeat') {
-        status.lastHeartbeat = now;
+        status.lastHeartbeat = now.toISO(); // Store as ISO string
     } else if (type === 'sensor-distance') {
-        status.lastSensorDistance = now;
+        status.lastSensorDistance = now.toISO(); // Store as ISO string
     }
     status.isOnline = true;
 };
 
 exports.deviceStatusTracker = deviceStatusTracker;
-

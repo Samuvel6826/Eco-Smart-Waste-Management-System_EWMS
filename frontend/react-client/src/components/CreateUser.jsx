@@ -2,94 +2,109 @@ import React, { useEffect, useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import Navbar from './common/Navbar';
-import { Button, TextField, Container, Typography, CircularProgress, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import {
+    Button,
+    TextField,
+    Container,
+    Typography,
+    CircularProgress,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem,
+} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { useUserContext } from '../contexts/UsersContext'; // Import UserContext
+import { useUsersContext } from '../contexts/UsersContext';
+import { toast } from 'react-hot-toast';
 
-// Validation schema using Yup
 const validationSchema = Yup.object().shape({
     employeeId: Yup.string().required('Employee ID is required'),
     firstName: Yup.string().required('First Name is required'),
     lastName: Yup.string().required('Last Name is required'),
     email: Yup.string().email('Invalid email').required('Email is required'),
+    password: Yup.string().required('Password is required'),
     role: Yup.string().required('Role is required'),
+    phoneNumber: Yup.string(),
     profilePic: Yup.string().url('Must be a valid URL'),
+    userDesc: Yup.string(),
 });
 
-// Role options available for selection
-const roleOptions = ['Admin', 'Manager', 'Supervisor'];
+const roleOptions = ['Admin', 'Manager', 'Supervisor', 'Technician'];
 
 function CreateUser() {
     const navigate = useNavigate();
-    const [employeeId, setEmployeeId] = useState('');
-    const { users, fetchUsers, loading, error } = useUserContext(); // Use UserContext values
+    const [employeeId, setEmployeeId] = useState(''); // This will hold the new employee ID
+    const { users, fetchUsers, loading, error, createUser } = useUsersContext();
 
     useEffect(() => {
-        if (!users.length) {
+        // Fetch users if not already fetched
+        if (!users || users.length === 0) {
             fetchUsers();
         }
     }, [users, fetchUsers]);
 
+    // Effect to generate new employee ID based on existing users
     useEffect(() => {
         const fetchLatestEmployeeId = () => {
-            // console.log('Existing users:', users); // Log existing users for debugging
-
-            // Check if users exist and contain data
             if (users && users.length > 0) {
-                // Extract and find the maximum employee ID from the user data
                 const maxEmployeeId = users
+                    .filter(user => user && user.employeeId) // Ensure user is valid
                     .map(user => {
-                        const id = user.employeeId.replace('EMP', ''); // Remove 'EMP' prefix
-                        return /^\d+$/.test(id) ? parseInt(id, 10) : null; // Convert to integer if valid
+                        const id = user.employeeId.replace(/\D/g, ''); // Extract numeric part
+                        return parseInt(id, 10);
                     })
-                    .filter(id => id !== null) // Filter out any null values
-                    .sort((a, b) => b - a)[0]; // Sort in descending order to get the highest value
+                    .reduce((max, current) => Math.max(max, current), 0);
 
-                // console.log('Max Employee ID:', maxEmployeeId); // Log the max employee ID found
-
-                // Increment and pad with leading zeros for the new employee ID
-                const newEmployeeNumber = maxEmployeeId !== undefined ? String(maxEmployeeId + 1).padStart(3, '0') : '001';
-                setEmployeeId(`EMP-${newEmployeeNumber}`);
+                const newEmployeeNumber = String(maxEmployeeId + 1).padStart(3, '0');
+                setEmployeeId(`EMP${newEmployeeNumber}`);
             } else {
-                // Default ID when no users exist
-                setEmployeeId('EMP-001');
-                console.log('No existing users found, defaulting to EMP-001');
+                setEmployeeId('EMP001'); // Default ID if no users exist
+                console.log('No existing users found. Defaulting to EMP001.');
             }
         };
-
         fetchLatestEmployeeId();
-    }, [users]); // Runs when the 'users' state changes
+    }, [users]);
 
-    // Formik hook for managing form state and submission
     const formik = useFormik({
         initialValues: {
-            employeeId: employeeId,
+            employeeId: employeeId, // Set initial value for employeeId
             firstName: '',
             lastName: '',
             email: '',
+            password: '',
             role: '',
+            phoneNumber: '',
             profilePic: '',
+            userDesc: '',
         },
-        validationSchema: validationSchema,
-        enableReinitialize: true, // Allow Formik to update initial values when employeeId is set
-        onSubmit: async (values, { setSubmitting }) => {
+        validationSchema,
+        enableReinitialize: true, // This allows the form to reset when initialValues change
+        onSubmit: async (values, { setSubmitting, resetForm }) => {
             try {
                 setSubmitting(true);
-                const res = await axios.post(`${import.meta.env.VITE_SERVER_HOST_URL}`, values);
-                if (res.status === 200) {
+                const createdUser = await createUser(values);
+                if (createdUser) {
+                    toast.success('User created successfully!');
+                    resetForm(); // Reset the form fields after successful submission
+                    setEmployeeId(''); // Clear the employeeId for next entry
                     navigate('/dashboard');
                 }
             } catch (error) {
                 console.error('Error in onSubmit:', error);
+                toast.error('Failed to create user. Please try again.');
             } finally {
                 setSubmitting(false);
             }
         },
     });
 
-    // Show loader until employeeId is generated
-    if (!employeeId) {
+    // Sync employeeId with formik field value
+    useEffect(() => {
+        formik.setFieldValue('employeeId', employeeId);
+    }, [employeeId]);
+
+    // Show loading spinner if data is loading
+    if (loading) {
         return (
             <Container maxWidth="sm" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
                 <CircularProgress />
@@ -97,6 +112,16 @@ function CreateUser() {
         );
     }
 
+    // Show error message if there's an error
+    if (error) {
+        return (
+            <Container maxWidth="sm" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+                <Typography color="error">Error: {error}</Typography>
+            </Container>
+        );
+    }
+
+    // Render form
     return (
         <div>
             <Navbar title={'Create User'} />
@@ -117,7 +142,7 @@ function CreateUser() {
                         error={formik.touched.employeeId && Boolean(formik.errors.employeeId)}
                         helperText={formik.touched.employeeId && formik.errors.employeeId}
                         InputProps={{
-                            readOnly: true, // Make this field read-only
+                            readOnly: true,
                         }}
                     />
 
@@ -150,7 +175,7 @@ function CreateUser() {
                     <TextField
                         fullWidth
                         margin="normal"
-                        label="Email ID"
+                        label="Email"
                         variant="outlined"
                         name="email"
                         value={formik.values.email}
@@ -158,6 +183,20 @@ function CreateUser() {
                         onBlur={formik.handleBlur}
                         error={formik.touched.email && Boolean(formik.errors.email)}
                         helperText={formik.touched.email && formik.errors.email}
+                    />
+
+                    <TextField
+                        fullWidth
+                        margin="normal"
+                        label="Password"
+                        variant="outlined"
+                        name="password"
+                        type="password"
+                        value={formik.values.password}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        error={formik.touched.password && Boolean(formik.errors.password)}
+                        helperText={formik.touched.password && formik.errors.password}
                     />
 
                     <FormControl fullWidth margin="normal" variant="outlined" error={formik.touched.role && Boolean(formik.errors.role)}>
@@ -171,7 +210,7 @@ function CreateUser() {
                         >
                             {roleOptions.map((role) => (
                                 <MenuItem key={role} value={role}>
-                                    {role.charAt(0).toUpperCase() + role.slice(1)}
+                                    {role}
                                 </MenuItem>
                             ))}
                         </Select>
@@ -185,6 +224,19 @@ function CreateUser() {
                     <TextField
                         fullWidth
                         margin="normal"
+                        label="Phone Number"
+                        variant="outlined"
+                        name="phoneNumber"
+                        value={formik.values.phoneNumber}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        error={formik.touched.phoneNumber && Boolean(formik.errors.phoneNumber)}
+                        helperText={formik.touched.phoneNumber && formik.errors.phoneNumber}
+                    />
+
+                    <TextField
+                        fullWidth
+                        margin="normal"
                         label="Profile Picture URL"
                         variant="outlined"
                         name="profilePic"
@@ -193,6 +245,19 @@ function CreateUser() {
                         onBlur={formik.handleBlur}
                         error={formik.touched.profilePic && Boolean(formik.errors.profilePic)}
                         helperText={formik.touched.profilePic && formik.errors.profilePic}
+                    />
+
+                    <TextField
+                        fullWidth
+                        margin="normal"
+                        label="User Description"
+                        variant="outlined"
+                        name="userDesc"
+                        value={formik.values.userDesc}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        error={formik.touched.userDesc && Boolean(formik.errors.userDesc)}
+                        helperText={formik.touched.userDesc && formik.errors.userDesc}
                     />
 
                     <div className="text-center">

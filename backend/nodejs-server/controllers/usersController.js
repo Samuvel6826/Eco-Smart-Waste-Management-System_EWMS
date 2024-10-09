@@ -2,6 +2,7 @@ const sanitize = require('../common/Sanitize');
 const UsersModel = require('../models/usersModel');
 const auth = require('../common/Auth');
 const { logger } = require('../utils/logger');
+const { getFormattedDate } = require('../utils/helpers'); // Import the helper function
 
 // Helper functions for error handling
 const handleClientError = (res, message) => {
@@ -62,6 +63,7 @@ const getUserByEmployeeId = async (req, res) => {
 
 const createUser = async (req, res) => {
     try {
+        // Destructure user data from the request body
         const {
             firstName,
             lastName,
@@ -71,12 +73,16 @@ const createUser = async (req, res) => {
             phoneNumber,
             profilePic,
             assignedBinLocations,
-            employeeId
+            employeeId,
+            userDesc // Include userDesc
         } = req.body;
 
         // Validate required fields
-        if (!firstName || !lastName || !email || !password || !role || !employeeId) {
-            return handleClientError(res, 'Missing required fields: firstName, lastName, email, password, role, or employeeId');
+        const requiredFields = ['firstName', 'lastName', 'email', 'password', 'role', 'employeeId'];
+        for (const field of requiredFields) {
+            if (!req.body[field]) {
+                return handleClientError(res, `Missing required field: ${field}. Please ensure all required fields are provided.`);
+            }
         }
 
         // Check for existing user by email or employeeId
@@ -87,13 +93,15 @@ const createUser = async (req, res) => {
         if (existingUser) {
             return handleClientError(res,
                 existingUser.email === email
-                    ? `Email ${email} already exists`
-                    : `Employee ID ${employeeId} already exists`
+                    ? `The email address ${email} is already associated with another account. Please use a different email.`
+                    : `The Employee ID ${employeeId} is already in use. Please provide a unique Employee ID.`
             );
         }
 
+        // Hash the password securely
         const hashedPassword = await auth.hashPassword(password);
 
+        // Create the user record in the database
         await UsersModel.create({
             firstName,
             lastName,
@@ -104,15 +112,28 @@ const createUser = async (req, res) => {
             password: hashedPassword,
             assignedBinLocations,
             employeeId,
-            createdAt: new Date(),
-            updatedAt: new Date()
+            userDesc, // Include userDesc here
+            createdAt: getFormattedDate(), // Use getFormattedDate here
+            updatedAt: getFormattedDate()   // Use getFormattedDate here
         });
 
-        res.status(201).json({
-            message: `User created successfully with employeeId: ${employeeId}`
+        // Respond with success message
+        return res.status(201).json({
+            message: `User created successfully with Employee ID: ${employeeId}.`
         });
     } catch (error) {
-        handleServerError(res, error);
+        // Handle unauthorized access error specifically
+        if (error.name === 'UnauthorizedError') {
+            return res.status(401).json({
+                message: 'Unauthorized access. Please ensure you have the necessary permissions to perform this action.'
+            });
+        }
+
+        // Log the error for debugging
+        console.error('Error creating user:', error);
+
+        // Handle server error
+        return handleServerError(res, error);
     }
 };
 
@@ -126,14 +147,15 @@ const editUserByEmployeeId = async (req, res) => {
             role,
             phoneNumber,
             profilePic,
-            assignedBinLocations
+            assignedBinLocations,
+            userDesc // Include userDesc
         } = req.body;
 
         const updatedUser = await UsersModel.findOneAndUpdate(
             { employeeId },
             {
                 ...req.body,
-                updatedAt: new Date()
+                updatedAt: getFormattedDate() // Use getFormattedDate here
             },
             { new: true, runValidators: true }
         ).select('-password');

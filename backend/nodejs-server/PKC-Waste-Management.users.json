@@ -9,6 +9,7 @@
     "email": "samuvel6826@gmail.com",
     "password": "$2a$10$BVdMJiJtWtF2Hk48msrfNe29.gsfpJFpOLJ2nazYvYqEgWozBAtBC",
     "phoneNumber": "",
+    "userDesc": "",
     "profilePic": "https://thispersondoesnotexist.com/",
     "role": "Admin",
     "assignedBinLocations": [
@@ -32,6 +33,7 @@
     "email": "jayaprasanna991@gmail.com",
     "password": "$2a$10$7PRALEqV6GWUQmyxQJU62OznxHDmIMWFj1TVxDPp7DnJof79vnehq",
     "phoneNumber": "",
+    "userDesc": "",
     "profilePic": "https://thispersondoesnotexist.com/",
     "role": "Manager",
     "assignedBinLocations": [
@@ -55,6 +57,7 @@
     "email": "jenitharajan029@gmail.com",
     "password": "$2a$10$Y9NBehTYYuczcjgnQQn0Bu12Xf6AT5dhlJ/Liib0TFZGyyezMy3EG",
     "phoneNumber": "",
+    "userDesc": "",
     "profilePic": "https://thispersondoesnotexist.com/",
     "role": "Supervisor",
     "assignedBinLocations": [
@@ -78,6 +81,7 @@
     "email": "m.v.pavithra.2005@gmail.com",
     "password": "$2a$10$wlHc2/FeAXbx7JRE3GB10eJK.QYMgfL3j3OXtVfDILLAp9QZzx7Ti",
     "phoneNumber": "",
+    "userDesc": "",
     "profilePic": "https://thispersondoesnotexist.com/",
     "role": "Supervisor",
     "assignedBinLocations": [
@@ -101,6 +105,7 @@
     "email": "sakthiss2613@gmail.com",
     "password": "$2a$10$3pqOk82DnH49w8A2ZTSCxOumKPW8Kvi3EZAVItCjyhgiON4LFx9Va",
     "phoneNumber": "",
+    "userDesc": "",
     "profilePic": "https://thispersondoesnotexist.com/",
     "role": "Supervisor",
     "assignedBinLocations": [
@@ -124,6 +129,7 @@
     "email": "segisegi482@gmail.com",
     "password": "$2a$10$IKlima4oBJCih0.pFCmScew.gSNAikcGJg52PEdcsd./EH2yyU//a",
     "phoneNumber": "",
+    "userDesc": "",
     "profilePic": "https://thispersondoesnotexist.com/",
     "role": "Supervisor",
     "assignedBinLocations": [
@@ -147,6 +153,7 @@
     "email": "senegadharshu@gmail.com",
     "password": "$2a$10$y.bt8fQ2c5ZW5l8PJrIX..noM3jjIQJxQXsEb9ouTivwB7rhOlzU6",
     "phoneNumber": "",
+    "userDesc": "",
     "profilePic": "https://thispersondoesnotexist.com/",
     "role": "Supervisor",
     "assignedBinLocations": [
@@ -170,6 +177,7 @@
     "email": "poomakumari1988@gmail.com",
     "password": "$2a$10$kIjWqJqOv5SzxhkaB/tgzex2SFukS8iHGpE8fE4XhFk1qwF5i5w8q",
     "phoneNumber": "",
+    "userDesc": "",
     "profilePic": "https://thispersondoesnotexist.com/",
     "role": "Supervisor",
     "assignedBinLocations": [
@@ -193,6 +201,7 @@
     "email": "funny@gmail.com",
     "password": "$2a$10$3k0NmYbp14vkLbee5UM.6O1yZ9va.ELYVKV8LDq/Cl.QqOGdxzMTm",
     "phoneNumber": "",
+    "userDesc": "",
     "profilePic": "https://thispersondoesnotexist.com/",
     "role": "Supervisor",
     "assignedBinLocations": [

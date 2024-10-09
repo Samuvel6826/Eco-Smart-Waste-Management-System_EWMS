@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
     Button,
     Dialog,
@@ -7,47 +7,50 @@ import {
     DialogTitle,
     Typography,
     CircularProgress,
-    Select,
-    MenuItem,
-    FormControl,
-    InputLabel,
-    Chip,
-    Box,
     TextField,
-    IconButton,
+    Tooltip,
+    Box,
+    Chip,
+    Autocomplete,
 } from '@mui/material';
 import { toast } from 'react-hot-toast';
-import { useUserAuth } from '../contexts/AuthContext';
-import { useUserContext } from '../contexts/UsersContext';
-import { useBinContext } from '../contexts/BinsContext';
-import ClearIcon from '@mui/icons-material/Clear';
+import { useAuth } from '../contexts/AuthContext';
+import { useUsersContext } from '../contexts/UsersContext';
+import { useBinsContext } from '../contexts/BinsContext';
 
-function AssignBinLocations({ open, onClose, refreshData }) {
-    const { logOut } = useUserAuth();
-    const { users } = useUserContext();
-    const { bins, loading, error, fetchAllBinData, assignBinsToSupervisor } = useBinContext();
+function AssignBinLocations({ open, onClose }) {
+    const { logOut } = useAuth();
+    const { users, fetchUsers, error: userError, assignBinsToUser } = useUsersContext();
+    const { bins, loading: binLoading, fetchBins, error: binError } = useBinsContext();
 
+    const [selectedSupervisor, setSelectedSupervisor] = useState(null);
     const [selectedBins, setSelectedBins] = useState([]);
-    const [supervisorId, setSupervisorId] = useState('');
     const [loadingAssign, setLoadingAssign] = useState(false);
-    const [searchTerm, setSearchTerm] = useState('');
 
-    // Filter the supervisors from the user context
-    const supervisors = useMemo(
-        () => users.filter(user => user.role === 'Supervisor'),
-        [users]
-    );
-
-    // Fetch bin data only if the dialog is opened
     useEffect(() => {
         if (open) {
-            fetchAllBinData(); // Fetch bin data using the context function
+            fetchUsers().catch((error) => toast.error('Error fetching users.'));
+            fetchBins().catch((error) => toast.error('Error fetching bins.'));
         }
-    }, [open, fetchAllBinData]);
+    }, [open, fetchUsers, fetchBins]);
 
-    // Assign selected bins to the chosen supervisor
+    useEffect(() => {
+        if (userError) toast.error('Error fetching users. Please try again.');
+        if (binError) toast.error('Error fetching bins. Please try again.');
+    }, [userError, binError]);
+
+    useEffect(() => {
+        if (selectedSupervisor) {
+            const updatedSupervisor = users.find(user => user.employeeId === selectedSupervisor.employeeId);
+            if (updatedSupervisor) {
+                setSelectedSupervisor(updatedSupervisor);
+                setSelectedBins(updatedSupervisor.assignedBinLocations || []);
+            }
+        }
+    }, [users, selectedSupervisor]);
+
     const handleAssignBins = async () => {
-        if (!supervisorId) {
+        if (!selectedSupervisor) {
             toast.error('Please select a supervisor.');
             return;
         }
@@ -57,16 +60,16 @@ function AssignBinLocations({ open, onClose, refreshData }) {
         }
 
         setLoadingAssign(true);
+
         try {
-            // Use the context function to assign bins
-            const successMessage = await assignBinsToSupervisor(supervisorId, selectedBins);
-            toast.success(successMessage);
-            refreshData();
-            onClose();
+            await assignBinsToUser(selectedSupervisor.employeeId, selectedBins);
+            toast.success('Bins assigned successfully!');
+            await fetchUsers();
+            onClose();  // Close the dialog after successful assignment
         } catch (error) {
             console.error('Error assigning bins:', error);
-            toast.error(error.message || 'An error occurred. Please try again.');
-            if (error.status === 401) {
+            toast.error(error?.response?.data?.message || 'An error occurred. Please try again.');
+            if (error?.response?.status === 401) {
                 logOut();
             }
         } finally {
@@ -74,116 +77,111 @@ function AssignBinLocations({ open, onClose, refreshData }) {
         }
     };
 
-    // Bin locations available for assignment
+    const supervisors = useMemo(() => users.filter(user => user.role === 'Supervisor'), [users]);
     const binLocations = useMemo(() => Object.keys(bins), [bins]);
 
-    // Filtered bin locations based on the search term
-    const filteredBins = useMemo(() => {
-        const prioritizedBins = binLocations.filter(location => !bins[location].assignedTo);
-        const assignedBins = binLocations.filter(location => bins[location].assignedTo);
+    const handleSupervisorChange = useCallback((event, newValue) => {
+        setSelectedSupervisor(newValue);
+        setSelectedBins(newValue?.assignedBinLocations || []);
+    }, []);
 
-        return [...prioritizedBins.sort(), ...assignedBins.sort()].filter(location =>
-            location.toLowerCase().includes(searchTerm.toLowerCase())
+    const isBinAssigned = useCallback((binLocation) => {
+        return selectedSupervisor?.assignedBinLocations?.includes(binLocation);
+    }, [selectedSupervisor]);
+
+    const renderChip = useCallback((option, props) => {
+        const isAssigned = isBinAssigned(option);
+        return (
+            <Chip
+                {...props}
+                key={option}
+                variant="outlined"
+                label={option}
+                color={isAssigned ? "primary" : "default"}
+            />
         );
-    }, [searchTerm, binLocations, bins]);
+    }, [isBinAssigned]);
+
+    const renderOption = useCallback((props, option) => (
+        <li {...props} key={option}>
+            <Tooltip title={isBinAssigned(option) ? "Already assigned" : "Not assigned"} arrow>
+                <Box component="span" sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Chip
+                        size="small"
+                        label={isBinAssigned(option) ? "Assigned" : "Unassigned"}
+                        color={isBinAssigned(option) ? "primary" : "default"}
+                        sx={{ marginRight: 1 }}
+                    />
+                    {option}
+                </Box>
+            </Tooltip>
+        </li>
+    ), [isBinAssigned]);
 
     return (
-        <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+        <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
             <DialogTitle>Assign Bin Locations</DialogTitle>
             <DialogContent>
-                <FormControl fullWidth margin="normal">
-                    <InputLabel id="supervisor-select-label">Select Supervisor</InputLabel>
-                    <Select
-                        labelId="supervisor-select-label"
-                        id="supervisor-select"
-                        value={supervisorId}
-                        onChange={(e) => setSupervisorId(e.target.value)}
-                    >
-                        <MenuItem value="" disabled>Select a supervisor</MenuItem>
-                        {supervisors.map((supervisor) => (
-                            <MenuItem key={supervisor._id} value={supervisor._id}>
-                                {supervisor.firstName} {supervisor.lastName}
-                            </MenuItem>
-                        ))}
-                    </Select>
-                </FormControl>
-
-                <Typography className="mt-3">Select Bin Locations:</Typography>
-
-                {/* Search Input Field with Clear Button */}
-                <Box display="flex" alignItems="center">
-                    <TextField
-                        label="Search Bin Locations"
-                        variant="outlined"
-                        fullWidth
-                        margin="normal"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        placeholder="Type to search..."
-                    />
-                    <IconButton
-                        onClick={() => setSearchTerm('')}
-                        color="secondary"
-                        disabled={!searchTerm}
-                    >
-                        <ClearIcon />
-                    </IconButton>
-                </Box>
-
-                {loading ? (
-                    <CircularProgress className="mt-2" />
-                ) : error ? (
-                    <Typography color="error">{error}</Typography>
+                {binLoading ? (
+                    <Box display="flex" justifyContent="center" my={2}>
+                        <CircularProgress />
+                    </Box>
                 ) : (
-                    <Box
-                        mt={2}
-                        border={1}
-                        borderColor="grey.300"
-                        borderRadius={2}
-                        p={1}
-                        maxHeight={200}
-                        overflow="auto"
-                    >
-                        {filteredBins.length > 0 ? (
-                            filteredBins.map((location) => (
-                                <Box
-                                    key={location}
-                                    onClick={() => {
-                                        setSelectedBins((prev) =>
-                                            prev.includes(location)
-                                                ? prev.filter(bin => bin !== location)
-                                                : [...prev, location]
-                                        );
-                                    }}
-                                    display="flex"
-                                    justifyContent="space-between"
-                                    alignItems="center"
-                                    sx={{
-                                        padding: '8px',
-                                        cursor: 'pointer',
-                                        '&:hover': {
-                                            backgroundColor: 'grey.200',
-                                        },
-                                        backgroundColor: selectedBins.includes(location) ? 'grey.300' : 'white',
-                                    }}
-                                >
-                                    <Typography>{location}</Typography>
-                                    {selectedBins.includes(location) && (
-                                        <Chip label="Selected" size="small" color="primary" />
-                                    )}
-                                </Box>
-                            ))
-                        ) : (
-                            <Typography>No matching bins found</Typography>
-                        )}
+                    <Box sx={{ '& > *': { marginBottom: 2 } }}>
+                        <Autocomplete
+                            options={supervisors}
+                            getOptionLabel={(option) => `${option.firstName} ${option.lastName}`}
+                            renderInput={(params) => (
+                                <TextField
+                                    {...params}
+                                    label="Select Supervisor"
+                                    variant="outlined"
+                                    fullWidth
+                                />
+                            )}
+                            onChange={handleSupervisorChange}
+                            value={selectedSupervisor}
+                        />
+                        <Autocomplete
+                            multiple
+                            options={binLocations}
+                            value={selectedBins}
+                            onChange={(event, newValue) => setSelectedBins(newValue)}
+                            renderInput={(params) => (
+                                <TextField
+                                    {...params}
+                                    label="Select Bin Locations"
+                                    variant="outlined"
+                                    fullWidth
+                                />
+                            )}
+                            renderTags={(value, getTagProps) =>
+                                value.map((option, index) => renderChip(option, getTagProps({ index })))
+                            }
+                            renderOption={renderOption}
+                        />
+                        <Typography variant="body2" color="textSecondary">
+                            Selected Bins: {selectedBins.length} (Assigned: {selectedBins.filter(isBinAssigned).length}, Unassigned: {selectedBins.filter(bin => !isBinAssigned(bin)).length})
+                        </Typography>
                     </Box>
                 )}
             </DialogContent>
             <DialogActions>
-                <Button onClick={onClose} color="secondary">Cancel</Button>
-                <Button onClick={handleAssignBins} color="primary" disabled={loadingAssign}>
-                    {loadingAssign ? <CircularProgress size={24} /> : 'Assign'}
+                <Button onClick={onClose} color="secondary" variant="outlined">
+                    Cancel
                 </Button>
+                <Tooltip title={!selectedSupervisor || selectedBins.length === 0 ? "Select a supervisor and at least one bin" : "Assign selected bins to the supervisor"}>
+                    <span>
+                        <Button
+                            onClick={handleAssignBins}
+                            color="primary"
+                            variant="contained"
+                            disabled={loadingAssign || !selectedSupervisor || selectedBins.length === 0}
+                        >
+                            {loadingAssign ? <CircularProgress size={24} /> : 'Assign'}
+                        </Button>
+                    </span>
+                </Tooltip>
             </DialogActions>
         </Dialog>
     );

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { AppBar, Toolbar, Typography, Button, Menu, MenuItem } from "@mui/material";
 import { Link } from "react-router-dom";
-import { useUserAuth } from "../../contexts/UserAuthContext"; // Import your custom hook
+import { useAuth } from "../../contexts/AuthContext"; // Import your custom hook
 
 function Navbar() {
-    const { user, logOut } = useUserAuth(); // Get user info and logOut function from context
+    const { user, logout } = useAuth(); // Get user info and logOut function from context
     const [isAdmin, setIsAdmin] = useState(false);
     const [anchorEl, setAnchorEl] = useState(null);
 
@@ -23,7 +23,7 @@ function Navbar() {
     };
 
     const handleLogout = () => {
-        logOut();
+        logout();
         handleMenuClose();
     };
 
@@ -31,7 +31,6 @@ function Navbar() {
     const links = isAdmin
         ? [
             <MenuItem key="dashboard" component={Link} to="/dashboard">Dashboard</MenuItem>,
-            <MenuItem key="create-user" component={Link} to="/create-user">Create User</MenuItem>,
             <MenuItem key="lists-bins" component={Link} to="/users/bins">Lists Bins</MenuItem>,
             <MenuItem key="create-bin" component={Link} to="/users/create-bin/:locationId">Create Bin</MenuItem>,
         ]
