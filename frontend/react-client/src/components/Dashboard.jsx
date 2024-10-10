@@ -41,7 +41,7 @@ import DescriptionIcon from '@mui/icons-material/Description';
 const AssignBinLocations = React.lazy(() => import('./AssignBinLocations'));
 
 function Dashboard() {
-    const { user, logOut } = useAuth();
+    const { user, logout } = useAuth();
     const { users, loading: userLoading, error: userError, fetchUsers, deleteUser: deleteUserFromContext } = useUsersContext();
     const { bins, loading: binLoading, error: binError, fetchBins } = useBinsContext();
     const token = sessionStorage.getItem('token');
@@ -62,9 +62,24 @@ function Dashboard() {
             fetchBins();
         } else {
             toast.error('Unauthorized access. Logging out...');
-            logOut();
+            logout();
         }
-    }, [token, fetchUsers, fetchBins, logOut]);
+    }, [token, fetchUsers, fetchBins, logout]);
+
+    useEffect(() => {
+        if (userError) {
+            toast.error(`User Error: ${userError}`);
+        }
+        if (binError) {
+            toast.error(`Bin Error: ${binError}`);
+        }
+    }, [userError, binError]);
+
+    useEffect(() => {
+        if (user?.employeeId) {
+            setSelectedUserId(user.employeeId);
+        }
+    }, [user]);
 
     const rolesOrder = {
         Admin: 1,
@@ -74,17 +89,18 @@ function Dashboard() {
     };
 
     const filteredUsers = useMemo(() => {
-        return users
+        return (users || [])
             .filter((user) => {
+                if (!user) return false;
                 const matchesRole = selectedRole === 'All' || user.role === selectedRole;
                 const matchesSearch =
-                    user.employeeId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    user.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    user.email.toLowerCase().includes(searchTerm.toLowerCase());
+                    user.employeeId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    user.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    user.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    user.email?.toLowerCase().includes(searchTerm.toLowerCase());
                 return matchesRole && matchesSearch;
             })
-            .sort((a, b) => rolesOrder[a.role] - rolesOrder[b.role]);
+            .sort((a, b) => (rolesOrder[a.role] || 0) - (rolesOrder[b.role] || 0));
     }, [users, selectedRole, searchTerm]);
 
     const paginatedUsers = useMemo(() => {
@@ -117,15 +133,25 @@ function Dashboard() {
         }
     };
 
-    const openAssignDialogHandler = (userId) => {
-        setSelectedUserId(userId);
-        setOpenAssignDialog(true);
+    const openAssignDialogHandler = () => {
+        if (selectedUserId) {
+            setOpenAssignDialog(true);
+        } else {
+            toast.error('User information is not available.');
+        }
     };
 
     const closeAssignDialogHandler = () => {
         setOpenAssignDialog(false);
-        setSelectedUserId('');
     };
+
+    if (userLoading || binLoading) {
+        return (
+            <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
+                <CircularProgress />
+            </Box>
+        );
+    }
 
     return (
         <Container maxWidth="xl">
@@ -165,80 +191,75 @@ function Dashboard() {
                     <Button variant="contained" color="primary" onClick={() => navigate('/create-user')}>
                         Add User
                     </Button>
-                    <Button variant="contained" color="secondary" onClick={() => openAssignDialogHandler(user.employeeId)}>
+                    <Button
+                        variant="contained"
+                        color="secondary"
+                        onClick={openAssignDialogHandler}
+                        disabled={!selectedUserId}
+                    >
                         Manage Bin Locations
                     </Button>
                 </Grid>
             </Grid>
-            {userLoading || binLoading ? (
-                <Box display="flex" justifyContent="center" my={3}>
-                    <CircularProgress />
-                </Box>
-            ) : userError || binError ? (
-                <Typography color="error" align="center">
-                    {userError || binError}
-                </Typography>
-            ) : (
-                <Paper>
-                    <TableContainer>
-                        <Table>
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell>#</TableCell>
-                                    <TableCell>Employee ID</TableCell>
-                                    <TableCell>First Name</TableCell>
-                                    <TableCell>Last Name</TableCell>
-                                    <TableCell>Email</TableCell>
-                                    <TableCell>Role</TableCell>
-                                    <TableCell>Bin Location</TableCell>
-                                    <TableCell>Actions</TableCell>
+            <Paper>
+                <TableContainer>
+                    <Table>
+                        <TableHead>
+                            <TableRow>
+                                <TableCell>#</TableCell>
+                                <TableCell>Employee ID</TableCell>
+                                <TableCell>First Name</TableCell>
+                                <TableCell>Last Name</TableCell>
+                                <TableCell>Email</TableCell>
+                                <TableCell>Role</TableCell>
+                                <TableCell>Bin Location</TableCell>
+                                <TableCell>Actions</TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {paginatedUsers.map((user, index) => (
+                                <TableRow key={user.employeeId}>
+                                    <TableCell>{index + 1 + page * rowsPerPage}</TableCell>
+                                    <TableCell>{user.employeeId}</TableCell>
+                                    <TableCell>{user.firstName}</TableCell>
+                                    <TableCell>{user.lastName}</TableCell>
+                                    <TableCell>{user.email}</TableCell>
+                                    <TableCell>
+                                        <Chip label={user.role} color="primary" />
+                                    </TableCell>
+                                    <TableCell>{user.assignedBinLocations || 'Not Assigned'}</TableCell>
+                                    <TableCell>
+                                        <Tooltip title="Edit User">
+                                            <IconButton onClick={() => navigate(`/edit-user/${user.employeeId}`)}>
+                                                <EditIcon />
+                                            </IconButton>
+                                        </Tooltip>
+                                        <Tooltip title="Delete User">
+                                            <IconButton onClick={() => handleDeleteUser(user.employeeId)}>
+                                                <DeleteIcon />
+                                            </IconButton>
+                                        </Tooltip>
+                                        <Tooltip title="View User Details">
+                                            <IconButton onClick={() => navigate(`/user-description/${user.employeeId}`)}>
+                                                <DescriptionIcon />
+                                            </IconButton>
+                                        </Tooltip>
+                                    </TableCell>
                                 </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {paginatedUsers.map((user, index) => (
-                                    <TableRow key={user.employeeId}>
-                                        <TableCell>{index + 1 + page * rowsPerPage}</TableCell>
-                                        <TableCell>{user.employeeId}</TableCell>
-                                        <TableCell>{user.firstName}</TableCell>
-                                        <TableCell>{user.lastName}</TableCell>
-                                        <TableCell>{user.email}</TableCell>
-                                        <TableCell>
-                                            <Chip label={user.role} color="primary" />
-                                        </TableCell>
-                                        <TableCell>{user.assignedBinLocations || 'Not Assigned'}</TableCell>
-                                        <TableCell>
-                                            <Tooltip title="Edit User">
-                                                <IconButton onClick={() => navigate(`/edit-user/${user.employeeId}`)}>
-                                                    <EditIcon />
-                                                </IconButton>
-                                            </Tooltip>
-                                            <Tooltip title="Delete User">
-                                                <IconButton onClick={() => handleDeleteUser(user.employeeId)}>
-                                                    <DeleteIcon />
-                                                </IconButton>
-                                            </Tooltip>
-                                            <Tooltip title="View User Details">
-                                                <IconButton onClick={() => navigate(`/user-description/${user.employeeId}`)}>
-                                                    <DescriptionIcon />
-                                                </IconButton>
-                                            </Tooltip>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
-                    <TablePagination
-                        rowsPerPageOptions={[10, 25, 50]}
-                        component="div"
-                        count={filteredUsers.length}
-                        rowsPerPage={rowsPerPage}
-                        page={page}
-                        onPageChange={handleChangePage}
-                        onRowsPerPageChange={handleChangeRowsPerPage}
-                    />
-                </Paper>
-            )}
+                            ))}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+                <TablePagination
+                    rowsPerPageOptions={[10, 25, 50]}
+                    component="div"
+                    count={filteredUsers.length}
+                    rowsPerPage={rowsPerPage}
+                    page={page}
+                    onPageChange={handleChangePage}
+                    onRowsPerPageChange={handleChangeRowsPerPage}
+                />
+            </Paper>
 
             <Dialog open={showConfirmation} onClose={() => setShowConfirmation(false)}>
                 <DialogTitle>Confirm Deletion</DialogTitle>
@@ -256,15 +277,17 @@ function Dashboard() {
             </Dialog>
 
             <Suspense fallback={<CircularProgress />}>
-                <AssignBinLocations
-                    open={openAssignDialog}
-                    onClose={closeAssignDialogHandler}
-                    userId={selectedUserId}
-                    bins={bins}
-                />
+                {openAssignDialog && selectedUserId && (
+                    <AssignBinLocations
+                        open={openAssignDialog}
+                        onClose={closeAssignDialogHandler}
+                        userId={selectedUserId}
+                        bins={bins}
+                    />
+                )}
             </Suspense>
         </Container>
     );
-};
+}
 
 export default Dashboard;

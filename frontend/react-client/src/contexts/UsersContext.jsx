@@ -9,16 +9,16 @@ export const UsersProvider = ({ children }) => {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const { logOut } = useAuth();
+    const { logout } = useAuth();
 
     const handleError = useCallback((err) => {
         const message = err.response?.data?.message || 'An unexpected error occurred.';
         setError(message);
         toast.error(message);
         if (err.response?.status === 401) {
-            logOut();
+            logout();
         }
-    }, [logOut]);
+    }, [logout]);
 
     const fetchUsers = useCallback(async () => {
         setLoading(true);
@@ -38,7 +38,7 @@ export const UsersProvider = ({ children }) => {
         } finally {
             setLoading(false);
         }
-    }, [logOut]);
+    }, [logout]);
 
     const getUserByEmployeeId = useCallback(async (employeeId) => {
         setLoading(true);
@@ -58,7 +58,7 @@ export const UsersProvider = ({ children }) => {
         } finally {
             setLoading(false);
         }
-    }, [logOut]);
+    }, [logout]);
 
     const createUser = useCallback(async (userData) => {
         setLoading(true);
@@ -103,7 +103,7 @@ export const UsersProvider = ({ children }) => {
         } finally {
             setLoading(false);
         }
-    }, [logOut]);
+    }, [logout]);
 
     const deleteUser = useCallback(async (employeeId) => {
         setLoading(true);
@@ -124,7 +124,7 @@ export const UsersProvider = ({ children }) => {
         } finally {
             setLoading(false);
         }
-    }, [logOut]);
+    }, [logout]);
 
     const assignBinsToUser = useCallback(async (employeeId, binLocations, supervisorId) => {
         setLoading(true);
@@ -150,7 +150,7 @@ export const UsersProvider = ({ children }) => {
         } finally {
             setLoading(false);
         }
-    }, [logOut]);
+    }, [logout]);
 
     const value = {
         users,

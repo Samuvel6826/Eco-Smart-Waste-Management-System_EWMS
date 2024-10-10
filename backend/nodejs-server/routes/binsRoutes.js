@@ -23,7 +23,7 @@ const errorHandler = (err, req, res, next) => {
 
 // Bin management routes
 router.get('/list',
-    BinsRateLimiter.getBinsLimiter,
+    // BinsRateLimiter.getBinsLimiter,
     auth.validate,
     auth.roleGuard('Admin', 'Manager'),
     (req, res, next) => {

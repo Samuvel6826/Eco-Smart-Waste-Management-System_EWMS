@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import {
     Button,
     Dialog,
@@ -26,19 +26,40 @@ function AssignBinLocations({ open, onClose }) {
     const [selectedSupervisor, setSelectedSupervisor] = useState(null);
     const [selectedBins, setSelectedBins] = useState([]);
     const [loadingAssign, setLoadingAssign] = useState(false);
+    const initialFetchDoneRef = useRef(false);
 
+    // Reset the initial fetch flag when the dialog is closed
     useEffect(() => {
-        if (open) {
-            fetchUsers().catch((error) => toast.error('Error fetching users.'));
-            fetchBins().catch((error) => toast.error('Error fetching bins.'));
+        if (!open) {
+            initialFetchDoneRef.current = false;
         }
-    }, [open, fetchUsers, fetchBins]);
+    }, [open]);
 
+    // Fetch data only once when the component is opened for the first time
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                await Promise.all([fetchUsers(), fetchBins()]);
+                initialFetchDoneRef.current = true;
+                console.log("Data fetched");
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                toast.error('Error fetching data. Please try again.');
+            }
+        };
+
+        if (open && !initialFetchDoneRef.current) {
+            fetchData();
+        }
+    }, [open, fetchUsers, fetchBins]);  // Dependencies: open, fetchUsers, fetchBins
+
+    // Show error messages if fetching users or bins fails
     useEffect(() => {
         if (userError) toast.error('Error fetching users. Please try again.');
         if (binError) toast.error('Error fetching bins. Please try again.');
     }, [userError, binError]);
 
+    // Update the supervisor and assigned bins when users change
     useEffect(() => {
         if (selectedSupervisor) {
             const updatedSupervisor = users.find(user => user.employeeId === selectedSupervisor.employeeId);
@@ -49,6 +70,7 @@ function AssignBinLocations({ open, onClose }) {
         }
     }, [users, selectedSupervisor]);
 
+    // Assign selected bins to a supervisor
     const handleAssignBins = async () => {
         if (!selectedSupervisor) {
             toast.error('Please select a supervisor.');
@@ -64,7 +86,7 @@ function AssignBinLocations({ open, onClose }) {
         try {
             await assignBinsToUser(selectedSupervisor.employeeId, selectedBins);
             toast.success('Bins assigned successfully!');
-            await fetchUsers();
+            await fetchUsers();  // Fetch users again to reflect updates
             onClose();  // Close the dialog after successful assignment
         } catch (error) {
             console.error('Error assigning bins:', error);
@@ -77,19 +99,21 @@ function AssignBinLocations({ open, onClose }) {
         }
     };
 
+    // Filtering supervisors from users
     const supervisors = useMemo(() => users.filter(user => user.role === 'Supervisor'), [users]);
     const binLocations = useMemo(() => Object.keys(bins), [bins]);
 
-    const handleSupervisorChange = useCallback((event, newValue) => {
+    // Handle supervisor selection
+    const handleSupervisorChange = (event, newValue) => {
         setSelectedSupervisor(newValue);
         setSelectedBins(newValue?.assignedBinLocations || []);
-    }, []);
+    };
 
-    const isBinAssigned = useCallback((binLocation) => {
-        return selectedSupervisor?.assignedBinLocations?.includes(binLocation);
-    }, [selectedSupervisor]);
+    // Check if a bin is already assigned to the selected supervisor
+    const isBinAssigned = (binLocation) => selectedSupervisor?.assignedBinLocations?.includes(binLocation);
 
-    const renderChip = useCallback((option, props) => {
+    // Custom rendering for the selected bins as chips
+    const renderChip = (option, props) => {
         const isAssigned = isBinAssigned(option);
         return (
             <Chip
@@ -100,9 +124,10 @@ function AssignBinLocations({ open, onClose }) {
                 color={isAssigned ? "primary" : "default"}
             />
         );
-    }, [isBinAssigned]);
+    };
 
-    const renderOption = useCallback((props, option) => (
+    // Custom rendering for the bin options with tooltip
+    const renderOption = (props, option) => (
         <li {...props} key={option}>
             <Tooltip title={isBinAssigned(option) ? "Already assigned" : "Not assigned"} arrow>
                 <Box component="span" sx={{ display: 'flex', alignItems: 'center' }}>
@@ -116,7 +141,7 @@ function AssignBinLocations({ open, onClose }) {
                 </Box>
             </Tooltip>
         </li>
-    ), [isBinAssigned]);
+    );
 
     return (
         <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
