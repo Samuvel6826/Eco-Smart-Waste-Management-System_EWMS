@@ -2,7 +2,7 @@
 const Joi = require('joi');
 
 const binMetaDataSchema = Joi.object({
-    id: Joi.number().required(),
+    id: Joi.string().required(),
     binLocation: Joi.string().required(),
     binType: Joi.string().required(),
     geoLocation: Joi.object({
@@ -19,7 +19,7 @@ const binMetaDataSchema = Joi.object({
 });
 
 const distanceSchema = Joi.object({
-    id: Joi.number().required(),
+    id: Joi.string().required(),
     binLocation: Joi.string().required(),
     geoLocation: Joi.object({
         latitude: Joi.string().allow('').default("latitude"),
@@ -35,7 +35,7 @@ const distanceSchema = Joi.object({
 });
 
 const heartbeatSchema = Joi.object({
-    id: Joi.number().required(),
+    id: Joi.string().required(),
     binLocation: Joi.string().required(),
     microProcessorStatus: Joi.string().valid('ON', 'OFF').required()
 });

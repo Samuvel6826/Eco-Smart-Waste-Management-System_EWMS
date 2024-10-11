@@ -22,7 +22,7 @@ const errorHandler = (err, req, res, next) => {
 
 // User management routes
 router.get('/list',
-    // UsersRateLimiter.getAllUsersLimiter,
+    UsersRateLimiter.getAllUsersLimiter,
     auth.validate,
     auth.roleGuard('Admin', 'Manager'),
     (req, res, next) => {

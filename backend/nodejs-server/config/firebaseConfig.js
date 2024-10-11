@@ -1,6 +1,4 @@
-// config/firebaseConfig.js
 const admin = require('firebase-admin');
-const { logger } = require('../utils/logger');
 
 const initializeFirebase = () => {
     if (!admin.apps.length) {
@@ -15,9 +13,9 @@ const initializeFirebase = () => {
                 databaseURL: process.env.FIREBASE_DATABASE_URL,
             });
 
-            logger.info("Connected to Firebase Realtime Database successfully");
+            console.log("Connected to Firebase Realtime Database successfully");
         } catch (error) {
-            logger.error("Error initializing Firebase:", error);
+            console.error("Error initializing Firebase:", error);
             process.exit(1);
         }
     }

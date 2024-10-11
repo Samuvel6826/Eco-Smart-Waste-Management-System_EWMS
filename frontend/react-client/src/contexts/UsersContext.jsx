@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import { useAuth } from './AuthContext';
@@ -31,14 +31,14 @@ export const UsersProvider = ({ children }) => {
 
             if (res.status === 200) {
                 setUsers(res.data.data);
-                toast.success(res.data.message);
+                // toast.success(res.data.message);
             }
         } catch (err) {
             handleError(err);
         } finally {
             setLoading(false);
         }
-    }, [logout]);
+    }, [handleError]);
 
     const getUserByEmployeeId = useCallback(async (employeeId) => {
         setLoading(true);
@@ -152,7 +152,7 @@ export const UsersProvider = ({ children }) => {
         }
     }, [logout]);
 
-    const value = {
+    const value = useMemo(() => ({
         users,
         loading,
         error,
@@ -162,7 +162,7 @@ export const UsersProvider = ({ children }) => {
         editUser,
         deleteUser,
         assignBinsToUser,
-    };
+    }), [users, loading, error, fetchUsers, getUserByEmployeeId, createUser, editUser, deleteUser, assignBinsToUser]);
 
     return <UsersContext.Provider value={value}>{children}</UsersContext.Provider>;
 };

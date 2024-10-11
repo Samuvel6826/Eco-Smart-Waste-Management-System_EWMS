@@ -7,11 +7,17 @@ const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const helmet = require('helmet');
 const { logger: customLogger } = require('./utils/logger');
-const { checkDeviceStatus, cleanupTracker } = require('./utils/deviceMonitoring');
+const { startMonitoring, MONITORING_CONFIG, debugStatusCheck } = require('./utils/deviceMonitoring');
 const initializeFirebase = require('./config/firebaseConfig');
 
 // Initialize Firebase
 initializeFirebase();
+
+// Start the monitoring process
+// startMonitoring();
+
+// If you need to access or modify the config:
+// console.log(MONITORING_CONFIG.offlineThreshold);
 
 // Importing Routes
 const indexRouter = require('./routes/indexRoutes');
@@ -23,12 +29,12 @@ const connectToDatabase = require('./config/mongoDBconfig');
 const app = express();
 
 // Check required environment variables
-const requiredEnvVars = ['FIREBASE_DATABASE_URL', 'CORS_ORIGINS'];
-for (const envVar of requiredEnvVars) {
-  if (!process.env[envVar]) {
-    customLogger.error(`${envVar} is not set in the environment variables.`);
-    process.exit(1);
-  }
+const requiredEnvVars = ['FIREBASE_DATABASE_URL', 'CORS_ORIGINS', /* other required vars */];
+const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
+
+if (missingVars.length > 0) {
+  customLogger.error(`Missing required environment variables: ${missingVars.join(', ')}`);
+  process.exit(1);
 }
 
 // Parse the CORS_ORIGINS from the environment variable
@@ -81,17 +87,6 @@ app.use((err, req, res, next) => {
     }
   });
 });
-
-// Monitoring Configuration
-const MONITORING_CONFIG = {
-  offlineThreshold: 20000, // Mark as offline after 20 seconds
-};
-
-// Start monitoring intervals
-const MONITORING_INTERVAL = 10000; // 10 seconds
-const CLEANUP_INTERVAL = 3600000; // 1 hour
-setInterval(() => checkDeviceStatus(MONITORING_CONFIG), MONITORING_INTERVAL);
-setInterval(() => cleanupTracker(MONITORING_CONFIG), CLEANUP_INTERVAL);
 
 // Call the function to connect to the database
 connectToDatabase();

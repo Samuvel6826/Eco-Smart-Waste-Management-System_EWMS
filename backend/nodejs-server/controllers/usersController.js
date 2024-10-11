@@ -2,7 +2,7 @@ const sanitize = require('../common/Sanitize');
 const UsersModel = require('../models/usersModel');
 const auth = require('../common/Auth');
 const { logger } = require('../utils/logger');
-const { getFormattedDate } = require('../utils/helpers'); // Import the helper function
+const { getFormattedDate } = require('../utils/deviceMonitoring'); // Import the helper function
 
 // Helper functions for error handling
 const handleClientError = (res, message) => {

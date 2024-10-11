@@ -3,40 +3,37 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
-import { database, ref, set } from '../firebase.config';
 import { TextField, Button, Container, Typography, CircularProgress, MenuItem, Autocomplete, Tooltip } from '@mui/material';
-import { useBinContext } from '../contexts/BinsContext';
+import { useBinsContext } from '../contexts/BinsContext';
 import Navbar from './common/Navbar';
 
 const CreateBin = () => {
-    const { locations, bins } = useBinContext();
+    const { locations, bins, createBin } = useBinsContext();
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
 
-    // Form validation schema
     const validationSchema = Yup.object().shape({
-        id: Yup.number().positive('ID must be positive').integer('ID must be an integer').required('ID is required'),
-        location: Yup.string().required('Bin Location is required'),
-        binColor: Yup.string().required('Bin Color is required'),
-        geoLocation: Yup.string().required('GeoLocation is required'),
+        id: Yup.string().required('Bin ID is required'),
+        binLocation: Yup.string().required('Bin Location is required'),
+        binType: Yup.string().required('Bin Type is required')
     });
 
-    // Formik setup
     const formik = useFormik({
         initialValues: {
-            id: '', // Start with an empty string to avoid NaN
-            location: '',
-            binColor: '',
-            geoLocation: ''
+            id: '',
+            binLocation: '',
+            binType: ''
         },
         validationSchema,
         onSubmit: async (values) => {
             try {
                 setIsLoading(true);
-                // Reference path for the new bin
-                const binRef = ref(database, `Trash-Bins/${values.location}/Bin-${values.id}`);
-                await set(binRef, values);
-
+                const binData = {
+                    id: `Bin-${values.id}`,
+                    binLocation: values.binLocation,
+                    binType: values.binType
+                };
+                await createBin(binData);
                 toast.success('Bin created successfully!');
                 navigate('/users/bins');
             } catch (error) {
@@ -48,20 +45,16 @@ const CreateBin = () => {
         },
     });
 
-    // Handle location change in Autocomplete
     const handleLocationChange = (event, newValue) => {
-        formik.setFieldValue('location', newValue);
+        formik.setFieldValue('binLocation', newValue);
 
         if (newValue && bins[newValue]) {
             const existingBins = bins[newValue];
-            const existingIds = Object.values(existingBins).map(bin => Number(bin.id)); // Ensure IDs are treated as numbers
-            const maxId = existingIds.length > 0 ? Math.max(...existingIds) : 0; // Find the maximum ID
-            const suggestedId = maxId + 1; // Suggest next ID
-
-            // Set suggestedId as a string to prevent NaN
-            formik.setFieldValue('id', String(suggestedId)); // Ensure it's a string
+            const existingIds = Object.values(existingBins).map(bin => Number(bin.id.replace('Bin-', '')));
+            const maxId = existingIds.length > 0 ? Math.max(...existingIds) : 0;
+            const suggestedId = maxId + 1;
+            formik.setFieldValue('id', String(suggestedId));
         } else {
-            // No existing bins, set default ID to '1'
             formik.setFieldValue('id', '1');
         }
     };
@@ -76,6 +69,19 @@ const CreateBin = () => {
                     </Typography>
                     <form onSubmit={formik.handleSubmit}>
                         <div className="mb-4">
+                            <TextField
+                                fullWidth
+                                label="Bin ID"
+                                variant="outlined"
+                                name="id"
+                                value={formik.values.id}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                                error={formik.touched.id && Boolean(formik.errors.id)}
+                                helperText={formik.touched.id && formik.errors.id}
+                            />
+                        </div>
+                        <div className="mb-4">
                             <Autocomplete
                                 options={locations}
                                 freeSolo
@@ -83,78 +89,40 @@ const CreateBin = () => {
                                     <TextField
                                         {...params}
                                         fullWidth
-                                        label="Location"
+                                        label="Bin Location"
                                         variant="outlined"
-                                        error={formik.touched.location && Boolean(formik.errors.location)}
-                                        helperText={formik.touched.location && formik.errors.location}
+                                        error={formik.touched.binLocation && Boolean(formik.errors.binLocation)}
+                                        helperText={formik.touched.binLocation && formik.errors.binLocation}
                                     />
                                 )}
-                                value={formik.values.location}
+                                value={formik.values.binLocation}
                                 onChange={handleLocationChange}
                                 onInputChange={(event, newInputValue) => {
-                                    formik.setFieldValue('location', newInputValue);
+                                    formik.setFieldValue('binLocation', newInputValue);
                                 }}
                             />
                         </div>
                         <div className="mb-4">
-                            <Tooltip title="Enter a unique Bin ID" arrow>
-                                <TextField
-                                    fullWidth
-                                    label="Bin ID"
-                                    variant="outlined"
-                                    name="id"
-                                    type="number"
-                                    value={formik.values.id}
-                                    onChange={(e) => {
-                                        const value = e.target.value;
-                                        // Validate numeric input and set the ID correctly
-                                        if (value === '' || /^[0-9\b]+$/.test(value)) {
-                                            formik.setFieldValue('id', value);
-                                        }
-                                    }}
-                                    onBlur={formik.handleBlur}
-                                    error={formik.touched.id && Boolean(formik.errors.id)}
-                                    helperText={formik.touched.id && formik.errors.id}
-                                />
-                            </Tooltip>
+                            <TextField
+                                fullWidth
+                                select
+                                label="Bin Type"
+                                variant="outlined"
+                                name="binType"
+                                value={formik.values.binType}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                                error={formik.touched.binType && Boolean(formik.errors.binType)}
+                                helperText={formik.touched.binType && formik.errors.binType}
+                            >
+                                {['Plastic', 'Paper', 'Glass', 'Metal'].map((type) => (
+                                    <MenuItem key={type} value={type}>
+                                        {type}
+                                    </MenuItem>
+                                ))}
+                            </TextField>
                         </div>
-                        <div className="mb-4">
-                            <Tooltip title="Provide the geographical location" arrow>
-                                <TextField
-                                    fullWidth
-                                    label="GeoLocation"
-                                    variant="outlined"
-                                    name="geoLocation"
-                                    value={formik.values.geoLocation}
-                                    onChange={formik.handleChange}
-                                    onBlur={formik.handleBlur}
-                                    error={formik.touched.geoLocation && Boolean(formik.errors.geoLocation)}
-                                    helperText={formik.touched.geoLocation && formik.errors.geoLocation}
-                                />
-                            </Tooltip>
-                        </div>
-                        <div className="mb-4">
-                            <Tooltip title="Select the color of the bin" arrow>
-                                <TextField
-                                    fullWidth
-                                    select
-                                    label="Bin Color"
-                                    variant="outlined"
-                                    name="binColor"
-                                    value={formik.values.binColor}
-                                    onChange={formik.handleChange}
-                                    onBlur={formik.handleBlur}
-                                    error={formik.touched.binColor && Boolean(formik.errors.binColor)}
-                                    helperText={formik.touched.binColor && formik.errors.binColor}
-                                >
-                                    {['Green', 'Blue', 'Yellow', 'Red'].map((color) => (
-                                        <MenuItem key={color} value={color}>
-                                            {color}
-                                        </MenuItem>
-                                    ))}
-                                </TextField>
-                            </Tooltip>
-                        </div>
+
                         <div>
                             <Button
                                 variant="contained"

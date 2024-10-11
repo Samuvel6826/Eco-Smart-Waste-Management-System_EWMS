@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, Suspense } from 'react';
+import React, { useEffect, useMemo, useState, Suspense, useCallback } from 'react';
 import { toast } from 'react-hot-toast';
 import {
     Button,
@@ -31,7 +31,6 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useUsersContext } from '../contexts/UsersContext';
-import { useBinsContext } from '../contexts/BinsContext';
 import Navbar from './common/Navbar';
 import SearchIcon from '@mui/icons-material/Search';
 import EditIcon from '@mui/icons-material/Edit';
@@ -43,7 +42,6 @@ const AssignBinLocations = React.lazy(() => import('./AssignBinLocations'));
 function Dashboard() {
     const { user, logout } = useAuth();
     const { users, loading: userLoading, error: userError, fetchUsers, deleteUser: deleteUserFromContext } = useUsersContext();
-    const { bins, loading: binLoading, error: binError, fetchBins } = useBinsContext();
     const token = sessionStorage.getItem('token');
     const [deleteUserId, setDeleteUserId] = useState(null);
     const [showConfirmation, setShowConfirmation] = useState(false);
@@ -56,24 +54,29 @@ function Dashboard() {
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
 
-    useEffect(() => {
+    const fetchData = useCallback(async () => {
         if (token) {
-            fetchUsers();
-            fetchBins();
-        } else {
-            toast.error('Unauthorized access. Logging out...');
-            logout();
+            try {
+                await fetchUsers();
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                toast.error('Error fetching data. Please try again.');
+                if (error?.response?.status === 401) {
+                    logout();
+                }
+            }
         }
-    }, [token, fetchUsers, fetchBins, logout]);
+    }, [token, fetchUsers, logout]);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
 
     useEffect(() => {
         if (userError) {
             toast.error(`User Error: ${userError}`);
         }
-        if (binError) {
-            toast.error(`Bin Error: ${binError}`);
-        }
-    }, [userError, binError]);
+    }, [userError]);
 
     useEffect(() => {
         if (user?.employeeId) {
@@ -133,19 +136,19 @@ function Dashboard() {
         }
     };
 
-    const openAssignDialogHandler = () => {
-        if (selectedUserId) {
-            setOpenAssignDialog(true);
-        } else {
-            toast.error('User information is not available.');
-        }
-    };
+    const openAssignDialogHandler = useCallback(() => {
+        setOpenAssignDialog(true);
+    }, []);
 
-    const closeAssignDialogHandler = () => {
+    const closeAssignDialogHandler = useCallback(() => {
         setOpenAssignDialog(false);
-    };
+        fetchData(); // Fetch data when the dialog is closed
+    }, [fetchData]);
 
-    if (userLoading || binLoading) {
+    // Memoize the AssignBinLocations component
+    const MemoizedAssignBinLocations = useMemo(() => React.memo(AssignBinLocations), []);
+
+    if (userLoading) {
         return (
             <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
                 <CircularProgress />
@@ -159,6 +162,9 @@ function Dashboard() {
             <Typography variant="h4" gutterBottom align="center" color="primary">
                 User Dashboard
             </Typography>
+            {/* Rest of the component remains the same */}
+            {/* ... */}
+
             <Grid container spacing={2} justifyContent="center" alignItems="center" mb={2}>
                 <Grid item xs={12} md={6}>
                     <TextField
@@ -195,7 +201,6 @@ function Dashboard() {
                         variant="contained"
                         color="secondary"
                         onClick={openAssignDialogHandler}
-                        disabled={!selectedUserId}
                     >
                         Manage Bin Locations
                     </Button>
@@ -227,7 +232,7 @@ function Dashboard() {
                                     <TableCell>
                                         <Chip label={user.role} color="primary" />
                                     </TableCell>
-                                    <TableCell>{user.assignedBinLocations || 'Not Assigned'}</TableCell>
+                                    <TableCell>{user.assignedBinLocations?.join(', ') || 'Not Assigned'}</TableCell>
                                     <TableCell>
                                         <Tooltip title="Edit User">
                                             <IconButton onClick={() => navigate(`/edit-user/${user.employeeId}`)}>
@@ -276,18 +281,23 @@ function Dashboard() {
                 </DialogActions>
             </Dialog>
 
-            <Suspense fallback={<CircularProgress />}>
-                {openAssignDialog && selectedUserId && (
-                    <AssignBinLocations
+
+            <Dialog
+                open={openAssignDialog}
+                onClose={closeAssignDialogHandler}
+                fullWidth
+                maxWidth="md"
+            >
+                <Suspense fallback={<CircularProgress />}>
+                    <MemoizedAssignBinLocations
                         open={openAssignDialog}
                         onClose={closeAssignDialogHandler}
-                        userId={selectedUserId}
-                        bins={bins}
+                        onAssignSuccess={fetchData} // Pass fetchData as a prop
                     />
-                )}
-            </Suspense>
+                </Suspense>
+            </Dialog>
         </Container>
     );
 }
 
-export default Dashboard;
+export default React.memo(Dashboard);

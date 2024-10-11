@@ -1,17 +1,26 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
 import axios from 'axios';
 import { useAuth } from './AuthContext';
+import { toast } from 'react-hot-toast';
 
 const BinsContext = createContext();
 
 export const useBinsContext = () => useContext(BinsContext);
 
 export const BinsProvider = ({ children }) => {
-    const [bins, setBins] = useState({}); // Initialize as an object
+    const [bins, setBins] = useState({});
     const [loading, setLoading] = useState(false);
-    const [locations, setLocations] = useState([]); // Add locations state
+    const [locations, setLocations] = useState([]);
     const [error, setError] = useState(null);
     const { user } = useAuth();
+
+    const handleError = useCallback((err, customMessage) => {
+        console.error(customMessage, err);
+        const errorMessage = err.response?.data?.message || customMessage;
+        setError(errorMessage);
+        toast.error(errorMessage);
+        throw err;
+    }, []);
 
     const fetchBins = useCallback(async () => {
         if (!user) return;
@@ -22,46 +31,40 @@ export const BinsProvider = ({ children }) => {
             });
 
             const fetchedBins = response.data || {};
-            setBins(fetchedBins); // Ensure bins is set to the fetched data
-
-            // Get locations from the keys of fetchedBins
+            setBins(fetchedBins);
             const fetchedLocations = Object.keys(fetchedBins);
-            setLocations(fetchedLocations); // Set locations based on keys
-
+            setLocations(fetchedLocations);
             setError(null);
         } catch (err) {
-            console.error('Error fetching bins:', err); // Log error details
-            setError(err.response?.data?.message || 'An error occurred while fetching bins.');
-            setBins({}); // Reset to an empty object on error
+            handleError(err, 'An error occurred while fetching bins.');
+            setBins({});
         } finally {
             setLoading(false);
         }
-    }, [user]);
+    }, [user, handleError]);
 
     const getBinByLocationAndId = useCallback(async (location, id) => {
         if (!user) return;
         setLoading(true);
         try {
-            const response = await axios.get(`${import.meta.env.VITE_SERVER_HOST_URL}/api/bin/getBinByLocationAndId`, {
+            const response = await axios.get(`${import.meta.env.VITE_SERVER_HOST_URL}/api/bin/getBinByLocationAndId/`, {
                 headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` },
                 params: { location, id },
             });
             setError(null);
             return response.data.data;
         } catch (err) {
-            console.error('Error fetching bin:', err); // Log error details
-            setError(err.response?.data?.message || 'An error occurred while fetching the bin.');
-            throw err;
+            handleError(err, 'An error occurred while fetching the bin.');
         } finally {
             setLoading(false);
         }
-    }, [user]);
+    }, [user, handleError]);
 
     const createBin = useCallback(async (binData) => {
         if (!user) return;
         setLoading(true);
         try {
-            const response = await axios.post(`${import.meta.env.VITE_SERVER_HOST_URL}/api/bin/create`, binData, {
+            const response = await axios.post(`${import.meta.env.VITE_SERVER_HOST_URL}/api/bin/create/`, binData, {
                 headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` },
             });
             setBins((prevBins) => ({
@@ -74,19 +77,17 @@ export const BinsProvider = ({ children }) => {
             setError(null);
             return response.data.data;
         } catch (err) {
-            console.error('Error creating bin:', err); // Log error details
-            setError(err.response?.data?.message || 'An error occurred while creating the bin.');
-            throw err;
+            handleError(err, 'An error occurred while creating the bin.');
         } finally {
             setLoading(false);
         }
-    }, [user]);
+    }, [user, handleError]);
 
     const editBin = useCallback(async (location, id, binData) => {
         if (!user) return;
         setLoading(true);
         try {
-            const response = await axios.put(`${import.meta.env.VITE_SERVER_HOST_URL}/api/bin/edit`, binData, {
+            const response = await axios.put(`${import.meta.env.VITE_SERVER_HOST_URL}/api/bin/edit/`, binData, {
                 headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` },
                 params: { location, id },
             });
@@ -97,19 +98,17 @@ export const BinsProvider = ({ children }) => {
             setError(null);
             return response.data.data;
         } catch (err) {
-            console.error('Error editing bin:', err); // Log error details
-            setError(err.response?.data?.message || 'An error occurred while editing the bin.');
-            throw err;
+            handleError(err, 'An error occurred while editing the bin.');
         } finally {
             setLoading(false);
         }
-    }, [user]);
+    }, [user, handleError]);
 
     const deleteBin = useCallback(async (location, id) => {
         if (!user) return;
         setLoading(true);
         try {
-            await axios.delete(`${import.meta.env.VITE_SERVER_HOST_URL}/api/bin/delete`, {
+            await axios.delete(`${import.meta.env.VITE_SERVER_HOST_URL}/api/bin/delete/`, {
                 headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` },
                 params: { location, id },
             });
@@ -119,28 +118,26 @@ export const BinsProvider = ({ children }) => {
             }));
             setError(null);
         } catch (err) {
-            console.error('Error deleting bin:', err); // Log error details
-            setError(err.response?.data?.message || 'An error occurred while deleting the bin.');
-            throw err;
+            handleError(err, 'An error occurred while deleting the bin.');
         } finally {
             setLoading(false);
         }
-    }, [user]);
+    }, [user, handleError]);
+
+    const value = useMemo(() => ({
+        bins,
+        loading,
+        error,
+        locations,
+        fetchBins,
+        getBinByLocationAndId,
+        createBin,
+        editBin,
+        deleteBin,
+    }), [bins, loading, error, locations, fetchBins, getBinByLocationAndId, createBin, editBin, deleteBin]);
 
     return (
-        <BinsContext.Provider
-            value={{
-                bins,
-                loading,
-                error,
-                locations,
-                fetchBins, // Expose fetchBins to be called externally
-                getBinByLocationAndId,
-                createBin,
-                editBin,
-                deleteBin,
-            }}
-        >
+        <BinsContext.Provider value={value}>
             {children}
         </BinsContext.Provider>
     );

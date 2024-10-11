@@ -1,6 +1,5 @@
 // utils/logger.js
 const winston = require('winston');
-const { getFormattedDate } = require('./helpers');
 
 // Configure colors for log levels
 winston.addColors({
@@ -11,6 +10,12 @@ winston.addColors({
     debug: 'magenta',
 });
 
+// Format date for logs
+const getFormattedDate = () => {
+    const DateTime = require('luxon').DateTime; // Import DateTime here to avoid circular dependency
+    return DateTime.now().setZone('Asia/Kolkata').toFormat('dd/MM/yyyy, hh:mm:ss a').toUpperCase();
+};
+
 // Configure Winston logger with colors and formatted timestamp
 const logger = winston.createLogger({
     level: 'info',
@@ -18,7 +23,7 @@ const logger = winston.createLogger({
     format: winston.format.combine(
         winston.format.colorize(),  // Apply colors to log levels
         winston.format.timestamp({
-            format: getFormattedDate // Use the common time format function
+            format: getFormattedDate // Use the date format function defined in this file
         }),
         winston.format.json(),
         winston.format.printf(({ timestamp, level, message, ...metadata }) => {

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { toast } from 'react-hot-toast';
 import Navbar from './common/Navbar';
 import Bin from './Bin';
@@ -8,24 +8,27 @@ const Bins = () => {
   const { bins, locations, loading: binLoading, error: binError, deleteBin, fetchBins } = useBinsContext();
 
   const [selectedLocation, setSelectedLocation] = useState(() => {
-    const savedLocation = localStorage.getItem('selectedLocation');
-    return savedLocation || ''; // Set to empty string if no saved location
+    return localStorage.getItem('selectedLocation') || '';
   });
 
-  // Fetch bins on component mount
-  useEffect(() => {
-    fetchBins().catch((error) => {
-      console.error('Failed to fetch bins:', error); // Log error if fetching fails
-      toast.error('Failed to fetch bins.');
-    });
+  const fetchBinsData = useCallback(async () => {
+    try {
+      await fetchBins();
+    } catch (error) {
+      console.error('Failed to fetch bins:', error);
+      toast.error('Failed to fetch bins. Please try again.');
+    }
   }, [fetchBins]);
 
-  // Set the first location as default if not already set
+  useEffect(() => {
+    fetchBinsData();
+  }, [fetchBinsData]);
+
   useEffect(() => {
     if (locations.length > 0 && !selectedLocation) {
       const initialLocation = locations[0];
       setSelectedLocation(initialLocation);
-      localStorage.setItem('selectedLocation', initialLocation); // Save to localStorage
+      localStorage.setItem('selectedLocation', initialLocation);
     }
   }, [locations, selectedLocation]);
 
@@ -36,22 +39,32 @@ const Bins = () => {
   };
 
   const handleBinDelete = async (binId) => {
-    toast.remove(); // Remove any existing toasts before showing a new one
+    toast.remove();
     try {
       await deleteBin(selectedLocation, binId);
       toast.success('Bin successfully deleted!');
+      // Refetch bins to update the list
+      fetchBinsData();
     } catch (error) {
-      console.error('Failed to delete bin:', error); // Log error if deletion fails
-      toast.error('Failed to delete bin.'); // Handle any deletion error
+      console.error('Failed to delete bin:', error);
+      toast.error('Failed to delete bin. Please try again.');
     }
   };
 
-  // Handle loading and error states
-  if (binLoading) return <div>Loading bins...</div>;
-  if (binError) return <div className="text-red-500">{binError}</div>;
+  if (binLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-xl font-semibold">Loading bins...</div>
+      </div>
+    );
+  }
 
-  // Correctly access bins based on the selected location
-  const binsForSelectedLocation = bins[selectedLocation] || {}; // Access bins safely
+  if (binError) {
+    toast.error(binError);
+    return null; // Return null to prevent rendering the rest of the component
+  }
+
+  const binsForSelectedLocation = bins[selectedLocation] || {};
 
   return (
     <div className='flex min-h-screen flex-col bg-gray-100'>
@@ -69,6 +82,7 @@ const Bins = () => {
             onChange={handleLocationChange}
             className="rounded border p-2"
           >
+            <option value="">Select a location</option>
             {locations.map(location => (
               <option key={location} value={location}>
                 {location}
@@ -77,7 +91,6 @@ const Bins = () => {
           </select>
         </div>
 
-        {/* Optional: Display number of bins for each location */}
         <div className="mb-4">
           {locations.map(location => (
             <div key={location}>
@@ -86,15 +99,19 @@ const Bins = () => {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          {Object.keys(binsForSelectedLocation).length > 0 ? (
-            Object.entries(binsForSelectedLocation).map(([binId, binData]) => (
-              <Bin key={binId} locationId={selectedLocation} binId={binId} onDelete={handleBinDelete} />
-            ))
-          ) : (
-            <p className="text-red-500">No bins found for this location.</p>
-          )}
-        </div>
+        {selectedLocation ? (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            {Object.keys(binsForSelectedLocation).length > 0 ? (
+              Object.entries(binsForSelectedLocation).map(([binId, binData]) => (
+                <Bin key={binId} locationId={selectedLocation} binId={binId} onDelete={handleBinDelete} />
+              ))
+            ) : (
+              <p className="text-red-500">No bins found for this location.</p>
+            )}
+          </div>
+        ) : (
+          <p className="text-blue-500">Please select a location to view bins.</p>
+        )}
       </div>
     </div>
   );
