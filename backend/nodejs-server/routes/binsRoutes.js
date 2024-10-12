@@ -6,20 +6,18 @@ const auth = require('../common/Auth');
 const { logger } = require('../utils/logger');
 const BinsRateLimiter = require('../middlewares/binsRateLimiter');
 
-// Error handling middleware
-const errorHandler = (err, req, res, next) => {
-    logger.error(`Error: ${err.message}`);
-    const status = err.status || 500;
-    const message = err.message || 'An unexpected error occurred. Please try again later.';
 
-    res.status(status).json({
-        message,
-        error: {
-            code: status,
-            detail: message
-        }
+// Error handling middleware (in binsRoutes.js)
+const errorHandler = (err, req, res, next) => {
+    const statusCode = err.statusCode || 500;
+
+    res.status(statusCode).json({
+        status: err.status || 'error',
+        message: err.message,
+        statusCode: statusCode // Include the numeric status code in the response
     });
 };
+
 
 // Bin management routes
 router.get('/list',

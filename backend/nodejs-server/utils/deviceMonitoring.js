@@ -25,10 +25,10 @@ const getFormattedDate = () => {
 };
 
 // Update the status of a device
-const updateDeviceStatus = (binLocation, binId, type) => {
+const updateDeviceStatus = (binLocation, binId, type, sensorStatus) => {
     if (!binLocation || !binId) {
         customLogger.error(`Error: Missing binLocation or binId. binLocation=${binLocation}, binId=${binId}`);
-        return; // Early return if parameters are missing
+        return;
     }
 
     const deviceKey = `${binLocation}#${binId}`;
@@ -39,7 +39,8 @@ const updateDeviceStatus = (binLocation, binId, type) => {
         deviceStatusTracker.set(deviceKey, {
             lastHeartbeat: 0,
             lastSensorDistance: 0,
-            isOnline: false
+            isOnline: false,
+            sensorStatus: 'OFF'
         });
         customLogger.info(`Initialized status for device: ${deviceKey}`);
     }
@@ -48,32 +49,35 @@ const updateDeviceStatus = (binLocation, binId, type) => {
 
     // Update the appropriate timestamp based on type
     if (type === 'heartbeat') {
-        status.lastHeartbeat = now; // Update heartbeat time
+        status.lastHeartbeat = now;
     } else if (type === 'sensor-distance') {
-        status.lastSensorDistance = now; // Update sensor distance time
+        status.lastSensorDistance = now;
+    } else {
+        customLogger.warn(`Unknown update type: ${type} for device: ${deviceKey}`);
     }
 
-    // Mark device as online
     status.isOnline = true;
 
-    // Start monitoring if it hasn't started yet
-    if (!monitoringIntervalId) {
-        startMonitoring(); // Start monitoring
+    // Update sensor status if provided
+    if (sensorStatus) {
+        status.sensorStatus = sensorStatus;
     }
 
-    // Reset request timer
+    if (!monitoringIntervalId) {
+        startMonitoring();
+    }
+
     resetRequestTimer();
 
-    // Log before updating Firebase
-    customLogger.info(`Before updating Firebase in updateDeviceStatus: binLocation=${binLocation}, binId=${binId}, isOnline=${status.isOnline}`);
-    updateFirebaseStatus(binLocation, binId, true)
+    customLogger.info(`Updating Firebase: binLocation=${binLocation}, binId=${binId}, isOnline=${status.isOnline}, sensorStatus=${status.sensorStatus}`);
+    updateFirebaseStatus(binLocation, binId, status.isOnline, status.sensorStatus)
         .catch((error) => {
             customLogger.error(`Failed to update Firebase for binLocation=${binLocation}, binId=${binId}:`, error);
         });
 };
 
 // Update Firebase status for a given bin
-const updateFirebaseStatus = async (binLocation, binId, isOnline) => {
+const updateFirebaseStatus = async (binLocation, binId, isOnline, sensorStatus) => {
     if (!binId || !binLocation) {
         customLogger.error(`Missing binId or binLocation: binId=${binId}, binLocation=${binLocation}`);
         return; // Stop further execution if these are missing
@@ -81,12 +85,18 @@ const updateFirebaseStatus = async (binLocation, binId, isOnline) => {
 
     const binRef = sensorDataRef.child(`${binLocation}/${binId}`);
     try {
-        await binRef.update({
+        const updateData = {
             microProcessorStatus: isOnline ? 'ON' : 'OFF',
-            sensorStatus: isOnline ? 'ON' : 'OFF',
             lastUpdated: getFormattedDate(),
-        });
-        customLogger.info(`Updated status for ${binId} at ${binLocation}: ${isOnline ? 'Online' : 'Offline'}`);
+        };
+
+        // Only update sensorStatus if it's provided
+        if (sensorStatus) {
+            updateData.sensorStatus = sensorStatus;
+        }
+
+        await binRef.update(updateData);
+        customLogger.info(`Updated status for ${binId} at ${binLocation}: ${JSON.stringify(updateData)}`);
     } catch (error) {
         customLogger.error(`Error updating status for ${binId} at ${binLocation}:`, error);
     }
@@ -94,33 +104,27 @@ const updateFirebaseStatus = async (binLocation, binId, isOnline) => {
 
 // Check the status of all devices
 const checkDeviceStatus = async () => {
-    const now = Date.now(); // Get the current timestamp in milliseconds
+    const now = Date.now();
     customLogger.info(`Checking device status at ${getFormattedDate()}`);
 
-    // Use an array to store update promises
     const updatePromises = [];
 
     for (const [deviceKey, status] of deviceStatusTracker) {
-        const [binLocation, binId] = deviceKey.split('#'); // Destructure for better readability
+        const [binLocation, binId] = deviceKey.split('#');
 
         if (!binId) {
             customLogger.error(`Invalid binId derived from deviceKey=${deviceKey}`);
-            continue; // Skip to the next iteration if binId is invalid
+            continue;
         }
 
-        // Determine the last update time considering both timestamps
         const lastUpdate = Math.max(status.lastHeartbeat || 0, status.lastSensorDistance || 0);
         const timeSinceLastUpdate = now - lastUpdate;
 
-        // customLogger.info(`Device Key: ${deviceKey}, Last Update: ${lastUpdate}, Now: ${now}, Time Since Last Update: ${timeSinceLastUpdate}ms`);
-
         if (status.isOnline) {
             if (timeSinceLastUpdate > MONITORING_CONFIG.offlineThreshold) {
-                // Mark device as offline if the last update exceeds the threshold
                 status.isOnline = false;
                 customLogger.info(`Device ${deviceKey} is now offline. Updating Firebase...`);
-                // Store the promise to update Firebase status
-                updatePromises.push(updateFirebaseStatus(binLocation, binId, false));
+                updatePromises.push(updateFirebaseStatus(binLocation, binId, false, 'OFF'));
             } else {
                 customLogger.info(`Device ${deviceKey} is still online.`);
             }
@@ -129,7 +133,6 @@ const checkDeviceStatus = async () => {
         }
     }
 
-    // Wait for all Firebase updates to finish
     await Promise.all(updatePromises);
 };
 

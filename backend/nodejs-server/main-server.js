@@ -78,15 +78,25 @@ app.use((err, req, res, next) => {
   // Log the error
   customLogger.error('Unhandled Error:', err);
 
+  // Set default error status and message
+  let statusCode = err.statusCode || 500;
+  let message = err.message || 'Internal Server Error';
+
+  // Prepare the error response
+  const errorResponse = {
+    status: statusCode >= 400 && statusCode < 500 ? 'fail' : 'error',
+    message: message
+  };
+
+  // Include stack trace in development environment
+  if (process.env.NODE_ENV === 'development') {
+    errorResponse.stack = err.stack;
+  }
+
   // Send error response
-  res.status(err.status || 500);
-  res.json({
-    error: {
-      message: err.message,
-      status: err.status
-    }
-  });
+  res.status(statusCode).json(errorResponse);
 });
+
 
 // Call the function to connect to the database
 connectToDatabase();

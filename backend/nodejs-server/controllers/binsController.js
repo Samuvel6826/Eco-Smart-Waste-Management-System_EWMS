@@ -1,13 +1,13 @@
 const admin = require('firebase-admin');
 const { binMetaDataSchema, distanceSchema, heartbeatSchema } = require('../models/binsModel');
 const { getFormattedDate, updateDeviceStatus } = require('../utils/deviceMonitoring');
-const { logger } = require('../utils/logger');
+const { logger: customLogger } = require('../utils/logger'); // Import the logger
 
 // Firebase references
 const firebaseDB = admin.database();
 const sensorDataRef = firebaseDB.ref('Trash-Bins');
 
-// Enhanced error handling class
+// AppError class
 class AppError extends Error {
     constructor(message, statusCode) {
         super(message);
@@ -21,21 +21,6 @@ class AppError extends Error {
 // Catch async errors
 const catchAsync = fn => (req, res, next) =>
     Promise.resolve(fn(req, res, next)).catch(next);
-
-// Error handling response
-const handleError = (err, res) => {
-    logger.error(err);
-    if (err instanceof AppError) {
-        return res.status(err.statusCode).json({
-            status: err.status,
-            message: err.message
-        });
-    }
-    return res.status(500).json({
-        status: 'error',
-        message: 'Something went wrong'
-    });
-};
 
 // Enhanced location finder with caching
 let locationCache = {};
@@ -58,53 +43,64 @@ const findActualLocation = async (location) => {
 };
 
 // Enhanced bin operations
-const createBin = catchAsync(async (req, res) => {
+const createBin = catchAsync(async (req, res, next) => {
     const { error, value } = binMetaDataSchema.validate(req.body);
-    if (error) throw new AppError('Invalid data format or missing required fields', 400);
-
-    const { id, binLocation } = value;
-    logger.info(`Attempting to create new bin with ID: ${id} at location: ${binLocation}`);
-
-    const binRef = sensorDataRef.child(`${binLocation}/${id}`);
-    const existingBin = await binRef.once('value');
-
-    if (existingBin.exists()) {
-        throw new AppError(`Bin with ID ${id} already exists at location ${binLocation}`, 400);
+    if (error) {
+        return next(new AppError('Invalid data format or missing required fields', 400));
     }
 
-    const dataToSave = {
-        ...value,
-        lastUpdated: getFormattedDate(),
-        createdAt: getFormattedDate(),
-        lastMaintenance: "",
-    };
+    const { id, binLocation } = value;
+    customLogger.info(`Attempting to create new bin with ID: ${id} at location: ${binLocation}`);
 
-    await binRef.set(dataToSave);
-    logger.info('New bin metadata saved to Firebase:', dataToSave);
+    try {
+        const binRef = sensorDataRef.child(`${binLocation}/${id}`);
+        const existingBin = await binRef.once('value');
 
-    res.status(201).json({ message: 'Bin created successfully', data: dataToSave });
+        if (existingBin.exists()) {
+            return next(new AppError(`Bin with ID ${id} already exists at location ${binLocation}`, 409));
+        }
+
+        const dataToSave = {
+            ...value,
+            lastUpdated: getFormattedDate(),
+            createdAt: getFormattedDate(),
+            lastMaintenance: "",
+        };
+
+        await binRef.set(dataToSave);
+        customLogger.info('New bin metadata saved to Firebase:', dataToSave);
+
+        res.status(201).json({
+            status: 'success',
+            message: 'Bin created successfully',
+            data: dataToSave
+        });
+    } catch (error) {
+        customLogger.error('Error creating bin:', error);
+        return next(new AppError('An error occurred while creating the bin', 500));
+    }
 });
 
-const updateSensorDistance = catchAsync(async (req, res) => {
-    logger.info('Incoming request body:', req.body);
+const updateSensorDistance = catchAsync(async (req, res, next) => {
+    customLogger.info('Incoming request body:', req.body);
 
     const { error, value } = distanceSchema.validate(req.body, { abortEarly: false });
     if (error) {
         const errorMessages = error.details.map(detail => detail.message);
-        throw new AppError(`Invalid distance data: ${errorMessages.join(', ')}`, 400);
+        return next(new AppError(`Invalid distance data: ${errorMessages.join(', ')}`, 400));
     }
 
-    const { id, binLocation } = value;
-    logger.info(`Updating sensor distance for bin location: ${binLocation} and ID: ${id}`);
+    const { id, binLocation, sensorStatus } = value;
+    customLogger.info(`Updating sensor distance for bin location: ${binLocation} and ID: ${id}`);
 
     const actualLocation = await findActualLocation(binLocation);
-    if (!actualLocation) throw new AppError('Location not found', 404);
+    if (!actualLocation) return next(new AppError('Location not found', 404));
 
     const binRef = sensorDataRef.child(`${actualLocation}/${id}`);
     const existingDataSnapshot = await binRef.once('value');
     const existingData = existingDataSnapshot.val();
 
-    if (!existingData) throw new AppError('No existing data found for this bin', 404);
+    if (!existingData) return next(new AppError('No existing data found for this bin', 404));
 
     // Compare and prepare fields to update
     const fieldsToUpdate = {};
@@ -120,36 +116,43 @@ const updateSensorDistance = catchAsync(async (req, res) => {
     if (hasChanges) {
         fieldsToUpdate.lastUpdated = getFormattedDate();
 
-        logger.info('Fields to be updated:', fieldsToUpdate);
+        customLogger.info('Fields to be updated:', fieldsToUpdate);
 
         await binRef.update(fieldsToUpdate);
-        logger.info('Bin data updated successfully');
+        customLogger.info('Bin data updated successfully');
 
-        updateDeviceStatus(binLocation, id, 'sensor-distance');
+        // Update device status without changing the sensor status
+        updateDeviceStatus(binLocation, id, 'sensor-distance', sensorStatus);
+
+        // Combine existing data with updates for the response
+        const updatedData = { ...existingData, ...fieldsToUpdate };
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Bin data updated successfully',
+            data: updatedData
+        });
     } else {
-        logger.info('No changes detected. Skipping update.');
+        customLogger.info('No changes detected. Skipping update.');
+        res.status(200).json({
+            status: 'success',
+            message: 'No changes were necessary',
+            data: existingData
+        });
     }
-
-    // Combine existing data with updates for the response
-    const updatedData = { ...existingData, ...fieldsToUpdate };
-
-    res.status(200).json({
-        message: hasChanges ? 'Bin data updated successfully' : 'No changes were necessary',
-        data: updatedData
-    });
 });
 
 const updateHeartbeat = catchAsync(async (req, res) => {
-    logger.info('Incoming heartbeat request body:', req.body);
+    customLogger.info('Incoming heartbeat request body:', req.body);
 
     const { error, value } = heartbeatSchema.validate(req.body);
     if (error) {
-        console.error('Validation error:', error.details);
+        customLogger.error('Validation error:', error.details);
         throw new AppError('Invalid heartbeat data', 400);
     }
 
     const { id, binLocation } = value;
-    logger.info(`Updating heartbeat for bin location: ${binLocation} and ID: ${id}`);
+    customLogger.info(`Updating heartbeat for bin location: ${binLocation} and ID: ${id}`);
 
     const actualLocation = await findActualLocation(binLocation);
     if (!actualLocation) throw new AppError('Location not found', 404);
@@ -166,10 +169,10 @@ const updateHeartbeat = catchAsync(async (req, res) => {
         lastUpdated: getFormattedDate(),
     };
 
-    logger.info('Heartbeat data to be saved:', dataToSave);
+    customLogger.info('Heartbeat data to be saved:', dataToSave);
 
     await binRef.update(dataToSave);
-    logger.info('Heartbeat updated successfully');
+    customLogger.info('Heartbeat updated successfully');
 
     updateDeviceStatus(binLocation, id, 'heartbeat');
     res.status(200).json({ message: 'Heartbeat updated successfully', data: dataToSave });
@@ -200,6 +203,5 @@ module.exports = {
     updateSensorDistance,
     updateHeartbeat,
     getBins,
-    getBinByLocationAndId,
-    handleError
+    getBinByLocationAndId
 };
