@@ -1,4 +1,3 @@
-// AuthContext.js
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import { decodeToken } from '../components/authentication/authUtils'; // Adjust the path as necessary
@@ -11,18 +10,27 @@ export const AuthProvider = ({ children }) => {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        const token = sessionStorage.getItem('token');
-        if (token) {
-            try {
-                const decodedUser = decodeToken(token);
-                setUser(decodedUser);
-            } catch (error) {
-                console.error('Invalid token:', error);
-                sessionStorage.removeItem('token');
-                setError(error);
+        const initializeAuth = async () => {
+            const token = sessionStorage.getItem('token');
+            if (token) {
+                try {
+                    const decodedUser = decodeToken(token);
+                    if (decodedUser && decodedUser.exp * 1000 > Date.now()) {
+                        setUser(decodedUser);
+                        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+                    } else {
+                        console.warn('Token expired, logging out');
+                        await logout();
+                    }
+                } catch (error) {
+                    console.error('Invalid token:', error);
+                    await logout();
+                }
             }
-        }
-        setLoading(false);
+            setLoading(false);
+        };
+
+        initializeAuth();
     }, []);
 
     const login = async (email, password) => {
@@ -41,19 +49,25 @@ export const AuthProvider = ({ children }) => {
             const decodedUser = decodeToken(token);
             setUser(decodedUser);
             setError(null);
+            axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
             return decodedUser;
         } catch (error) {
             console.error('Login failed:', error);
-            setError(error);
+            setError(error.response?.data?.message || 'An error occurred during login');
             throw error;
         }
     };
 
-    const logout = () => {
+    const logout = async () => {
         sessionStorage.removeItem('token');
         setUser(null);
         setError(null);
+        delete axios.defaults.headers.common['Authorization'];
+        // Optionally, you can add a call to your backend to invalidate the token
+        // await axios.post(`${import.meta.env.VITE_SERVER_HOST_URL}/api/user/logout`);
     };
+
+
 
     return (
         <AuthContext.Provider value={{ user, loading, error, setUser, login, logout }}>

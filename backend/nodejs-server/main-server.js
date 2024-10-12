@@ -81,6 +81,10 @@ app.use((req, res, next) => {
   next(createError(404));
 });
 
+app.get('/', (req, res) => {
+  res.status(200).json({ message: 'EWMS API is running' });
+});
+
 // Global Error Handler
 app.use((err, req, res, next) => {
   logger.error('Unhandled Error:', {

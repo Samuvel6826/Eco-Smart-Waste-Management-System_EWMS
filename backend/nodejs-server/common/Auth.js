@@ -1,99 +1,96 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { logger } = require('../utils/logger'); // Assuming you have a logger utility
 
 const saltRound = 10;
 
-// Hash the password using bcrypt
 const hashPassword = async (password) => {
     try {
         const salt = await bcrypt.genSalt(saltRound);
-        const hashedPassword = await bcrypt.hash(password, salt);
-        return hashedPassword;
+        return await bcrypt.hash(password, salt);
     } catch (error) {
-        console.error("Error hashing password:", error);
+        logger.error("Error hashing password:", error);
         throw new Error("Hashing failed");
     }
 };
 
-// Compare the provided password with the stored hashed password
 const comparePassword = async (password, hashedPassword) => {
     try {
         return await bcrypt.compare(password, hashedPassword);
     } catch (error) {
-        console.error("Error comparing passwords:", error);
+        logger.error("Error comparing passwords:", error);
         throw new Error("Password comparison failed");
     }
 };
 
-// Create a JWT token with the provided payload
 const createToken = (payload) => {
     try {
-        const token = jwt.sign(
+        return jwt.sign(
             payload,
             process.env.JWT_SECRET,
-            {
-                expiresIn: process.env.JWT_EXPIRE,
-            }
+            { expiresIn: process.env.JWT_EXPIRE }
         );
-        return token;
     } catch (error) {
-        console.error("Error creating token:", error);
+        logger.error("Error creating token:", error);
         throw new Error("Token creation failed");
     }
 };
 
-// Decode and verify a JWT token
 const decodeToken = (token) => {
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        return decoded;
+        return jwt.verify(token, process.env.JWT_SECRET);
     } catch (error) {
-        console.error("Error decoding token:", error);
+        logger.error("Error decoding token:", error);
         throw new Error("Invalid or expired token");
     }
 };
 
-// Middleware to validate a JWT token and allow the request to proceed if valid
 const validate = (req, res, next) => {
     try {
-        const token = req?.headers?.authorization?.split(" ")[1];
-        if (!token) {
-            return res.status(401).json({ message: "Authorization token not found" });
+        const authHeader = req.headers.authorization;
+        const token = authHeader && authHeader.split(" ")[1];
+
+        if (!token || token === 'null') {
+            logger.warn("Authorization token not found or null");
+            return res.status(401).json({ message: "Authorization token not found or invalid" });
         }
 
         const payload = decodeToken(token);
-        const currentTime = Math.floor(Date.now() / 1000); // Convert to seconds
+        const currentTime = Math.floor(Date.now() / 1000);
         if (currentTime >= payload.exp) {
+            logger.warn("Token has expired");
             return res.status(401).json({ message: "Token has expired" });
         }
 
-        req.user = payload; // Attach user data to request object for further use
+        req.user = payload;
         next();
     } catch (error) {
-        console.error("Token validation error:", error);
+        logger.error("Token validation error:", error);
         return res.status(401).json({ message: "Invalid or expired token" });
     }
 };
 
-// Middleware to ensure the user has a specific role to access the route
 const roleGuard = (...allowedRoles) => {
     return (req, res, next) => {
         try {
-            const token = req?.headers?.authorization?.split(" ")[1];
-            if (!token) {
-                return res.status(401).json({ message: "Authorization token not found" });
+            const authHeader = req.headers.authorization;
+            const token = authHeader && authHeader.split(" ")[1];
+
+            if (!token || token === 'null') {
+                logger.warn("Authorization token not found or null in roleGuard");
+                return res.status(401).json({ message: "Authorization token not found or invalid" });
             }
 
             const payload = decodeToken(token);
-            // Check if the user's role is in the allowed roles
             if (allowedRoles.includes(payload.role)) {
-                req.user = payload; // Attach user data to request object for further use
+                req.user = payload;
                 return next();
             }
 
+            logger.warn(`Access denied for role ${payload.role}. Allowed roles: ${allowedRoles.join(', ')}`);
             return res.status(403).json({ message: `Access restricted to ${allowedRoles.join(', ')} roles only` });
         } catch (error) {
-            console.error("Role guard error:", error);
+            logger.error("Role guard error:", error);
             return res.status(401).json({ message: "Invalid or expired token" });
         }
     };

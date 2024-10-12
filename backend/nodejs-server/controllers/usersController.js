@@ -209,6 +209,8 @@ const loginUser = async (req, res) => {
             return handleClientError(res, 'Invalid email or password');
         }
 
+        logger.info(`User found: ${JSON.stringify(user)}`);
+
         const isValidPassword = await auth.comparePassword(password, user.password);
         if (!isValidPassword) {
             logger.warn(`Login attempt failed: Invalid password for email ${email}`);
@@ -234,6 +236,7 @@ const loginUser = async (req, res) => {
         });
     } catch (error) {
         logger.error('Login error:', error);
+        logger.error('Stack trace:', error.stack);
         handleServerError(res, error);
     }
 };

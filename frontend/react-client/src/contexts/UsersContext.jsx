@@ -9,20 +9,36 @@ export const UsersProvider = ({ children }) => {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const { logout } = useAuth();
+    const { user, logout } = useAuth();
 
-    const axiosConfig = useMemo(() => ({
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${sessionStorage.getItem('token')}`
-        }
-    }), []);
+    const axiosInstance = useMemo(() => {
+        const instance = axios.create({
+            baseURL: import.meta.env.VITE_SERVER_HOST_URL,
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        instance.interceptors.request.use((config) => {
+            const token = sessionStorage.getItem('token');
+            if (token) {
+                config.headers['Authorization'] = `Bearer ${token}`;
+            }
+            return config;
+        }, (error) => {
+            return Promise.reject(error);
+        });
+
+        return instance;
+    }, []);
 
     const handleError = useCallback((err) => {
         const message = err.response?.data?.message || 'An unexpected error occurred.';
         setError(message);
         toast.error(message);
+        console.error('API Error:', err.response?.data, err.message);
         if (err.response?.status === 401) {
+            console.log('Unauthorized access detected. Logging out.');
             logout();
         }
     }, [logout]);
@@ -30,116 +46,83 @@ export const UsersProvider = ({ children }) => {
     const fetchUsers = useCallback(async () => {
         setLoading(true);
         try {
-            const res = await axios.get(`${import.meta.env.VITE_SERVER_HOST_URL}/api/user/list`, axiosConfig);
-
-            if (res.status === 200) {
-                setUsers(res.data.data);
-            }
+            const res = await axiosInstance.get('/api/user/list');
+            setUsers(res.data.data);
+            // console.log('Users fetched successfully:', res.data.data);
         } catch (err) {
             handleError(err);
         } finally {
             setLoading(false);
         }
-    }, [handleError, axiosConfig]);
+    }, [axiosInstance, handleError]);
 
     const getUserByEmployeeId = useCallback(async (employeeId) => {
         setLoading(true);
         try {
-            const res = await axios.get(`${import.meta.env.VITE_SERVER_HOST_URL}/api/user/get/employeeId`, {
-                ...axiosConfig,
-                params: { employeeId },
-            });
-
-            if (res.status === 200) {
-                return res.data.data;
-            }
+            const res = await axiosInstance.get(`/api/user/${employeeId}`);
+            return res.data.data;
         } catch (err) {
             handleError(err);
+            throw err;
         } finally {
             setLoading(false);
         }
-    }, [handleError, axiosConfig]);
+    }, [axiosInstance, handleError]);
 
     const createUser = useCallback(async (userData) => {
         setLoading(true);
         try {
-            const res = await axios.post(`${import.meta.env.VITE_SERVER_HOST_URL}/api/user/create`, userData, axiosConfig);
-
-            if (res.status === 201) {
-                setUsers(prevUsers => [...prevUsers, res.data.data]);
-                toast.success('User created successfully');
-                return res.data.data;
-            }
+            const res = await axiosInstance.post('/api/user/create', userData);
+            toast.success('User created successfully');
+            return res.data.data;
         } catch (err) {
-            console.log('Token:', sessionStorage.getItem('token'));
             handleError(err);
+            throw err;
         } finally {
             setLoading(false);
         }
-    }, [handleError, axiosConfig]);
+    }, [axiosInstance, handleError]);
 
-    const editUser = useCallback(async (employeeId, userData) => {
+    const editUser = useCallback(async (userId, userData) => {
         setLoading(true);
         try {
-            const res = await axios.put(`${import.meta.env.VITE_SERVER_HOST_URL}/api/user/edit/employeeId`, userData, {
-                ...axiosConfig,
-                params: { employeeId },
-            });
-
-            if (res.status === 200) {
-                setUsers(prevUsers => prevUsers.map(user => user.employeeId === employeeId ? res.data.data : user));
-                toast.success('User updated successfully');
-                return res.data.data;
-            }
+            const res = await axiosInstance.put(`/api/user/${userId}`, userData);
+            toast.success('User updated successfully');
+            return res.data.data;
         } catch (err) {
             handleError(err);
+            throw err;
         } finally {
             setLoading(false);
         }
-    }, [handleError, axiosConfig]);
+    }, [axiosInstance, handleError]);
 
-    const deleteUser = useCallback(async (employeeId) => {
+    const deleteUser = useCallback(async (userId) => {
         setLoading(true);
         try {
-            const res = await axios.delete(`${import.meta.env.VITE_SERVER_HOST_URL}/api/user/delete/employeeId`, {
-                ...axiosConfig,
-                params: { employeeId },
-            });
-
-            if (res.status === 200) {
-                setUsers(prevUsers => prevUsers.filter(user => user.employeeId !== employeeId));
-                toast.success('User deleted successfully');
-            }
+            await axiosInstance.delete(`/api/user/${userId}`);
+            toast.success('User deleted successfully');
         } catch (err) {
             handleError(err);
+            throw err;
         } finally {
             setLoading(false);
         }
-    }, [handleError, axiosConfig]);
+    }, [axiosInstance, handleError]);
 
-    const assignBinsToUser = useCallback(async (employeeId, binLocations, supervisorId) => {
+    const assignBinsToUser = useCallback(async (userId, binIds) => {
         setLoading(true);
         try {
-            const res = await axios.patch(
-                `${import.meta.env.VITE_SERVER_HOST_URL}/api/user/assign-binlocations/employeeId`,
-                { bins: binLocations, supervisorId },
-                {
-                    ...axiosConfig,
-                    params: { employeeId },
-                }
-            );
-
-            if (res.status === 200) {
-                setUsers(prevUsers => prevUsers.map(user => user.employeeId === employeeId ? { ...user, assignedBins: res.data.data.assignedBins } : user));
-                toast.success('Bins assigned successfully');
-                return res.data.data;
-            }
+            const res = await axiosInstance.post(`/api/user/${userId}/assign-bins`, { binIds });
+            toast.success('Bins assigned successfully');
+            return res.data.data;
         } catch (err) {
             handleError(err);
+            throw err;
         } finally {
             setLoading(false);
         }
-    }, [handleError, axiosConfig]);
+    }, [axiosInstance, handleError]);
 
     const value = useMemo(() => ({
         users,
@@ -150,7 +133,7 @@ export const UsersProvider = ({ children }) => {
         createUser,
         editUser,
         deleteUser,
-        assignBinsToUser,
+        assignBinsToUser
     }), [users, loading, error, fetchUsers, getUserByEmployeeId, createUser, editUser, deleteUser, assignBinsToUser]);
 
     return <UsersContext.Provider value={value}>{children}</UsersContext.Provider>;
