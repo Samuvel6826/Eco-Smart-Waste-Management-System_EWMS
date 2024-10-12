@@ -64,7 +64,6 @@ const createBin = catchAsync(async (req, res, next) => {
             ...value,
             lastUpdated: getFormattedDate(),
             createdAt: getFormattedDate(),
-            lastMaintenance: "",
         };
 
         await binRef.set(dataToSave);
@@ -198,10 +197,93 @@ const getBinByLocationAndId = catchAsync(async (req, res) => {
     res.status(200).json(binData);
 });
 
+const editBinByLocationAndId = catchAsync(async (req, res, next) => {
+    const { location, id } = req.query;
+    const updates = req.body;
+
+    if (!location || !id) {
+        return next(new AppError('Both location and id are required', 400));
+    }
+
+    customLogger.info(`Attempting to edit bin with ID: ${id} at location: ${location}`);
+
+    const actualLocation = await findActualLocation(location);
+    if (!actualLocation) {
+        return next(new AppError('Location not found', 404));
+    }
+
+    const binRef = sensorDataRef.child(`${actualLocation}/${id}`);
+    const snapshot = await binRef.once('value');
+    const existingBin = snapshot.val();
+
+    if (!existingBin) {
+        return next(new AppError('Bin not found', 404));
+    }
+
+    // Ensure the location in the updates matches the actual location
+    if (updates.binLocation) {
+        updates.binLocation = actualLocation;
+    }
+
+    updates.lastUpdated = getFormattedDate();
+
+    try {
+        await binRef.update(updates);
+        customLogger.info(`Bin ${id} at ${actualLocation} updated successfully`);
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Bin updated successfully',
+            data: { ...existingBin, ...updates }
+        });
+    } catch (error) {
+        customLogger.error('Error updating bin:', error);
+        return next(new AppError('An error occurred while updating the bin', 500));
+    }
+});
+
+const deleteBinByLocationAndId = catchAsync(async (req, res, next) => {
+    const { location, id } = req.query;
+
+    if (!location || !id) {
+        return next(new AppError('Both location and id are required', 400));
+    }
+
+    customLogger.info(`Attempting to delete bin with ID: ${id} at location: ${location}`);
+
+    const actualLocation = await findActualLocation(location);
+    if (!actualLocation) {
+        return next(new AppError('Location not found', 404));
+    }
+
+    const binRef = sensorDataRef.child(`${actualLocation}/${id}`);
+    const snapshot = await binRef.once('value');
+    const existingBin = snapshot.val();
+
+    if (!existingBin) {
+        return next(new AppError('Bin not found', 404));
+    }
+
+    try {
+        await binRef.remove();
+        customLogger.info(`Bin ${id} at ${actualLocation} deleted successfully`);
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Bin deleted successfully'
+        });
+    } catch (error) {
+        customLogger.error('Error deleting bin:', error);
+        return next(new AppError('An error occurred while deleting the bin', 500));
+    }
+});
+
 module.exports = {
     createBin,
     updateSensorDistance,
     updateHeartbeat,
     getBins,
-    getBinByLocationAndId
+    getBinByLocationAndId,
+    editBinByLocationAndId,
+    deleteBinByLocationAndId
 };

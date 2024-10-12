@@ -47,6 +47,7 @@ customLogger.info("CORS_ORIGINS:", corsOrigins);
 app.use(helmet());
 app.use(cors({
   origin: (origin, callback) => {
+    console.log('Origin:', origin);  // Log the incoming origin
     if (!origin || corsOrigins.includes(origin)) {
       callback(null, true);
     } else {

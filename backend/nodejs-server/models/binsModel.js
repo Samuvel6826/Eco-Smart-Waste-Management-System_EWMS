@@ -8,6 +8,9 @@ const binMetaDataSchema = Joi.object({
     geoLocation: Joi.object({
         latitude: Joi.string().allow('').default("latitude"),
         longitude: Joi.string().allow('').default("longitude"),
+    }).default({
+        latitude: "latitude",
+        longitude: "longitude"
     }),
     microProcessorStatus: Joi.string().valid('ON', 'OFF').default('OFF'),
     sensorStatus: Joi.string().valid('ON', 'OFF').default('OFF'),
@@ -15,7 +18,8 @@ const binMetaDataSchema = Joi.object({
     binActiveStatus: Joi.string().valid('Active', 'inActive').default('inActive'),
     distance: Joi.number().default(0),
     filledBinPercentage: Joi.number().min(0).max(100).default(0),
-    maxBinCapacity: Joi.number().min(0).default(0)
+    maxBinCapacity: Joi.number().min(0).default(0),
+    lastMaintenance: Joi.string().default("")
 });
 
 const distanceSchema = Joi.object({
@@ -31,7 +35,7 @@ const distanceSchema = Joi.object({
     binActiveStatus: Joi.string().valid('Active', 'inActive').default('Active'),
     distance: Joi.number().required(),
     filledBinPercentage: Joi.number().min(0).max(100).required(),
-    maxBinCapacity: Joi.number().min(0).required()
+    maxBinCapacity: Joi.number().min(0).required(),
 });
 
 const heartbeatSchema = Joi.object({
