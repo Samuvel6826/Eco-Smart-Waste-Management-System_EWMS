@@ -7,15 +7,26 @@ const UsersRateLimiter = require('../middlewares/usersRateLimiter');
 
 // Error handling middleware
 const errorHandler = (err, req, res, next) => {
-    logger.error(`Error: ${err.message}`);
     const status = err.status || 500;
     const message = err.message || 'An unexpected error occurred. Please try again later.';
+
+    logger.error('Error:', {
+        status,
+        message,
+        stack: err.stack,
+        url: req.originalUrl,
+        method: req.method,
+        body: req.body,
+        query: req.query,
+        params: req.params,
+        headers: req.headers
+    });
 
     res.status(status).json({
         message,
         error: {
             code: status,
-            detail: message
+            detail: process.env.NODE_ENV === 'production' ? message : err.stack
         }
     });
 };

@@ -195,14 +195,23 @@ const loginUser = async (req, res) => {
         const email = sanitize.isString(req.body.email);
         const password = sanitize.isString(req.body.password);
 
+        logger.info(`Login attempt for email: ${email}`);
+
+        if (!email || !password) {
+            logger.warn('Login attempt with missing email or password');
+            return handleClientError(res, 'Email and password are required');
+        }
+
         const user = await UsersModel.findOne({ email });
 
         if (!user) {
+            logger.warn(`Login attempt failed: User not found for email ${email}`);
             return handleClientError(res, 'Invalid email or password');
         }
 
         const isValidPassword = await auth.comparePassword(password, user.password);
         if (!isValidPassword) {
+            logger.warn(`Login attempt failed: Invalid password for email ${email}`);
             return handleClientError(res, 'Invalid email or password');
         }
 
@@ -214,12 +223,17 @@ const loginUser = async (req, res) => {
             employeeId: user.employeeId
         });
 
+        logger.info(`Login successful for user: ${email}`);
         res.status(200).json({
             message: 'Login successful',
             token,
-            role: user.role
+            role: user.role,
+            employeeId: user.employeeId,
+            firstName: user.firstName,
+            lastName: user.lastName
         });
     } catch (error) {
+        logger.error('Login error:', error);
         handleServerError(res, error);
     }
 };
