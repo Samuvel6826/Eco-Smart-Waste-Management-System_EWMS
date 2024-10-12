@@ -31,9 +31,15 @@ export const BinsProvider = ({ children }) => {
             });
 
             const fetchedBins = response.data || {};
-            setBins(fetchedBins);
-            const fetchedLocations = Object.keys(fetchedBins);
-            setLocations(fetchedLocations);
+            const processedBins = {};
+            Object.keys(fetchedBins).forEach(location => {
+                processedBins[location] = Array.isArray(fetchedBins[location])
+                    ? fetchedBins[location]
+                    : [fetchedBins[location]];
+            });
+
+            setBins(processedBins);
+            setLocations(Object.keys(processedBins));
             setError(null);
         } catch (err) {
             handleError(err, 'An error occurred while fetching bins.');
@@ -43,22 +49,14 @@ export const BinsProvider = ({ children }) => {
         }
     }, [user, handleError]);
 
-    const getBinByLocationAndId = useCallback(async (location, id) => {
-        if (!user) return;
-        setLoading(true);
-        try {
-            const response = await axios.get(`${import.meta.env.VITE_SERVER_HOST_URL}/api/bin/getBinByLocationAndId/`, {
-                headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` },
-                params: { location, id },
-            });
-            setError(null);
-            return response.data.data;
-        } catch (err) {
-            handleError(err, 'An error occurred while fetching the bin.');
-        } finally {
-            setLoading(false);
-        }
-    }, [user, handleError]);
+    const getBinByLocationAndId = useCallback((locationId, binId) => {
+        const locationBins = bins['Trash-Bins'][locationId]; // Access the bins for the specified location
+
+        if (!locationBins) return null; // Return null if location doesn't exist
+
+        const foundBin = locationBins[binId]; // Directly access the bin by ID
+        return foundBin || null; // Return the found bin or null
+    }, [bins]);
 
     const createBin = useCallback(async (binData) => {
         if (!user) return;
@@ -67,15 +65,18 @@ export const BinsProvider = ({ children }) => {
             const response = await axios.post(`${import.meta.env.VITE_SERVER_HOST_URL}/api/bin/create/`, binData, {
                 headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` },
             });
-            setBins((prevBins) => ({
+            const newBin = response.data.data;
+            setBins(prevBins => ({
                 ...prevBins,
-                [response.data.data.location]: [
-                    ...(prevBins[response.data.data.location] || []),
-                    response.data.data,
-                ],
+                [newBin.binLocation]: [...(prevBins[newBin.binLocation] || []), newBin],
             }));
+            setLocations(prevLocations =>
+                prevLocations.includes(newBin.binLocation)
+                    ? prevLocations
+                    : [...prevLocations, newBin.binLocation]
+            );
             setError(null);
-            return response.data.data;
+            return newBin;
         } catch (err) {
             handleError(err, 'An error occurred while creating the bin.');
         } finally {
@@ -91,12 +92,15 @@ export const BinsProvider = ({ children }) => {
                 headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` },
                 params: { location, id },
             });
-            setBins((prevBins) => ({
+            const updatedBin = response.data.data;
+            setBins(prevBins => ({
                 ...prevBins,
-                [location]: prevBins[location].map((bin) => (bin.id === id ? response.data.data : bin)),
+                [location]: prevBins[location].map(bin =>
+                    bin.id === id ? updatedBin : bin
+                ),
             }));
             setError(null);
-            return response.data.data;
+            return updatedBin;
         } catch (err) {
             handleError(err, 'An error occurred while editing the bin.');
         } finally {
@@ -112,10 +116,15 @@ export const BinsProvider = ({ children }) => {
                 headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` },
                 params: { location, id },
             });
-            setBins((prevBins) => ({
-                ...prevBins,
-                [location]: prevBins[location].filter((bin) => bin.id !== id),
-            }));
+            setBins(prevBins => {
+                const updatedBins = { ...prevBins };
+                updatedBins[location] = updatedBins[location].filter(bin => bin.id !== id);
+                if (updatedBins[location].length === 0) {
+                    delete updatedBins[location];
+                    setLocations(prevLocations => prevLocations.filter(loc => loc !== location));
+                }
+                return updatedBins;
+            });
             setError(null);
         } catch (err) {
             handleError(err, 'An error occurred while deleting the bin.');

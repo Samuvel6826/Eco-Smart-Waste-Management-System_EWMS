@@ -1,15 +1,26 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { toast } from 'react-hot-toast';
+import { Link } from 'react-router-dom';
 import Navbar from './common/Navbar';
 import Bin from './Bin';
 import { useBinsContext } from '../contexts/BinsContext';
+import {
+  Button,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Typography,
+  Box,
+  Grid,
+  Paper,
+  CircularProgress,
+} from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
 
 const Bins = () => {
-  const { bins, locations, loading: binLoading, error: binError, deleteBin, fetchBins } = useBinsContext();
-
-  const [selectedLocation, setSelectedLocation] = useState(() => {
-    return localStorage.getItem('selectedLocation') || '';
-  });
+  const { bins, loading: binLoading, error: binError, fetchBins } = useBinsContext();
+  const [selectedLocation, setSelectedLocation] = useState(() => localStorage.getItem('selectedLocation') || '');
 
   const fetchBinsData = useCallback(async () => {
     try {
@@ -25,12 +36,12 @@ const Bins = () => {
   }, [fetchBinsData]);
 
   useEffect(() => {
-    if (locations.length > 0 && !selectedLocation) {
-      const initialLocation = locations[0];
+    if (Object.keys(bins).length > 0 && !selectedLocation) {
+      const initialLocation = Object.keys(bins)[0];
       setSelectedLocation(initialLocation);
       localStorage.setItem('selectedLocation', initialLocation);
     }
-  }, [locations, selectedLocation]);
+  }, [bins, selectedLocation]);
 
   const handleLocationChange = (e) => {
     const newLocation = e.target.value;
@@ -38,82 +49,112 @@ const Bins = () => {
     localStorage.setItem('selectedLocation', newLocation);
   };
 
-  const handleBinDelete = async (binId) => {
-    toast.remove();
-    try {
-      await deleteBin(selectedLocation, binId);
-      toast.success('Bin successfully deleted!');
-      // Refetch bins to update the list
-      fetchBinsData();
-    } catch (error) {
-      console.error('Failed to delete bin:', error);
-      toast.error('Failed to delete bin. Please try again.');
-    }
-  };
+  const binsForSelectedLocation = useMemo(() => {
+    return bins[selectedLocation] || [];
+  }, [bins, selectedLocation]);
 
-  if (binLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-xl font-semibold">Loading bins...</div>
-      </div>
-    );
-  }
+  const renderLoading = () => (
+    <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
+      <CircularProgress />
+      <Typography variant="h5" sx={{ ml: 2 }}>Loading bins...</Typography>
+    </Box>
+  );
 
-  if (binError) {
-    toast.error(binError);
-    return null; // Return null to prevent rendering the rest of the component
-  }
+  const renderError = () => (
+    <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight="100vh">
+      <Typography variant="h5" color="error">{binError}</Typography>
+      <Button variant="contained" color="primary" onClick={fetchBinsData}>
+        Retry
+      </Button>
+    </Box>
+  );
 
-  const binsForSelectedLocation = bins[selectedLocation] || {};
+  const renderBinsSummary = () => (
+    <Paper elevation={3} sx={{ p: 2, mb: 3 }}>
+      <Typography variant="h6" gutterBottom>Location Summary</Typography>
+      <Grid container spacing={2}>
+        {Object.keys(bins).map((location) => (
+          <Grid item key={location} xs={12} sm={6} md={4}>
+            <Typography>
+              <strong>{location}</strong>: {bins[location].length} bins
+            </Typography>
+          </Grid>
+        ))}
+      </Grid>
+    </Paper>
+  );
 
   return (
-    <div className='flex min-h-screen flex-col bg-gray-100'>
-      <div className="bg-blue-600 p-4 text-white">
-        <Navbar />
-      </div>
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'background.default' }}>
+      <Navbar />
+      <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
+        <Typography variant="h4" gutterBottom>Bins List</Typography>
 
-      <div className="flex-grow p-4">
-        <h1 className="mb-4 text-2xl font-bold">Bins List</h1>
-        <div className="mb-4">
-          <label htmlFor="location-select" className="mb-2 block text-lg font-semibold">Select Location:</label>
-          <select
-            id="location-select"
-            value={selectedLocation}
-            onChange={handleLocationChange}
-            className="rounded border p-2"
-          >
-            <option value="">Select a location</option>
-            {locations.map(location => (
-              <option key={location} value={location}>
-                {location}
-              </option>
-            ))}
-          </select>
-        </div>
+        <Box sx={{ mb: 3 }}>
+          <FormControl fullWidth>
+            <InputLabel id="location-select-label">Select Location</InputLabel>
+            <Select
+              labelId="location-select-label"
+              id="location-select"
+              value={selectedLocation}
+              onChange={handleLocationChange}
+              aria-label="Select location"
+            >
+              {Object.keys(bins).map((location) => (
+                <MenuItem key={location} value={location}>{location}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Box>
 
-        <div className="mb-4">
-          {locations.map(location => (
-            <div key={location}>
-              <strong>{location}</strong>: {bins[location] ? Object.keys(bins[location]).length : 0} bins
-            </div>
-          ))}
-        </div>
+        {renderBinsSummary()}
 
-        {selectedLocation ? (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-            {Object.keys(binsForSelectedLocation).length > 0 ? (
-              Object.entries(binsForSelectedLocation).map(([binId, binData]) => (
-                <Bin key={binId} locationId={selectedLocation} binId={binId} onDelete={handleBinDelete} />
-              ))
-            ) : (
-              <p className="text-red-500">No bins found for this location.</p>
-            )}
-          </div>
-        ) : (
-          <p className="text-blue-500">Please select a location to view bins.</p>
+        {selectedLocation && (
+          <Box sx={{ mb: 3 }}>
+            <Button
+              component={Link}
+              to={`/users/create-bin/${encodeURIComponent(selectedLocation)}`}
+              variant="contained"
+              color="primary"
+              startIcon={<AddIcon />}
+            >
+              Create Bin
+            </Button>
+          </Box>
         )}
-      </div>
-    </div>
+
+        {binLoading ? (
+          renderLoading()
+        ) : binError ? (
+          renderError()
+        ) : selectedLocation ? (
+          <Grid container spacing={3}>
+            {binsForSelectedLocation.length > 0 ? (
+              binsForSelectedLocation.map((binObj) => {
+                const binId = Object.keys(binObj)[0]; // Get the bin ID
+                const binData = binObj[binId]; // Get the bin data
+
+                return (
+                  <Grid item key={binId} xs={12} sm={6} md={4} lg={3}>
+                    <Bin
+                      locationId={selectedLocation}
+                      binId={binId}
+                      binData={binData}
+                    />
+                  </Grid>
+                );
+              })
+            ) : (
+              <Grid item xs={12}>
+                <Typography color="error">No bins found for this location.</Typography>
+              </Grid>
+            )}
+          </Grid>
+        ) : (
+          <Typography color="primary">Please select a location to view bins.</Typography>
+        )}
+      </Box>
+    </Box>
   );
 };
 
