@@ -112,7 +112,7 @@ const checkDeviceStatus = async () => {
         const lastUpdate = Math.max(status.lastHeartbeat || 0, status.lastSensorDistance || 0);
         const timeSinceLastUpdate = now - lastUpdate;
 
-        customLogger.info(`Device Key: ${deviceKey}, Last Update: ${lastUpdate}, Now: ${now}, Time Since Last Update: ${timeSinceLastUpdate}ms`);
+        // customLogger.info(`Device Key: ${deviceKey}, Last Update: ${lastUpdate}, Now: ${now}, Time Since Last Update: ${timeSinceLastUpdate}ms`);
 
         if (status.isOnline) {
             if (timeSinceLastUpdate > MONITORING_CONFIG.offlineThreshold) {

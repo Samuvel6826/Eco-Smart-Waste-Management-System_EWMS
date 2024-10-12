@@ -86,8 +86,13 @@ const createBin = catchAsync(async (req, res) => {
 });
 
 const updateSensorDistance = catchAsync(async (req, res) => {
-    const { error, value } = distanceSchema.validate(req.body);
-    if (error) throw new AppError('Invalid distance data', 400);
+    logger.info('Incoming request body:', req.body);
+
+    const { error, value } = distanceSchema.validate(req.body, { abortEarly: false });
+    if (error) {
+        const errorMessages = error.details.map(detail => detail.message);
+        throw new AppError(`Invalid distance data: ${errorMessages.join(', ')}`, 400);
+    }
 
     const { id, binLocation } = value;
     logger.info(`Updating sensor distance for bin location: ${binLocation} and ID: ${id}`);
@@ -101,20 +106,42 @@ const updateSensorDistance = catchAsync(async (req, res) => {
 
     if (!existingData) throw new AppError('No existing data found for this bin', 404);
 
-    const dataToSave = {
-        ...existingData,
-        lastUpdated: getFormattedDate(),
-        distance: value.distance,
-    };
+    // Compare and prepare fields to update
+    const fieldsToUpdate = {};
+    let hasChanges = false;
 
-    await binRef.set(dataToSave);
-    logger.info('Sensor distance updated:', dataToSave);
+    Object.keys(value).forEach(key => {
+        if (value[key] !== existingData[key]) {
+            fieldsToUpdate[key] = value[key];
+            hasChanges = true;
+        }
+    });
 
-    updateDeviceStatus(binLocation, id, 'sensor-distance');
-    res.status(200).json({ message: 'Sensor distance updated successfully', data: dataToSave });
+    if (hasChanges) {
+        fieldsToUpdate.lastUpdated = getFormattedDate();
+
+        logger.info('Fields to be updated:', fieldsToUpdate);
+
+        await binRef.update(fieldsToUpdate);
+        logger.info('Bin data updated successfully');
+
+        updateDeviceStatus(binLocation, id, 'sensor-distance');
+    } else {
+        logger.info('No changes detected. Skipping update.');
+    }
+
+    // Combine existing data with updates for the response
+    const updatedData = { ...existingData, ...fieldsToUpdate };
+
+    res.status(200).json({
+        message: hasChanges ? 'Bin data updated successfully' : 'No changes were necessary',
+        data: updatedData
+    });
 });
 
 const updateHeartbeat = catchAsync(async (req, res) => {
+    logger.info('Incoming heartbeat request body:', req.body);
+
     const { error, value } = heartbeatSchema.validate(req.body);
     if (error) {
         console.error('Validation error:', error.details);
@@ -135,11 +162,14 @@ const updateHeartbeat = catchAsync(async (req, res) => {
 
     const dataToSave = {
         ...existingData,
+        ...value,
         lastUpdated: getFormattedDate(),
     };
 
-    await binRef.set(dataToSave);
-    logger.info('Heartbeat updated:', dataToSave);
+    logger.info('Heartbeat data to be saved:', dataToSave);
+
+    await binRef.update(dataToSave);
+    logger.info('Heartbeat updated successfully');
 
     updateDeviceStatus(binLocation, id, 'heartbeat');
     res.status(200).json({ message: 'Heartbeat updated successfully', data: dataToSave });
