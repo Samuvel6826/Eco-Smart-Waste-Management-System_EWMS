@@ -131,8 +131,12 @@ const Bins = () => {
           <Grid container spacing={3}>
             {binsForSelectedLocation.length > 0 ? (
               binsForSelectedLocation.map((binObj) => {
+                // Assuming binObj has a structure like { binId: { data } }
                 const binId = Object.keys(binObj)[0]; // Get the bin ID
                 const binData = binObj[binId]; // Get the bin data
+
+                // Debugging logs
+                console.log('Rendering Bin:', { binId, binData });
 
                 return (
                   <Grid item key={binId} xs={12} sm={6} md={4} lg={3}>

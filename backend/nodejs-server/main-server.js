@@ -1,22 +1,20 @@
+// Load environment variables
 require('dotenv').config();
-const createError = require('http-errors');
+
+// Import required modules
 const express = require('express');
 const cors = require('cors');
-const path = require('path');
-const cookieParser = require('cookie-parser');
-const logger = require('morgan');
 const helmet = require('helmet');
-const { logger: customLogger } = require('./utils/logger');
+const cookieParser = require('cookie-parser');
+const createError = require('http-errors');
+const { logger } = require('./utils/logger');
 const initializeFirebase = require('./config/firebaseConfig');
+const connectToDatabase = require('./config/mongoDBconfig');
 
-// Initialize Firebase
-initializeFirebase();
-
-// Importing Routes
+// Import route handlers
 const indexRouter = require('./routes/indexRoutes');
 const usersRouter = require('./routes/usersRoutes');
 const binsRouter = require('./routes/binsRoutes');
-const connectToDatabase = require('./config/mongoDBconfig');
 
 // Initialize Express app
 const app = express();
@@ -26,11 +24,14 @@ const requiredEnvVars = ['FIREBASE_DATABASE_URL'];
 const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
 
 if (missingVars.length > 0) {
-  customLogger.error(`Missing required environment variables: ${missingVars.join(', ')}`);
+  logger.error(`Missing required environment variables: ${missingVars.join(', ')}`);
   process.exit(1);
 }
 
-// Middleware
+// Initialize Firebase
+initializeFirebase();
+
+// Middleware setup
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
@@ -40,40 +41,40 @@ app.use(helmet({
   },
 }));
 
-const allowedOrigins = ['https://eco-smart-waste-management-system-pkc.netlify.app', 'http://localhost:5173'];
-app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true
-}));
+// CORS configuration
+const corsOptions = {
+  origin: [
+    'https://eco-smart-waste-management-system-pkc.netlify.app',
+    'http://localhost:5173'  // For local development
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
 
-app.use(logger('dev'));
+app.use(cors(corsOptions));
+
+// Body parsing middleware
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
 
 // Enable trust proxy
 app.set('trust proxy', 1);
 
-// Define Routes
-app.use('/api', indexRouter);
-app.use('/api/user', usersRouter);
-app.use('/api/bin', binsRouter);
-
-// Detailed request logging
+// Request logging middleware
 app.use((req, res, next) => {
-  customLogger.info(`Incoming request: ${req.method} ${req.url}`, {
+  logger.info(`Incoming request: ${req.method} ${req.url}`, {
     headers: req.headers,
     body: req.body
   });
   next();
 });
+
+// Define Routes
+app.use('/api', indexRouter);
+app.use('/api/user', usersRouter);
+app.use('/api/bin', binsRouter);
 
 // 404 Error Handler
 app.use((req, res, next) => {
@@ -82,7 +83,7 @@ app.use((req, res, next) => {
 
 // Global Error Handler
 app.use((err, req, res, next) => {
-  customLogger.error('Unhandled Error:', {
+  logger.error('Unhandled Error:', {
     error: err,
     url: req.url,
     method: req.method,
@@ -90,11 +91,11 @@ app.use((err, req, res, next) => {
     headers: req.headers
   });
 
-  let statusCode = err.statusCode || 500;
-  let message = err.message || 'Internal Server Error';
+  const statusCode = err.statusCode || 500;
+  const message = err.message || 'Internal Server Error';
 
   const errorResponse = {
-    status: statusCode >= 400 && statusCode < 500 ? 'fail' : 'error',
+    status: statusCode < 500 ? 'fail' : 'error',
     message: message
   };
 
@@ -105,8 +106,7 @@ app.use((err, req, res, next) => {
   res.status(statusCode).json(errorResponse);
 });
 
-// Call the function to connect to the database
+// Connect to the database
 connectToDatabase();
 
-// Export the app module
 module.exports = app;

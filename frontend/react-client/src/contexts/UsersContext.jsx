@@ -11,6 +11,13 @@ export const UsersProvider = ({ children }) => {
     const [error, setError] = useState(null);
     const { logout } = useAuth();
 
+    const axiosConfig = useMemo(() => ({
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${sessionStorage.getItem('token')}`
+        }
+    }), []);
+
     const handleError = useCallback((err) => {
         const message = err.response?.data?.message || 'An unexpected error occurred.';
         setError(message);
@@ -23,30 +30,23 @@ export const UsersProvider = ({ children }) => {
     const fetchUsers = useCallback(async () => {
         setLoading(true);
         try {
-            const res = await axios.get(`${import.meta.env.VITE_SERVER_HOST_URL}/api/user/list`, {
-                headers: {
-                    Authorization: `Bearer ${sessionStorage.getItem('token')}`,
-                },
-            });
+            const res = await axios.get(`${import.meta.env.VITE_SERVER_HOST_URL}/api/user/list`, axiosConfig);
 
             if (res.status === 200) {
                 setUsers(res.data.data);
-                // toast.success(res.data.message);
             }
         } catch (err) {
             handleError(err);
         } finally {
             setLoading(false);
         }
-    }, [handleError]);
+    }, [handleError, axiosConfig]);
 
     const getUserByEmployeeId = useCallback(async (employeeId) => {
         setLoading(true);
         try {
             const res = await axios.get(`${import.meta.env.VITE_SERVER_HOST_URL}/api/user/get/employeeId`, {
-                headers: {
-                    Authorization: `Bearer ${sessionStorage.getItem('token')}`,
-                },
+                ...axiosConfig,
                 params: { employeeId },
             });
 
@@ -58,16 +58,12 @@ export const UsersProvider = ({ children }) => {
         } finally {
             setLoading(false);
         }
-    }, [logout]);
+    }, [handleError, axiosConfig]);
 
     const createUser = useCallback(async (userData) => {
         setLoading(true);
         try {
-            const res = await axios.post(`${import.meta.env.VITE_SERVER_HOST_URL}/api/user/create`, userData, {
-                headers: {
-                    Authorization: `Bearer ${sessionStorage.getItem('token')}`,
-                }
-            });
+            const res = await axios.post(`${import.meta.env.VITE_SERVER_HOST_URL}/api/user/create`, userData, axiosConfig);
 
             if (res.status === 201) {
                 setUsers(prevUsers => [...prevUsers, res.data.data]);
@@ -76,20 +72,17 @@ export const UsersProvider = ({ children }) => {
             }
         } catch (err) {
             console.log('Token:', sessionStorage.getItem('token'));
-
             handleError(err);
         } finally {
             setLoading(false);
         }
-    }, [handleError]);
+    }, [handleError, axiosConfig]);
 
     const editUser = useCallback(async (employeeId, userData) => {
         setLoading(true);
         try {
             const res = await axios.put(`${import.meta.env.VITE_SERVER_HOST_URL}/api/user/edit/employeeId`, userData, {
-                headers: {
-                    Authorization: `Bearer ${sessionStorage.getItem('token')}`,
-                },
+                ...axiosConfig,
                 params: { employeeId },
             });
 
@@ -103,15 +96,13 @@ export const UsersProvider = ({ children }) => {
         } finally {
             setLoading(false);
         }
-    }, [logout]);
+    }, [handleError, axiosConfig]);
 
     const deleteUser = useCallback(async (employeeId) => {
         setLoading(true);
         try {
             const res = await axios.delete(`${import.meta.env.VITE_SERVER_HOST_URL}/api/user/delete/employeeId`, {
-                headers: {
-                    Authorization: `Bearer ${sessionStorage.getItem('token')}`,
-                },
+                ...axiosConfig,
                 params: { employeeId },
             });
 
@@ -124,19 +115,17 @@ export const UsersProvider = ({ children }) => {
         } finally {
             setLoading(false);
         }
-    }, [logout]);
+    }, [handleError, axiosConfig]);
 
     const assignBinsToUser = useCallback(async (employeeId, binLocations, supervisorId) => {
         setLoading(true);
         try {
             const res = await axios.patch(
                 `${import.meta.env.VITE_SERVER_HOST_URL}/api/user/assign-binlocations/employeeId`,
-                { bins: binLocations, supervisorId },  // Include both bins and supervisorId in the request body
+                { bins: binLocations, supervisorId },
                 {
-                    headers: {
-                        Authorization: `Bearer ${sessionStorage.getItem('token')}`,
-                    },
-                    params: { employeeId },  // employeeId passed as a query parameter
+                    ...axiosConfig,
+                    params: { employeeId },
                 }
             );
 
@@ -150,7 +139,7 @@ export const UsersProvider = ({ children }) => {
         } finally {
             setLoading(false);
         }
-    }, [logout]);
+    }, [handleError, axiosConfig]);
 
     const value = useMemo(() => ({
         users,

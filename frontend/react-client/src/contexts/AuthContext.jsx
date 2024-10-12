@@ -8,7 +8,7 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null); // Added error state
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         const token = sessionStorage.getItem('token');
@@ -19,7 +19,7 @@ export const AuthProvider = ({ children }) => {
             } catch (error) {
                 console.error('Invalid token:', error);
                 sessionStorage.removeItem('token');
-                setError(error); // Set error state
+                setError(error);
             }
         }
         setLoading(false);
@@ -27,16 +27,24 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (email, password) => {
         try {
-            const response = await axios.post(`${import.meta.env.VITE_SERVER_HOST_URL}/api/user/login`, { email, password });
+            const response = await axios.post(
+                `${import.meta.env.VITE_SERVER_HOST_URL}/api/user/login`,
+                { email, password },
+                {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
             const { token } = response.data;
             sessionStorage.setItem('token', token);
             const decodedUser = decodeToken(token);
             setUser(decodedUser);
-            setError(null); // Clear error on successful login
+            setError(null);
             return decodedUser;
         } catch (error) {
             console.error('Login failed:', error);
-            setError(error); // Set error state
+            setError(error);
             throw error;
         }
     };
@@ -44,7 +52,7 @@ export const AuthProvider = ({ children }) => {
     const logout = () => {
         sessionStorage.removeItem('token');
         setUser(null);
-        setError(null); // Clear error on logout
+        setError(null);
     };
 
     return (
@@ -55,3 +63,5 @@ export const AuthProvider = ({ children }) => {
 };
 
 export const useAuth = () => useContext(AuthContext);
+
+export default AuthContext;

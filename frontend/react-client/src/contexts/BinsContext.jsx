@@ -14,6 +14,13 @@ export const BinsProvider = ({ children }) => {
     const [error, setError] = useState(null);
     const { user } = useAuth();
 
+    const axiosConfig = useMemo(() => ({
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${sessionStorage.getItem('token')}`
+        }
+    }), []);
+
     const handleError = useCallback((err, customMessage) => {
         console.error(customMessage, err);
         const errorMessage = err.response?.data?.message || customMessage;
@@ -26,9 +33,7 @@ export const BinsProvider = ({ children }) => {
         if (!user) return;
         setLoading(true);
         try {
-            const response = await axios.get(`${import.meta.env.VITE_SERVER_HOST_URL}/api/bin/list`, {
-                headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` },
-            });
+            const response = await axios.get(`${import.meta.env.VITE_SERVER_HOST_URL}/api/bin/list`, axiosConfig);
 
             const fetchedBins = response.data || {};
             const processedBins = {};
@@ -47,24 +52,20 @@ export const BinsProvider = ({ children }) => {
         } finally {
             setLoading(false);
         }
-    }, [user, handleError]);
+    }, [user, handleError, axiosConfig]);
 
     const getBinByLocationAndId = useCallback((locationId, binId) => {
-        const locationBins = bins['Trash-Bins'][locationId]; // Access the bins for the specified location
-
-        if (!locationBins) return null; // Return null if location doesn't exist
-
-        const foundBin = locationBins[binId]; // Directly access the bin by ID
-        return foundBin || null; // Return the found bin or null
+        const locationBins = bins['Trash-Bins'][locationId];
+        if (!locationBins) return null;
+        const foundBin = locationBins[binId];
+        return foundBin || null;
     }, [bins]);
 
     const createBin = useCallback(async (binData) => {
         if (!user) return;
         setLoading(true);
         try {
-            const response = await axios.post(`${import.meta.env.VITE_SERVER_HOST_URL}/api/bin/create/`, binData, {
-                headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` },
-            });
+            const response = await axios.post(`${import.meta.env.VITE_SERVER_HOST_URL}/api/bin/create/`, binData, axiosConfig);
             const newBin = response.data.data;
             setBins(prevBins => ({
                 ...prevBins,
@@ -82,14 +83,14 @@ export const BinsProvider = ({ children }) => {
         } finally {
             setLoading(false);
         }
-    }, [user, handleError]);
+    }, [user, handleError, axiosConfig]);
 
     const editBin = useCallback(async (location, id, binData) => {
         if (!user) return;
         setLoading(true);
         try {
             const response = await axios.put(`${import.meta.env.VITE_SERVER_HOST_URL}/api/bin/edit/`, binData, {
-                headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` },
+                ...axiosConfig,
                 params: { location, id },
             });
             const updatedBin = response.data.data;
@@ -106,14 +107,14 @@ export const BinsProvider = ({ children }) => {
         } finally {
             setLoading(false);
         }
-    }, [user, handleError]);
+    }, [user, handleError, axiosConfig]);
 
     const deleteBin = useCallback(async (location, id) => {
         if (!user) return;
         setLoading(true);
         try {
             await axios.delete(`${import.meta.env.VITE_SERVER_HOST_URL}/api/bin/delete/`, {
-                headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` },
+                ...axiosConfig,
                 params: { location, id },
             });
             setBins(prevBins => {
@@ -131,7 +132,7 @@ export const BinsProvider = ({ children }) => {
         } finally {
             setLoading(false);
         }
-    }, [user, handleError]);
+    }, [user, handleError, axiosConfig]);
 
     const value = useMemo(() => ({
         bins,
