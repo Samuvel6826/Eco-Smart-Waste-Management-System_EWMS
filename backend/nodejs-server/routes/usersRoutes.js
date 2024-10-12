@@ -84,7 +84,6 @@ router.patch('/assign-binlocations/employeeId',
 
 // Authentication routes
 router.post('/login',
-    UsersRateLimiter.loginLimiter,
     (req, res, next) => {
         logger.info(`User login attempt: ${req.body.email}`);
         UsersController.loginUser(req, res, next);

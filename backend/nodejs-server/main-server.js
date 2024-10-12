@@ -7,17 +7,10 @@ const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const helmet = require('helmet');
 const { logger: customLogger } = require('./utils/logger');
-const { startMonitoring, MONITORING_CONFIG, debugStatusCheck } = require('./utils/deviceMonitoring');
 const initializeFirebase = require('./config/firebaseConfig');
 
 // Initialize Firebase
 initializeFirebase();
-
-// Start the monitoring process
-// startMonitoring();
-
-// If you need to access or modify the config:
-// console.log(MONITORING_CONFIG.offlineThreshold);
 
 // Importing Routes
 const indexRouter = require('./routes/indexRoutes');
@@ -29,7 +22,7 @@ const connectToDatabase = require('./config/mongoDBconfig');
 const app = express();
 
 // Check required environment variables
-const requiredEnvVars = ['FIREBASE_DATABASE_URL', 'CORS_ORIGINS', /* other required vars */];
+const requiredEnvVars = ['FIREBASE_DATABASE_URL', /* other required vars */];
 const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
 
 if (missingVars.length > 0) {
@@ -37,15 +30,9 @@ if (missingVars.length > 0) {
   process.exit(1);
 }
 
-// Parse the CORS_ORIGINS from the environment variable
-const corsOrigins = process.env.CORS_ORIGINS.split(',').map(origin => origin.trim());
-
-// Log the allowed origins for debugging
-customLogger.info("CORS_ORIGINS:", corsOrigins);
-
 // Middleware
 app.use(helmet());
-app.use(cors());
+app.use(cors()); // Allow all origins
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -88,7 +75,6 @@ app.use((err, req, res, next) => {
   // Send error response
   res.status(statusCode).json(errorResponse);
 });
-
 
 // Call the function to connect to the database
 connectToDatabase();
