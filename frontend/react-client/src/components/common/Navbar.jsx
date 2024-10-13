@@ -32,7 +32,6 @@ function Navbar() {
         ? [
             <MenuItem key="dashboard" component={Link} to="/dashboard">Dashboard</MenuItem>,
             <MenuItem key="lists-bins" component={Link} to="/users/bins">Lists Bins</MenuItem>,
-            <MenuItem key="create-bin" component={Link} to="/users/create-bin/:locationId">Create Bin</MenuItem>,
         ]
         : []; // Non-admins might have different links, adjust accordingly
 

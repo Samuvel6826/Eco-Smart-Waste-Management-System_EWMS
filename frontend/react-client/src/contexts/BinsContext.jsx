@@ -10,16 +10,40 @@ export const useBinsContext = () => useContext(BinsContext);
 export const BinsProvider = ({ children }) => {
     const [bins, setBins] = useState({});
     const [loading, setLoading] = useState(false);
-    const [locations, setLocations] = useState([]);
     const [error, setError] = useState(null);
-    const { user } = useAuth();
+    const { user, logout } = useAuth();
 
-    const axiosConfig = useMemo(() => ({
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${sessionStorage.getItem('token')}`
-        }
-    }), []);
+    const axiosInstance = useMemo(() => {
+        const instance = axios.create({
+            baseURL: import.meta.env.VITE_SERVER_HOST_URL,
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        instance.interceptors.request.use((config) => {
+            const token = sessionStorage.getItem('token');
+            if (token) {
+                config.headers['Authorization'] = `Bearer ${token}`;
+            }
+            return config;
+        }, (error) => {
+            return Promise.reject(error);
+        });
+
+        instance.interceptors.response.use(
+            (response) => response,
+            (error) => {
+                if (error.response?.status === 401) {
+                    console.log('Unauthorized access detected. Logging out.');
+                    logout();
+                }
+                return Promise.reject(error);
+            }
+        );
+
+        return instance;
+    }, [logout]);
 
     const handleError = useCallback((err, customMessage) => {
         console.error(customMessage, err);
@@ -30,52 +54,42 @@ export const BinsProvider = ({ children }) => {
     }, []);
 
     const fetchBins = useCallback(async () => {
-        if (!user) return;
+        if (!user) {
+            console.log('No user logged in, skipping bin fetch');
+            return;
+        }
         setLoading(true);
         try {
-            const response = await axios.get(`${import.meta.env.VITE_SERVER_HOST_URL}/api/bin/list`, axiosConfig);
-
+            const response = await axiosInstance.get('/api/bin/list');
             const fetchedBins = response.data || {};
-            const processedBins = {};
-            Object.keys(fetchedBins).forEach(location => {
-                processedBins[location] = Array.isArray(fetchedBins[location])
-                    ? fetchedBins[location]
-                    : [fetchedBins[location]];
-            });
-
-            setBins(processedBins);
-            setLocations(Object.keys(processedBins));
+            setBins(fetchedBins);
             setError(null);
         } catch (err) {
+            console.error('Error fetching bins:', err);
             handleError(err, 'An error occurred while fetching bins.');
             setBins({});
         } finally {
             setLoading(false);
         }
-    }, [user, handleError, axiosConfig]);
+    }, [user, handleError, axiosInstance]);
 
     const getBinByLocationAndId = useCallback((locationId, binId) => {
-        const locationBins = bins['Trash-Bins'][locationId];
-        if (!locationBins) return null;
-        const foundBin = locationBins[binId];
-        return foundBin || null;
+        return bins[locationId]?.[binId] || null;
     }, [bins]);
 
     const createBin = useCallback(async (binData) => {
         if (!user) return;
         setLoading(true);
         try {
-            const response = await axios.post(`${import.meta.env.VITE_SERVER_HOST_URL}/api/bin/create/`, binData, axiosConfig);
+            const response = await axiosInstance.post('/api/bin/create/', binData);
             const newBin = response.data.data;
             setBins(prevBins => ({
                 ...prevBins,
-                [newBin.binLocation]: [...(prevBins[newBin.binLocation] || []), newBin],
+                [newBin.binLocation]: {
+                    ...(prevBins[newBin.binLocation] || {}),
+                    [newBin.id]: newBin
+                }
             }));
-            setLocations(prevLocations =>
-                prevLocations.includes(newBin.binLocation)
-                    ? prevLocations
-                    : [...prevLocations, newBin.binLocation]
-            );
             setError(null);
             return newBin;
         } catch (err) {
@@ -83,22 +97,22 @@ export const BinsProvider = ({ children }) => {
         } finally {
             setLoading(false);
         }
-    }, [user, handleError, axiosConfig]);
+    }, [user, handleError, axiosInstance]);
 
     const editBin = useCallback(async (location, id, binData) => {
         if (!user) return;
         setLoading(true);
         try {
-            const response = await axios.put(`${import.meta.env.VITE_SERVER_HOST_URL}/api/bin/edit/`, binData, {
-                ...axiosConfig,
+            const response = await axiosInstance.put('/api/bin/edit/', binData, {
                 params: { location, id },
             });
             const updatedBin = response.data.data;
             setBins(prevBins => ({
                 ...prevBins,
-                [location]: prevBins[location].map(bin =>
-                    bin.id === id ? updatedBin : bin
-                ),
+                [location]: {
+                    ...prevBins[location],
+                    [id]: updatedBin
+                }
             }));
             setError(null);
             return updatedBin;
@@ -107,22 +121,24 @@ export const BinsProvider = ({ children }) => {
         } finally {
             setLoading(false);
         }
-    }, [user, handleError, axiosConfig]);
+    }, [user, handleError, axiosInstance]);
 
     const deleteBin = useCallback(async (location, id) => {
         if (!user) return;
         setLoading(true);
         try {
-            await axios.delete(`${import.meta.env.VITE_SERVER_HOST_URL}/api/bin/delete/`, {
-                ...axiosConfig,
+            await axiosInstance.delete('/api/bin/delete/', {
                 params: { location, id },
             });
             setBins(prevBins => {
                 const updatedBins = { ...prevBins };
-                updatedBins[location] = updatedBins[location].filter(bin => bin.id !== id);
-                if (updatedBins[location].length === 0) {
-                    delete updatedBins[location];
-                    setLocations(prevLocations => prevLocations.filter(loc => loc !== location));
+                if (updatedBins[location]) {
+                    const { [id]: _, ...remainingBins } = updatedBins[location];
+                    if (Object.keys(remainingBins).length === 0) {
+                        delete updatedBins[location];
+                    } else {
+                        updatedBins[location] = remainingBins;
+                    }
                 }
                 return updatedBins;
             });
@@ -132,19 +148,18 @@ export const BinsProvider = ({ children }) => {
         } finally {
             setLoading(false);
         }
-    }, [user, handleError, axiosConfig]);
+    }, [user, handleError, axiosInstance]);
 
     const value = useMemo(() => ({
         bins,
         loading,
         error,
-        locations,
         fetchBins,
         getBinByLocationAndId,
         createBin,
         editBin,
         deleteBin,
-    }), [bins, loading, error, locations, fetchBins, getBinByLocationAndId, createBin, editBin, deleteBin]);
+    }), [bins, loading, error, fetchBins, getBinByLocationAndId, createBin, editBin, deleteBin]);
 
     return (
         <BinsContext.Provider value={value}>
@@ -152,3 +167,5 @@ export const BinsProvider = ({ children }) => {
         </BinsContext.Provider>
     );
 };
+
+export default BinsProvider;

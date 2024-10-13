@@ -1,31 +1,30 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { toast } from 'react-hot-toast';
-import { database, ref, remove } from '../firebase.config';
 import { useNavigate } from 'react-router-dom';
+import { useBinsContext } from '../contexts/BinsContext'; // Import the useBinsContext hook
 
-const Bin = React.memo(({ locationId, binId, onDelete, binData }) => {
+const Bin = React.memo(({ locationId, binId, binData }) => {
     const [showModal, setShowModal] = useState(false);
     const navigate = useNavigate();
+    const { deleteBin } = useBinsContext(); // Use the deleteBin function from context
 
     // Function to handle delete confirmation modal
     const handleDelete = useCallback(() => {
         setShowModal(true);
     }, []);
 
-    // Confirm deletion and call parent handler
+    // Confirm deletion and call deleteBin from context
     const confirmDelete = useCallback(async () => {
         try {
-            const binRef = ref(database, `Trash-Bins/${locationId}/${binId}`);
-            await remove(binRef);
+            await deleteBin(locationId, binId);
             toast.success('Bin deleted successfully');
-            onDelete(binId);
         } catch (error) {
             console.error('Error deleting bin:', error);
             toast.error('Error deleting bin. Please try again.');
         } finally {
             setShowModal(false);
         }
-    }, [binId, locationId, onDelete]);
+    }, [binId, locationId, deleteBin]);
 
     // Close modal without deleting
     const handleCloseModal = useCallback(() => {
@@ -34,7 +33,7 @@ const Bin = React.memo(({ locationId, binId, onDelete, binData }) => {
 
     if (!binData) return <p className="text-red-500">Loading bin data...</p>;
 
-    // Safely destructure geoLocation with default values
+    // Safely destructure binData with default values
     const { binLocation = 'N/A', id = 'N/A', geoLocation = {}, distance = 0, binType = 'N/A', binLidStatus = 'N/A', microProcessorStatus = 'N/A', sensorStatus = 'N/A', filledBinPercentage = 0, maxBinCapacity = 'N/A' } = binData;
 
     return (

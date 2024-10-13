@@ -20,7 +20,7 @@ import AddIcon from '@mui/icons-material/Add';
 
 const Bins = () => {
   const { bins, loading: binLoading, error: binError, fetchBins } = useBinsContext();
-  const [selectedLocation, setSelectedLocation] = useState(() => localStorage.getItem('selectedLocation') || '');
+  const [selectedLocation, setSelectedLocation] = useState('');
 
   const fetchBinsData = useCallback(async () => {
     try {
@@ -36,12 +36,17 @@ const Bins = () => {
   }, [fetchBinsData]);
 
   useEffect(() => {
-    if (Object.keys(bins).length > 0 && !selectedLocation) {
-      const initialLocation = Object.keys(bins)[0];
-      setSelectedLocation(initialLocation);
-      localStorage.setItem('selectedLocation', initialLocation);
+    const storedLocation = localStorage.getItem('selectedLocation');
+    if (Object.keys(bins).length > 0) {
+      if (storedLocation && bins.hasOwnProperty(storedLocation)) {
+        setSelectedLocation(storedLocation);
+      } else {
+        const initialLocation = Object.keys(bins)[0];
+        setSelectedLocation(initialLocation);
+        localStorage.setItem('selectedLocation', initialLocation);
+      }
     }
-  }, [bins, selectedLocation]);
+  }, [bins]);
 
   const handleLocationChange = (e) => {
     const newLocation = e.target.value;
@@ -50,20 +55,20 @@ const Bins = () => {
   };
 
   const binsForSelectedLocation = useMemo(() => {
-    return bins[selectedLocation] || [];
+    return bins[selectedLocation] || {};
   }, [bins, selectedLocation]);
 
   const renderLoading = () => (
-    <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
+    <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
       <CircularProgress />
       <Typography variant="h5" sx={{ ml: 2 }}>Loading bins...</Typography>
     </Box>
   );
 
   const renderError = () => (
-    <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight="100vh">
+    <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight="50vh">
       <Typography variant="h5" color="error">{binError}</Typography>
-      <Button variant="contained" color="primary" onClick={fetchBinsData}>
+      <Button variant="contained" color="primary" onClick={fetchBinsData} sx={{ mt: 2 }}>
         Retry
       </Button>
     </Box>
@@ -73,15 +78,35 @@ const Bins = () => {
     <Paper elevation={3} sx={{ p: 2, mb: 3 }}>
       <Typography variant="h6" gutterBottom>Location Summary</Typography>
       <Grid container spacing={2}>
-        {Object.keys(bins).map((location) => (
+        {Object.entries(bins).map(([location, locationBins]) => (
           <Grid item key={location} xs={12} sm={6} md={4}>
             <Typography>
-              <strong>{location}</strong>: {bins[location].length} bins
+              <strong>{location}</strong>: {Object.keys(locationBins).length} bins
             </Typography>
           </Grid>
         ))}
       </Grid>
     </Paper>
+  );
+
+  const renderBinGrid = () => (
+    <Grid container spacing={3}>
+      {Object.entries(binsForSelectedLocation).length > 0 ? (
+        Object.entries(binsForSelectedLocation).map(([binId, binData]) => (
+          <Grid item key={binId} xs={12} sm={6} md={4} lg={3}>
+            <Bin
+              locationId={selectedLocation}
+              binId={binId}
+              binData={binData}
+            />
+          </Grid>
+        ))
+      ) : (
+        <Grid item xs={12}>
+          <Typography color="error">No bins found for this location.</Typography>
+        </Grid>
+      )}
+    </Grid>
   );
 
   return (
@@ -99,6 +124,7 @@ const Bins = () => {
               value={selectedLocation}
               onChange={handleLocationChange}
               aria-label="Select location"
+              disabled={Object.keys(bins).length === 0}
             >
               {Object.keys(bins).map((location) => (
                 <MenuItem key={location} value={location}>{location}</MenuItem>
@@ -109,51 +135,25 @@ const Bins = () => {
 
         {renderBinsSummary()}
 
-        {selectedLocation && (
-          <Box sx={{ mb: 3 }}>
-            <Button
-              component={Link}
-              to={`/users/create-bin/${encodeURIComponent(selectedLocation)}`}
-              variant="contained"
-              color="primary"
-              startIcon={<AddIcon />}
-            >
-              Create Bin
-            </Button>
-          </Box>
-        )}
+        <Box sx={{ mb: 3 }}>
+          <Button
+            component={Link}
+            to={`/users/create-bin/${encodeURIComponent(selectedLocation)}`}
+            variant="contained"
+            color="primary"
+            startIcon={<AddIcon />}
+            disabled={!selectedLocation}
+          >
+            Create Bin
+          </Button>
+        </Box>
 
         {binLoading ? (
           renderLoading()
         ) : binError ? (
           renderError()
         ) : selectedLocation ? (
-          <Grid container spacing={3}>
-            {binsForSelectedLocation.length > 0 ? (
-              binsForSelectedLocation.map((binObj) => {
-                // Assuming binObj has a structure like { binId: { data } }
-                const binId = Object.keys(binObj)[0]; // Get the bin ID
-                const binData = binObj[binId]; // Get the bin data
-
-                // Debugging logs
-                console.log('Rendering Bin:', { binId, binData });
-
-                return (
-                  <Grid item key={binId} xs={12} sm={6} md={4} lg={3}>
-                    <Bin
-                      locationId={selectedLocation}
-                      binId={binId}
-                      binData={binData}
-                    />
-                  </Grid>
-                );
-              })
-            ) : (
-              <Grid item xs={12}>
-                <Typography color="error">No bins found for this location.</Typography>
-              </Grid>
-            )}
-          </Grid>
+          renderBinGrid()
         ) : (
           <Typography color="primary">Please select a location to view bins.</Typography>
         )}

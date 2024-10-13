@@ -48,28 +48,23 @@ const CreateBin = () => {
 
         // Check if newValue is null or empty
         if (!newValue) {
-            // If it's null, we can set the actualLocation to an empty string
             actualLocation = '';
-            updatedBinCount = 0; // Reset bin count if no location is selected
+            updatedBinCount = 0;
         } else if (typeof newValue === 'object' && newValue.inputValue) {
-            // Handle new custom location input
-            actualLocation = newValue.inputValue; // Set to the actual input value
-            console.log(`New Location Added: ${actualLocation}`); // Log the new location
+            actualLocation = newValue.inputValue;
+            console.log(`New Location Added: ${actualLocation}`);
             toast.success(`Location "${actualLocation}" added successfully!`);
-            updatedBinCount = 0; // Reset bin count for new location
+            updatedBinCount = 0;
         } else {
-            // Handle existing locations
-            actualLocation = newValue; // For existing options, set actualLocation to the selected option
+            actualLocation = newValue;
             const existingBinsForLocation = bins[actualLocation] || {};
-            updatedBinCount = Object.keys(existingBinsForLocation).length; // Count existing bins for the selected location
+            updatedBinCount = Object.keys(existingBinsForLocation).length;
         }
 
-        // Update the bin count and bin ID based on the new/selected location
-        const newBinId = `Bin-${updatedBinCount + 1}`; // Generate new bin ID based on the updated count
+        const newBinId = `Bin-${updatedBinCount + 1}`;
         setGeneratedBinId(newBinId);
-        setTotalBinsCount(updatedBinCount); // Update the state after generating the new ID
+        setTotalBinsCount(updatedBinCount);
 
-        // Set the actual value in the formik field
         formik.setFieldValue('binLocation', actualLocation);
     };
 
@@ -137,26 +132,24 @@ const CreateBin = () => {
                                     value={formik.values.binLocation}
                                     onChange={handleLocationChange}
                                     filterOptions={(options, params) => {
-                                        const filtered = filter(options, params);
+                                        const filtered = filter(options || [], params);
                                         const { inputValue } = params;
 
-                                        // Suggest the "Add {inputValue}" option only if it doesn't exist already
-                                        const isExisting = options.some((option) => option === inputValue);
+                                        const isExisting = options && options.some((option) => option === inputValue);
                                         if (inputValue !== '' && !isExisting) {
                                             filtered.push({
                                                 inputValue,
-                                                title: `Add "${inputValue}"`, // This is the custom option shown in the dropdown
+                                                title: `Add "${inputValue}"`,
                                             });
                                         }
                                         return filtered;
                                     }}
-                                    options={locations}
+                                    options={locations || []}
                                     getOptionLabel={(option) => {
-                                        // Handle custom option and normal options
                                         if (typeof option === 'string') {
                                             return option;
                                         }
-                                        return option.title;
+                                        return option.title || '';
                                     }}
                                     renderInput={(params) => (
                                         <TextField
@@ -171,7 +164,7 @@ const CreateBin = () => {
                                             {typeof option === 'string' ? option : option.title}
                                         </li>
                                     )}
-                                    freeSolo // Allows custom input
+                                    freeSolo
                                 />
                             </div>
                             <div>

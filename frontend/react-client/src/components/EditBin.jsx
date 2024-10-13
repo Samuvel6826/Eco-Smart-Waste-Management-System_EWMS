@@ -3,40 +3,74 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { toast } from 'react-hot-toast';
 import { useNavigate, useParams } from 'react-router-dom';
-import { database, ref, get, update } from '../firebase.config';
-import { TextField, Button, Container, Typography, CircularProgress, MenuItem } from '@mui/material';
+import {
+    TextField,
+    Button,
+    Container,
+    Typography,
+    CircularProgress,
+    MenuItem,
+    Box,
+    Autocomplete,
+} from '@mui/material';
+import { createFilterOptions } from '@mui/material/Autocomplete';
+import { useBinsContext } from '../contexts/BinsContext';
 import Navbar from './common/Navbar';
 
+const filter = createFilterOptions();
+
 const EditBin = () => {
+    const { editBin, fetchBins, locations, getBinByLocationAndId } = useBinsContext();
     const [isLoading, setIsLoading] = useState(false);
     const [initialLoadDone, setInitialLoadDone] = useState(false);
     const navigate = useNavigate();
     const { locationId, binId } = useParams();
 
-    const initialValues = {
-        location: '',
-        geoLocation: '',
-        distance: 0,
-        binColor: ''
+    useEffect(() => {
+        fetchBins();
+    }, [fetchBins]);
+
+    const handleLocationChange = (event, newValue) => {
+        let actualLocation = '';
+
+        if (!newValue) {
+            actualLocation = '';
+        } else if (typeof newValue === 'object' && newValue.inputValue) {
+            actualLocation = newValue.inputValue;
+            console.log(`New Location Added: ${actualLocation}`);
+            toast.success(`Location "${actualLocation}" added successfully!`);
+        } else {
+            actualLocation = newValue;
+        }
+
+        formik.setFieldValue('binLocation', actualLocation);
     };
 
     const validationSchema = Yup.object().shape({
-        location: Yup.string().required('Bin Location is required'),
-        geoLocation: Yup.string(),
-        distance: Yup.number().required('Distance is required'),
-        binColor: Yup.string().required('Bin Color is required'),
+        binLocation: Yup.string().required('Bin Location is required'),
+        binType: Yup.string().required('Bin Type is required'),
     });
 
     const formik = useFormik({
-        initialValues,
+        initialValues: {
+            binLocation: '',
+            binType: '',
+        },
         validationSchema,
         enableReinitialize: true,
         onSubmit: async (values) => {
-            console.log('Submitting values:', values);
             try {
                 setIsLoading(true);
-                const binRef = ref(database, `Trash-Bins/${locationId}/${binId}`);
-                await update(binRef, values);
+                const binData = {
+                    id: binId,
+                    binLocation: values.binLocation,
+                    binType: values.binType,
+                    geoLocation: {
+                        latitude: "latitude",
+                        longitude: "longitude",
+                    },
+                };
+                await editBin(locationId, binId, binData);
                 toast.success('Bin updated successfully!');
                 navigate('/users/bins');
             } catch (error) {
@@ -49,17 +83,13 @@ const EditBin = () => {
     });
 
     useEffect(() => {
-        const getData = async () => {
+        const loadBinData = async () => {
             try {
-                const binRef = ref(database, `Trash-Bins/${locationId}/${binId}`);
-                const snapshot = await get(binRef);
-                if (snapshot.exists()) {
-                    const binData = snapshot.val();
+                const binData = getBinByLocationAndId(locationId, binId);
+                if (binData) {
                     formik.setValues({
-                        location: binData.location || '',
-                        geoLocation: binData.geoLocation || '',
-                        distance: binData.distance || 0,
-                        binColor: binData.binColor || '',
+                        binLocation: binData.binLocation || '',
+                        binType: binData.binType || '',
                     });
                 } else {
                     toast.error('No data found for this bin');
@@ -72,8 +102,10 @@ const EditBin = () => {
             }
         };
 
-        getData();
-    }, [locationId, binId]);
+        loadBinData();
+    }, [locationId, binId, getBinByLocationAndId]);
+
+    const binTypes = ['Plastic', 'Paper', 'Glass', 'Metal', 'Organic', 'E-waste'];
 
     if (!initialLoadDone) {
         return <CircularProgress />;
@@ -81,88 +113,102 @@ const EditBin = () => {
 
     return (
         <>
-            <div>
-                <Navbar title={'Edit Bin'} />
-                <Typography variant="h4" align="center" margin="1rem 0">
-                    Edit Bin
-                </Typography>
-
-                <Container maxWidth="sm">
+            <Navbar title="Edit Bin" />
+            <Container maxWidth="sm">
+                <Box mt={4} p={4} bgcolor="background.paper" borderRadius={2} boxShadow={3}>
+                    <Typography variant="h4" align="center" gutterBottom>
+                        Edit Bin
+                    </Typography>
                     <form onSubmit={formik.handleSubmit}>
-                        <TextField
-                            fullWidth
-                            margin="normal"
-                            label="Location"
-                            variant="outlined"
-                            name="location"
-                            value={formik.values.location}
-                            onChange={formik.handleChange}
-                            onBlur={formik.handleBlur}
-                            error={formik.touched.location && Boolean(formik.errors.location)}
-                            helperText={formik.touched.location && formik.errors.location}
-                        />
-
-                        <TextField
-                            fullWidth
-                            margin="normal"
-                            label="GeoLocation"
-                            variant="outlined"
-                            name="geoLocation"
-                            value={formik.values.geoLocation}
-                            onChange={formik.handleChange}
-                            onBlur={formik.handleBlur}
-                            error={formik.touched.geoLocation && Boolean(formik.errors.geoLocation)}
-                            helperText={formik.touched.geoLocation && formik.errors.geoLocation}
-                        />
-
-                        <TextField
-                            fullWidth
-                            margin="normal"
-                            label="Distance"
-                            type="number"
-                            variant="outlined"
-                            name="distance"
-                            value={formik.values.distance}
-                            onChange={formik.handleChange}
-                            onBlur={formik.handleBlur}
-                            error={formik.touched.distance && Boolean(formik.errors.distance)}
-                            helperText={formik.touched.distance && formik.errors.distance}
-                        />
-
-                        <TextField
-                            fullWidth
-                            margin="normal"
-                            select
-                            label="Bin Color"
-                            variant="outlined"
-                            name="binColor"
-                            value={formik.values.binColor}
-                            onChange={formik.handleChange}
-                            onBlur={formik.handleBlur}
-                            error={formik.touched.binColor && Boolean(formik.errors.binColor)}
-                            helperText={formik.touched.binColor && formik.errors.binColor}
-                        >
-                            {['Green', 'Blue', 'Yellow', 'Red'].map((color) => (
-                                <MenuItem key={color} value={color}>
-                                    {color}
-                                </MenuItem>
-                            ))}
-                        </TextField>
-
-                        <div style={{ textAlign: 'center', margin: '1rem 0' }}>
-                            <Button
-                                variant="contained"
-                                color="primary"
-                                type="submit"
-                                style={{ width: '35%' }}
-                                disabled={isLoading}
-                            >
-                                {isLoading ? <CircularProgress size={24} /> : 'Submit'}
-                            </Button>
+                        <div className="grid grid-cols-1 gap-4">
+                            <div>
+                                <TextField
+                                    fullWidth
+                                    margin="normal"
+                                    label="Bin ID"
+                                    value={binId || ''}
+                                    InputProps={{
+                                        readOnly: true,
+                                    }}
+                                />
+                            </div>
+                            <div>
+                                <Autocomplete
+                                    value={formik.values.binLocation}
+                                    onChange={handleLocationChange}
+                                    filterOptions={(options, params) => {
+                                        const filtered = filter(options, params);
+                                        const { inputValue } = params;
+                                        const isExisting = options.some((option) => option === inputValue);
+                                        if (inputValue !== '' && !isExisting) {
+                                            filtered.push({
+                                                inputValue,
+                                                title: `Add "${inputValue}"`,
+                                            });
+                                        }
+                                        return filtered;
+                                    }}
+                                    options={locations || []}
+                                    getOptionLabel={(option) => {
+                                        if (typeof option === 'string') {
+                                            return option;
+                                        }
+                                        if (option.inputValue) {
+                                            return option.inputValue;
+                                        }
+                                        return option.title || '';
+                                    }}
+                                    renderInput={(params) => (
+                                        <TextField
+                                            {...params}
+                                            label="Bin Location"
+                                            error={formik.touched.binLocation && Boolean(formik.errors.binLocation)}
+                                            helperText={formik.touched.binLocation && formik.errors.binLocation}
+                                        />
+                                    )}
+                                    renderOption={(props, option) => (
+                                        <li {...props} key={option.inputValue || option}>
+                                            {option.title || option}
+                                        </li>
+                                    )}
+                                    freeSolo
+                                />
+                            </div>
+                            <div>
+                                <TextField
+                                    fullWidth
+                                    select
+                                    label="Bin Type"
+                                    name="binType"
+                                    value={formik.values.binType}
+                                    onChange={formik.handleChange}
+                                    onBlur={formik.handleBlur}
+                                    error={formik.touched.binType && Boolean(formik.errors.binType)}
+                                    helperText={formik.touched.binType && formik.errors.binType}
+                                >
+                                    {binTypes.map((type) => (
+                                        <MenuItem key={type} value={type}>
+                                            {type}
+                                        </MenuItem>
+                                    ))}
+                                </TextField>
+                            </div>
+                            <div>
+                                <Button
+                                    variant="contained"
+                                    color="primary"
+                                    type="submit"
+                                    fullWidth
+                                    disabled={isLoading || !formik.isValid}
+                                    sx={{ mt: 2, py: 1.5 }}
+                                >
+                                    {isLoading ? <CircularProgress size={24} /> : 'Update Bin'}
+                                </Button>
+                            </div>
                         </div>
                     </form>
-                </Container>
-            </div>
+                </Box>
+            </Container>
         </>
     );
 };
