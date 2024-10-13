@@ -9,7 +9,7 @@ export const UsersProvider = ({ children }) => {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const { user, logout } = useAuth();
+    const { logout } = useAuth();
 
     const axiosInstance = useMemo(() => {
         const instance = axios.create({
@@ -48,7 +48,6 @@ export const UsersProvider = ({ children }) => {
         try {
             const res = await axiosInstance.get('/api/user/list');
             setUsers(res.data.data);
-            // console.log('Users fetched successfully:', res.data.data);
         } catch (err) {
             handleError(err);
         } finally {
@@ -59,7 +58,7 @@ export const UsersProvider = ({ children }) => {
     const getUserByEmployeeId = useCallback(async (employeeId) => {
         setLoading(true);
         try {
-            const res = await axiosInstance.get(`/api/user/${employeeId}`);
+            const res = await axiosInstance.get('/api/user/get/', { params: { employeeId } });
             return res.data.data;
         } catch (err) {
             handleError(err);
@@ -83,13 +82,14 @@ export const UsersProvider = ({ children }) => {
         }
     }, [axiosInstance, handleError]);
 
-    const editUser = useCallback(async (userId, userData) => {
+    const editUser = useCallback(async (employeeId, userData) => {
         setLoading(true);
         try {
-            const res = await axiosInstance.put(`/api/user/${userId}`, userData);
+            const res = await axiosInstance.put('/api/user/edit/', userData, { params: { employeeId } });
             toast.success('User updated successfully');
             return res.data.data;
         } catch (err) {
+            console.error('Error in editUser:', err);
             handleError(err);
             throw err;
         } finally {
@@ -97,10 +97,10 @@ export const UsersProvider = ({ children }) => {
         }
     }, [axiosInstance, handleError]);
 
-    const deleteUser = useCallback(async (userId) => {
+    const deleteUser = useCallback(async (employeeId) => {
         setLoading(true);
         try {
-            await axiosInstance.delete(`/api/user/${userId}`);
+            await axiosInstance.delete('/api/user/delete/', { params: { employeeId } });
             toast.success('User deleted successfully');
         } catch (err) {
             handleError(err);
@@ -110,12 +110,32 @@ export const UsersProvider = ({ children }) => {
         }
     }, [axiosInstance, handleError]);
 
-    const assignBinsToUser = useCallback(async (userId, binIds) => {
+    const assignBinsToUser = useCallback(async (employeeId, binIds, supervisorId) => {
         setLoading(true);
         try {
-            const res = await axiosInstance.post(`/api/user/${userId}/assign-bins`, { binIds });
+            const res = await axiosInstance.post('/api/user/assign-binlocations/',
+                { bins: binIds, supervisorId },
+                { params: { employeeId } }
+            );
             toast.success('Bins assigned successfully');
             return res.data.data;
+        } catch (err) {
+            handleError(err);
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    }, [axiosInstance, handleError]);
+
+    const changePassword = useCallback(async (employeeId, password, confirmPassword) => {
+        setLoading(true);
+        try {
+            const res = await axiosInstance.put('/api/user/change-password/',
+                { password, confirmPassword },
+                { params: { employeeId } }
+            );
+            toast.success('Password changed successfully');
+            return res.data;
         } catch (err) {
             handleError(err);
             throw err;
@@ -133,8 +153,9 @@ export const UsersProvider = ({ children }) => {
         createUser,
         editUser,
         deleteUser,
-        assignBinsToUser
-    }), [users, loading, error, fetchUsers, getUserByEmployeeId, createUser, editUser, deleteUser, assignBinsToUser]);
+        assignBinsToUser,
+        changePassword // Add this line
+    }), [users, loading, error, fetchUsers, getUserByEmployeeId, createUser, editUser, deleteUser, assignBinsToUser, changePassword]);
 
     return <UsersContext.Provider value={value}>{children}</UsersContext.Provider>;
 };

@@ -16,7 +16,7 @@ import { UsersProvider } from './contexts/UsersContext'; // Adjust the path as n
 const Login = lazy(() => import('./components/authentication/Login'));
 const CreateUser = lazy(() => import('./components/CreateUser'));
 const Dashboard = lazy(() => import('./components/Dashboard'));
-const EditUser = lazy(() => import('./components/EditUser')); // Renamed for clarity
+const UserProfile = lazy(() => import('./components/UserProfile')); // Renamed for clarity
 const Bins = lazy(() => import('./components/Bins'));
 const CreateBin = lazy(() => import('./components/CreateBin'));
 const EditBin = lazy(() => import('./components/EditBin'));
@@ -65,12 +65,12 @@ function App() {
                     {/* Route for creating a new user */}
                     <Route path='/create-user' element={<CreateUser />} />
 
-                    {/* Route for editing a user, dynamic ID provided */}
+                    {/* Route for user profile, dynamic ID provided */}
                     <Route
-                      path='/edit-user/:id'
+                      path='/user-profile/:id'
                       element={
                         <ProtectedRoute>
-                          <EditUser /> {/* Changed to EditUser */}
+                          <UserProfile /> {/* Changed to EditUser */}
                         </ProtectedRoute>
                       }
                     />
