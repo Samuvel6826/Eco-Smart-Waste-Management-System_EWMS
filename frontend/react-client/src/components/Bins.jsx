@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import Navbar from './common/Navbar';
 import Bin from './Bin';
 import { useBinsContext } from '../contexts/BinsContext';
+import { useAuth } from '../contexts/AuthContext'; // Import the Auth context
 import {
   Button,
   Select,
@@ -20,6 +21,7 @@ import AddIcon from '@mui/icons-material/Add';
 
 const Bins = () => {
   const { bins, loading: binLoading, error: binError, fetchBins } = useBinsContext();
+  const { user } = useAuth(); // Get user info from Auth context
   const [selectedLocation, setSelectedLocation] = useState('');
 
   const fetchBinsData = useCallback(async () => {
@@ -133,19 +135,23 @@ const Bins = () => {
           </FormControl>
         </Box>
 
-        {renderBinsSummary()}
+        {/* Render bins summary only for authorized roles */}
+        {user?.role === 'Admin' || user?.role === 'Manager' ? renderBinsSummary() : null}
 
         <Box sx={{ mb: 3 }}>
-          <Button
-            component={Link}
-            to={`/users/create-bin/${encodeURIComponent(selectedLocation)}`}
-            variant="contained"
-            color="primary"
-            startIcon={<AddIcon />}
-            disabled={!selectedLocation}
-          >
-            Create Bin
-          </Button>
+          {/* Render create bin button only for authorized roles */}
+          {(user?.role === 'Admin' || user?.role === 'Manager') && (
+            <Button
+              component={Link}
+              to={`/users/create-bin/${encodeURIComponent(selectedLocation)}`}
+              variant="contained"
+              color="primary"
+              startIcon={<AddIcon />}
+              disabled={!selectedLocation}
+            >
+              Create Bin
+            </Button>
+          )}
         </Box>
 
         {binLoading ? (
