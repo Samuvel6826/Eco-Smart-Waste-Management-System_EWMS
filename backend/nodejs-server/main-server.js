@@ -62,15 +62,6 @@ app.use(cookieParser());
 // Enable trust proxy
 app.set('trust proxy', 1);
 
-// Request logging middleware
-app.use((req, res, next) => {
-  logger.info(`Incoming request: ${req.method} ${req.url}`, {
-    headers: req.headers,
-    body: req.body
-  });
-  next();
-});
-
 // Define Routes
 app.use('/api', indexRouter);
 app.use('/api/user', usersRouter);

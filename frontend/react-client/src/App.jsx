@@ -14,13 +14,14 @@ import { UsersProvider } from './contexts/UsersContext'; // Adjust the path as n
 
 // Lazy-load components
 const Login = lazy(() => import('./components/authentication/Login'));
+const ErrorPage = lazy(() => import('./components/ErrorPage'));
+const NotAuthorized = lazy(() => import('./components/NotAuthorized'));
 const CreateUser = lazy(() => import('./components/CreateUser'));
 const Dashboard = lazy(() => import('./components/Dashboard'));
 const UserProfile = lazy(() => import('./components/UserProfile')); // Renamed for clarity
 const Bins = lazy(() => import('./components/Bins'));
 const CreateBin = lazy(() => import('./components/CreateBin'));
 const EditBin = lazy(() => import('./components/EditBin'));
-const ChangePassword = lazy(() => import('./components/ChangePassword'));
 
 function App() {
   // Initialize AOS for animations
@@ -51,26 +52,35 @@ function App() {
                   <Routes>
                     {/* Route for the login page */}
                     <Route path='/login' element={<Login />} />
+                    <Route path="/error" element={<ErrorPage />} />
+                    <Route path="/not-authorized" element={<NotAuthorized />} />
 
                     {/* Protected Routes */}
                     <Route
                       path='/dashboard'
                       element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredRoles={['Admin', 'Manager']}>
                           <Dashboard />
                         </ProtectedRoute>
                       }
                     />
 
                     {/* Route for creating a new user */}
-                    <Route path='/create-user' element={<CreateUser />} />
+                    <Route
+                      path='/create-user'
+                      element={
+                        <ProtectedRoute requiredRoles={['Admin']}>
+                          <CreateUser />
+                        </ProtectedRoute>
+                      }
+                    />
 
                     {/* Route for user profile, dynamic ID provided */}
                     <Route
                       path='/user-profile/:id'
                       element={
-                        <ProtectedRoute>
-                          <UserProfile /> {/* Changed to EditUser */}
+                        <ProtectedRoute requiredRoles={['Admin', 'Manager', 'Supervisor']}>
+                          <UserProfile />
                         </ProtectedRoute>
                       }
                     />
@@ -79,7 +89,7 @@ function App() {
                     <Route
                       path='/users/bins'
                       element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredRoles={['Admin', 'Manager', 'Supervisor']}>
                           <Bins />
                         </ProtectedRoute>
                       }
@@ -89,7 +99,7 @@ function App() {
                     <Route
                       path='/users/edit-bin/:locationId/:binId'
                       element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredRoles={['Admin', 'Manager']}>
                           <EditBin />
                         </ProtectedRoute>
                       }
@@ -99,18 +109,8 @@ function App() {
                     <Route
                       path='/users/create-bin/:locationId'
                       element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredRoles={['Admin', 'Manager']}>
                           <CreateBin />
-                        </ProtectedRoute>
-                      }
-                    />
-
-                    {/* Route for changing user password, dynamic ID provided */}
-                    <Route
-                      path='/users/change-password/:id'
-                      element={
-                        <ProtectedRoute>
-                          <ChangePassword />
                         </ProtectedRoute>
                       }
                     />

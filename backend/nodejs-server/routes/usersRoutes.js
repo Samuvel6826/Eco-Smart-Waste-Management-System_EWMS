@@ -4,32 +4,7 @@ const router = express.Router();
 const auth = require('../common/Auth');
 const { logger } = require('../utils/logger');
 const UsersRateLimiter = require('../middlewares/usersRateLimiter');
-
-// Error handling middleware
-const errorHandler = (err, req, res, next) => {
-    const status = err.status || 500;
-    const message = err.message || 'An unexpected error occurred. Please try again later.';
-
-    logger.error('Error:', {
-        status,
-        message,
-        stack: err.stack,
-        url: req.originalUrl,
-        method: req.method,
-        body: req.body,
-        query: req.query,
-        params: req.params,
-        headers: req.headers
-    });
-
-    res.status(status).json({
-        message,
-        error: {
-            code: status,
-            detail: process.env.NODE_ENV === 'production' ? message : err.stack
-        }
-    });
-};
+const { errorHandlerMiddleware } = require('../middlewares/errorHandlers');
 
 // User management routes
 router.get('/list',
@@ -43,7 +18,7 @@ router.get('/list',
 );
 
 // Get user by employeeId
-router.get('/get/employeeId',
+router.get('/get',
     UsersRateLimiter.getUserByIdLimiter,
     auth.validate,
     auth.roleGuard('Admin', 'Manager'),
@@ -63,7 +38,7 @@ router.post('/create',
     }
 );
 
-router.put('/edit/employeeId',
+router.put('/edit',
     UsersRateLimiter.editUserLimiter,
     auth.validate,
     auth.roleGuard('Admin', 'Manager'),
@@ -73,7 +48,7 @@ router.put('/edit/employeeId',
     }
 );
 
-router.delete('/delete/employeeId',
+router.delete('/delete',
     UsersRateLimiter.deleteUserLimiter,
     auth.validate,
     auth.roleGuard('Admin', 'Manager'),
@@ -83,7 +58,7 @@ router.delete('/delete/employeeId',
     }
 );
 
-router.patch('/assign-binlocations/employeeId',
+router.post('/assign-binlocations',
     UsersRateLimiter.assignBinsLimiter,
     auth.validate,
     auth.roleGuard('Admin', 'Manager'),
@@ -101,7 +76,7 @@ router.post('/login',
     }
 );
 
-router.put('/change-password/employeeId',
+router.put('/change-password',
     UsersRateLimiter.changePasswordLimiter,
     auth.validate,
     auth.roleGuard('Admin'),
@@ -112,6 +87,6 @@ router.put('/change-password/employeeId',
 );
 
 // Apply error handling middleware
-router.use(errorHandler);
+router.use(errorHandlerMiddleware);
 
 module.exports = router;

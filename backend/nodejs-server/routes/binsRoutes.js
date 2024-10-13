@@ -5,19 +5,7 @@ const router = express.Router();
 const auth = require('../common/Auth');
 const { logger } = require('../utils/logger');
 const BinsRateLimiter = require('../middlewares/binsRateLimiter');
-
-
-// Error handling middleware (in binsRoutes.js)
-const errorHandler = (err, req, res, next) => {
-    const statusCode = err.statusCode || 500;
-
-    res.status(statusCode).json({
-        status: err.status || 'error',
-        message: err.message,
-        statusCode: statusCode // Include the numeric status code in the response
-    });
-};
-
+const { errorHandlerMiddleware } = require('../middlewares/errorHandlers');
 
 // Bin management routes
 router.get('/list',
@@ -73,7 +61,6 @@ router.patch('/sensor-distance',
     BinsRateLimiter.sensorDistanceLimiter,
     auth.validate,
     auth.roleGuard('Admin', 'Technician'),
-
     (req, res, next) => {
         logger.info(`Updating sensor distance for bin location: ${req.query.location} and ID: ${req.query.id}`);
         BinsController.updateSensorDistance(req, res, next);
@@ -91,6 +78,6 @@ router.patch('/sensor-heartbeat',
 );
 
 // Apply error handling middleware
-router.use(errorHandler);
+router.use(errorHandlerMiddleware);
 
 module.exports = router;

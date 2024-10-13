@@ -3,29 +3,8 @@ const UsersModel = require('../models/usersModel');
 const auth = require('../common/Auth');
 const { logger } = require('../utils/logger');
 const { getFormattedDate } = require('../utils/deviceMonitoring'); // Import the helper function
+const { handleClientError, handleServerError } = require('../middlewares/errorHandlers');
 
-// Helper functions for error handling
-const handleClientError = (res, message) => {
-    logger.error(`Client Error: ${message}`);
-    res.status(400).json({
-        message,
-        error: {
-            code: 400,
-            detail: message
-        }
-    });
-};
-
-const handleServerError = (res, error) => {
-    logger.error('Server Error:', error.message);
-    res.status(500).json({
-        message: 'Internal Server Error',
-        error: {
-            code: 500,
-            detail: error.message
-        }
-    });
-};
 
 const getAllUsers = async (req, res) => {
     try {
@@ -74,7 +53,7 @@ const createUser = async (req, res) => {
             profilePic,
             assignedBinLocations,
             employeeId,
-            userDesc // Include userDesc
+            userDesc
         } = req.body;
 
         // Validate required fields
@@ -102,7 +81,7 @@ const createUser = async (req, res) => {
         const hashedPassword = await auth.hashPassword(password);
 
         // Create the user record in the database
-        await UsersModel.create({
+        const newUser = await UsersModel.create({
             firstName,
             lastName,
             email,
@@ -112,14 +91,14 @@ const createUser = async (req, res) => {
             password: hashedPassword,
             assignedBinLocations,
             employeeId,
-            userDesc, // Include userDesc here
-            createdAt: getFormattedDate(), // Use getFormattedDate here
-            updatedAt: getFormattedDate()   // Use getFormattedDate here
+            userDesc,
+            createdAtString: getFormattedDate(),
+            updatedAtString: getFormattedDate()
         });
 
         // Respond with success message
         return res.status(201).json({
-            message: `User created successfully with Employee ID: ${employeeId}.`
+            message: `User created successfully with Employee ID: ${newUser.employeeId}.`
         });
     } catch (error) {
         // Handle unauthorized access error specifically
@@ -136,6 +115,7 @@ const createUser = async (req, res) => {
         return handleServerError(res, error);
     }
 };
+
 
 const editUserByEmployeeId = async (req, res) => {
     try {
@@ -209,7 +189,7 @@ const loginUser = async (req, res) => {
             return handleClientError(res, 'Invalid email or password');
         }
 
-        logger.info(`User found: ${JSON.stringify(user)}`);
+        logger.info(`User found`);
 
         const isValidPassword = await auth.comparePassword(password, user.password);
         if (!isValidPassword) {

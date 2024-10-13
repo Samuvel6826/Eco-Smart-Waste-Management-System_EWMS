@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { getFormattedDate } = require('../utils/deviceMonitoring');
 
 // Validation function for email
 const emailValidator = {
@@ -75,19 +76,24 @@ const usersSchema = new mongoose.Schema({
     type: String,
     default: []
   }],
+  createdAt: {
+    type: String,
+    default: getFormattedDate
+  },
+  updatedAt: {
+    type: String,
+    default: getFormattedDate
+  }
 },
   {
     versionKey: false,
     collection: 'ewms-users',
-    timestamps: {
-      createdAt: 'createdAt',
-      updatedAt: 'updatedAt'
-    }
+    timestamps: true
   });
 
 // Middleware to format timestamps
 usersSchema.pre('save', function (next) {
-  const currentDate = new Date().toLocaleString();
+  const currentDate = getFormattedDate();
   this.createdAt = this.createdAt || currentDate;
   this.updatedAt = currentDate;
   next();

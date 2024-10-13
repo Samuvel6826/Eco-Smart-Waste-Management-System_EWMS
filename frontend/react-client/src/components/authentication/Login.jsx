@@ -41,7 +41,7 @@ function Login() {
 
     const demoCredentials = {
         Admin: { email: 'samuvel6826@gmail.com', password: '1' },
-        Manager: { email: 'jenitharajan029@gmail.com', password: '1' },
+        Manager: { email: 'sakthiss2613@gmail.com', password: '1' },
         Supervisor: { email: 'jayaprasanna991@gmail.com', password: '1' },
         Technician: { email: 'praveengabap@gmail.com', password: '1' },
     };

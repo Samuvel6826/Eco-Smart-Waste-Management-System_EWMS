@@ -21,11 +21,11 @@ import MenuIcon from '@mui/icons-material/Menu';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import LogoutIcon from '@mui/icons-material/Logout';
-import HomeIcon from '@mui/icons-material/Home';
 
 function Navbar() {
     const { user, logout } = useAuth();
     const [isAdmin, setIsAdmin] = useState(false);
+    const [isManager, setIsManager] = useState(false);
     const [drawerOpen, setDrawerOpen] = useState(false);
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -34,6 +34,7 @@ function Navbar() {
     useEffect(() => {
         if (user) {
             setIsAdmin(user.role === "Admin");
+            setIsManager(user.role === "Manager");
         }
     }, [user]);
 
@@ -46,12 +47,16 @@ function Navbar() {
         setDrawerOpen(false);
     };
 
+    // Updated menuItems to include Manager role for the Dashboard
     const menuItems = [
-        { text: 'Dashboard', icon: <DashboardIcon />, link: '/dashboard', admin: true },
-        { text: 'Bins', icon: <ListAltIcon />, link: '/users/bins', admin: true },
+        { text: 'Dashboard', icon: <DashboardIcon />, link: '/dashboard', admin: true, manager: true },
+        { text: 'Bins', icon: <ListAltIcon />, link: '/users/bins', admin: true, manager: true },
     ];
 
-    const filteredMenuItems = isAdmin ? menuItems : menuItems.filter(item => !item.admin);
+    // Filtering menu items based on roles
+    const filteredMenuItems = menuItems.filter(item =>
+        (item.admin && isAdmin) || (item.manager && isManager) || (!item.admin && !item.manager)
+    );
 
     const drawer = (
         <Box
