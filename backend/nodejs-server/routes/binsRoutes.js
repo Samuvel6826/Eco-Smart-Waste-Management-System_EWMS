@@ -11,7 +11,7 @@ const { errorHandlerMiddleware } = require('../middlewares/errorHandlers');
 router.get('/list',
     // BinsRateLimiter.getBinsLimiter,
     auth.validate,
-    auth.roleGuard('Admin', 'Manager'),
+    auth.roleGuard('Admin', 'Manager', 'Supervisor'),
     (req, res, next) => {
         logger.info('Fetching all bins');
         BinsController.getBins(req, res, next);
