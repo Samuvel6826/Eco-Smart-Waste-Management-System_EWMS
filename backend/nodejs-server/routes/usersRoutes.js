@@ -48,6 +48,17 @@ router.put('/edit',
     }
 );
 
+// Route to get assigned bin locations for a specific employee
+router.get('/employee/assigned-bin-locations',
+    UsersRateLimiter.assignBinsByEmployeeIdLimiter,
+    auth.validate,
+    auth.roleGuard('Admin', 'Manager', 'Supervisor'),  // Adjust role if needed
+    (req, res, next) => {
+        logger.info(`Fetching assigned bin locations for employeeId: ${req.query.employeeId}`);
+        UsersController.getAssignedBinLocations(req, res, next);
+    }
+);
+
 router.delete('/delete',
     UsersRateLimiter.deleteUserLimiter,
     auth.validate,
@@ -61,7 +72,7 @@ router.delete('/delete',
 router.post('/assign-binlocations',
     UsersRateLimiter.assignBinsLimiter,
     auth.validate,
-    auth.roleGuard('Admin', 'Manager'),
+    auth.roleGuard('Admin', 'Manager', 'Supervisor'),
     (req, res, next) => {
         logger.info(`Assigning bins to user with employeeId: ${req.query.employeeId}`);
         UsersController.assignBinsByEmployeeId(req, res, next);

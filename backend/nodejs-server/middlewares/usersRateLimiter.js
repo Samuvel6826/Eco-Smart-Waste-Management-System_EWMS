@@ -25,6 +25,12 @@ const getUserByIdLimiter = rateLimit({
     message: 'Too many requests to fetch specific user, please try again later.'
 });
 
+const assignBinsByEmployeeIdLimiter = rateLimit({
+    windowMs: rateLimits.getUserById.timeFrame * 60 * 1000,
+    max: rateLimits.getUserById.requests,
+    message: 'Too many requests to fetch specific user, please try again later.'
+});
+
 const createUserLimiter = rateLimit({
     windowMs: rateLimits.createUser.timeFrame * 60 * 1000,
     max: rateLimits.createUser.requests,
@@ -64,6 +70,7 @@ const assignBinsLimiter = rateLimit({
 module.exports = {
     getAllUsersLimiter,
     getUserByIdLimiter,
+    assignBinsByEmployeeIdLimiter,
     createUserLimiter,
     editUserLimiter,
     deleteUserLimiter,

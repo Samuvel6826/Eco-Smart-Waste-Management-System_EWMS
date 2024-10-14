@@ -127,6 +127,22 @@ export const UsersProvider = ({ children }) => {
         }
     }, [axiosInstance, handleError]);
 
+    // Inside UsersProvider
+    const fetchAssignedBinLocations = useCallback(async (employeeId) => {
+        setLoading(true);
+        try {
+            const res = await axiosInstance.get('/api/user/employee/assigned-bin-locations/', {
+                params: { employeeId },
+            });
+            return res.data.assignedBinLocations; // Returns the assigned bin locations
+        } catch (err) {
+            handleError(err);
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    }, [axiosInstance, handleError]);
+
     const changePassword = useCallback(async (employeeId, password, confirmPassword) => {
         setLoading(true);
         try {
@@ -154,8 +170,9 @@ export const UsersProvider = ({ children }) => {
         editUser,
         deleteUser,
         assignBinsToUser,
+        fetchAssignedBinLocations,
         changePassword // Add this line
-    }), [users, loading, error, fetchUsers, getUserByEmployeeId, createUser, editUser, deleteUser, assignBinsToUser, changePassword]);
+    }), [users, loading, error, fetchUsers, getUserByEmployeeId, createUser, editUser, deleteUser, assignBinsToUser, fetchAssignedBinLocations, changePassword]);
 
     return <UsersContext.Provider value={value}>{children}</UsersContext.Provider>;
 };

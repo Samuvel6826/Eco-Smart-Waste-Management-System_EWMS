@@ -1,7 +1,10 @@
 const admin = require('firebase-admin');
+const sanitize = require('../common/Sanitize');
+const UsersModel = require('../models/usersModel');
 const { binMetaDataSchema, distanceSchema, heartbeatSchema } = require('../models/binsModel');
 const { getFormattedDate, updateDeviceStatus } = require('../utils/deviceMonitoring');
 const { logger: customLogger } = require('../utils/logger'); // Import the logger
+const { handleClientError, handleServerError } = require('../middlewares/errorHandlers');
 
 // Firebase references
 const firebaseDB = admin.database();
@@ -197,6 +200,53 @@ const getBinByLocationAndId = catchAsync(async (req, res) => {
     res.status(200).json(binData);
 });
 
+const getBinsBySupervisorAssignedLocations = async (req, res) => {
+    try {
+        const location = req.query.location; // Get location from query
+        if (!location) {
+            return res.status(400).json({ message: 'Location is required' });
+        }
+
+        // Fetch bins from Firebase based on the provided location
+        const bins = await fetchBinsFromFirebaseByLocations([location]); // Fetch bins directly using the location
+
+        if (!bins || bins.length === 0) {
+            return res.status(404).json({ message: 'No bins found for the specified location' });
+        }
+
+        res.status(200).json({
+            bins,
+            message: `Bins fetched successfully for location: ${location}`
+        });
+    } catch (error) {
+        handleServerError(res, error);
+    }
+};
+
+// Function to fetch bins from Firebase based on locations
+const fetchBinsFromFirebaseByLocations = async (locations) => {
+    const bins = [];
+
+    for (const location of locations) {
+        const actualLocation = await findActualLocation(location); // This should now return 'Lab'
+        console.log(`Fetching bins for location: ${location}, Actual Location: ${actualLocation}`); // Debug log
+        if (!actualLocation) continue; // Skip if location not found
+
+        const snapshot = await sensorDataRef.child(actualLocation).once('value');
+        const locationBins = snapshot.val();
+
+        console.log(`Location Bins for ${actualLocation}:`, locationBins); // Debug log
+
+        if (locationBins) {
+            Object.keys(locationBins).forEach(binId => {
+                bins.push({ id: binId, ...locationBins[binId], location: actualLocation });
+            });
+        }
+    }
+
+    return bins;
+};
+
 const editBinByLocationAndId = catchAsync(async (req, res, next) => {
     const { location, id } = req.query;
     const updates = req.body;
@@ -285,5 +335,6 @@ module.exports = {
     getBins,
     getBinByLocationAndId,
     editBinByLocationAndId,
-    deleteBinByLocationAndId
+    deleteBinByLocationAndId,
+    getBinsBySupervisorAssignedLocations
 };

@@ -40,6 +40,27 @@ const getUserByEmployeeId = async (req, res) => {
     }
 };
 
+
+// Controller for fetching assigned bin locations
+const getAssignedBinLocations = async (req, res) => {
+    try {
+        const employeeId = sanitize.isString(req.query.employeeId);
+        const employee = await UsersModel.findOne({ employeeId })
+            .select('assignedBinLocations -_id');  // Select only assignedBinLocations field
+
+        if (!employee) {
+            return handleClientError(res, `Employee not found with employeeId: ${employeeId}`);
+        }
+
+        res.status(200).json({
+            assignedBinLocations: employee.assignedBinLocations,
+            message: `Assigned bin locations fetched successfully for employeeId: ${employeeId}`
+        });
+    } catch (error) {
+        handleServerError(res, error);
+    }
+};
+
 const createUser = async (req, res) => {
     try {
         // Destructure user data from the request body
@@ -286,6 +307,7 @@ const assignBinsByEmployeeId = async (req, res) => {
 module.exports = {
     getAllUsers,
     getUserByEmployeeId,
+    getAssignedBinLocations,
     createUser,
     editUserByEmployeeId,
     deleteUserByEmployeeId,

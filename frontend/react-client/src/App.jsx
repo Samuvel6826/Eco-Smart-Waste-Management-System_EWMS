@@ -20,6 +20,7 @@ const CreateUser = lazy(() => import('./components/CreateUser'));
 const Dashboard = lazy(() => import('./components/Dashboard'));
 const UserProfile = lazy(() => import('./components/UserProfile')); // Renamed for clarity
 const Bins = lazy(() => import('./components/Bins'));
+const SupervisorBins = lazy(() => import('./components/SupervisorBins'))
 const CreateBin = lazy(() => import('./components/CreateBin'));
 const EditBin = lazy(() => import('./components/EditBin'));
 
@@ -89,8 +90,18 @@ function App() {
                     <Route
                       path='/users/bins'
                       element={
-                        <ProtectedRoute requiredRoles={['Admin', 'Manager', 'Supervisor']}>
+                        <ProtectedRoute requiredRoles={['Admin', 'Manager']}>
                           <Bins />
+                        </ProtectedRoute>
+                      }
+                    />
+
+                    {/* Route for managing Supervisor bins related to users */}
+                    <Route
+                      path='/users/supervisor-bins'
+                      element={
+                        <ProtectedRoute requiredRoles={['Admin', 'Manager', 'Supervisor']}>
+                          <SupervisorBins />
                         </ProtectedRoute>
                       }
                     />

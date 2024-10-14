@@ -51,6 +51,7 @@ function Navbar() {
     const menuItems = [
         { text: 'Dashboard', icon: <DashboardIcon />, link: '/dashboard', admin: true, manager: true },
         { text: 'Bins', icon: <ListAltIcon />, link: '/users/bins', admin: true, manager: true },
+        // { text: 'Supervisor Bins', icon: <ListAltIcon />, link: '/users/supervisor-bins', admin: true, manager: true, supervisor: true },
     ];
 
     // Filtering menu items based on roles

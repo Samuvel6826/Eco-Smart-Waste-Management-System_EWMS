@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom';
 import Navbar from './common/Navbar';
 import Bin from './Bin';
 import { useBinsContext } from '../contexts/BinsContext';
-import { useAuth } from '../contexts/AuthContext'; // Import the Auth context
 import {
   Button,
   Select,
@@ -16,17 +15,29 @@ import {
   Grid,
   Paper,
   CircularProgress,
+  Card,
+  CardContent,
+  IconButton,
+  Tooltip,
+  Fade,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
 
 const Bins = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { bins, loading: binLoading, error: binError, fetchBins } = useBinsContext();
-  const { user } = useAuth(); // Get user info from Auth context
   const [selectedLocation, setSelectedLocation] = useState('');
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const fetchBinsData = useCallback(async () => {
     try {
       await fetchBins();
+      toast.success('Bins data refreshed successfully!');
     } catch (error) {
       console.error('Failed to fetch bins:', error);
       toast.error('Failed to fetch bins. Please try again.');
@@ -35,18 +46,17 @@ const Bins = () => {
 
   useEffect(() => {
     fetchBinsData();
-  }, [fetchBinsData]);
+  }, [fetchBinsData, refreshKey]);
 
   useEffect(() => {
-    const storedLocation = localStorage.getItem('selectedLocation');
     if (Object.keys(bins).length > 0) {
-      if (storedLocation && bins.hasOwnProperty(storedLocation)) {
-        setSelectedLocation(storedLocation);
-      } else {
-        const initialLocation = Object.keys(bins)[0];
-        setSelectedLocation(initialLocation);
-        localStorage.setItem('selectedLocation', initialLocation);
-      }
+      const storedLocation = localStorage.getItem('selectedLocation');
+      const validLocation = storedLocation && bins.hasOwnProperty(storedLocation)
+        ? storedLocation
+        : Object.keys(bins)[0];
+
+      setSelectedLocation(validLocation);
+      localStorage.setItem('selectedLocation', validLocation);
     }
   }, [bins]);
 
@@ -56,9 +66,11 @@ const Bins = () => {
     localStorage.setItem('selectedLocation', newLocation);
   };
 
-  const binsForSelectedLocation = useMemo(() => {
-    return bins[selectedLocation] || {};
-  }, [bins, selectedLocation]);
+  const handleRefresh = () => {
+    setRefreshKey(prevKey => prevKey + 1);
+  };
+
+  const binsForSelectedLocation = useMemo(() => bins[selectedLocation] || {}, [bins, selectedLocation]);
 
   const renderLoading = () => (
     <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
@@ -69,22 +81,30 @@ const Bins = () => {
 
   const renderError = () => (
     <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight="50vh">
-      <Typography variant="h5" color="error">{binError}</Typography>
-      <Button variant="contained" color="primary" onClick={fetchBinsData} sx={{ mt: 2 }}>
+      <Typography variant="h5" color="error" gutterBottom>{binError}</Typography>
+      <Button variant="contained" color="primary" onClick={fetchBinsData} startIcon={<RefreshIcon />}>
         Retry
       </Button>
     </Box>
   );
 
   const renderBinsSummary = () => (
-    <Paper elevation={3} sx={{ p: 2, mb: 3 }}>
+    <Paper elevation={3} sx={{ p: 2, mb: 3, borderRadius: 2 }}>
       <Typography variant="h6" gutterBottom>Location Summary</Typography>
       <Grid container spacing={2}>
         {Object.entries(bins).map(([location, locationBins]) => (
           <Grid item key={location} xs={12} sm={6} md={4}>
-            <Typography>
-              <strong>{location}</strong>: {Object.keys(locationBins).length} bins
-            </Typography>
+            <Card variant="outlined" sx={{ bgcolor: location === selectedLocation ? 'primary.light' : 'background.paper' }}>
+              <CardContent>
+                <Typography variant="subtitle1" component="div" sx={{ display: 'flex', alignItems: 'center' }}>
+                  <LocationOnIcon sx={{ mr: 1 }} />
+                  <strong>{location}</strong>
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {Object.keys(locationBins).length} bins
+                </Typography>
+              </CardContent>
+            </Card>
           </Grid>
         ))}
       </Grid>
@@ -92,33 +112,37 @@ const Bins = () => {
   );
 
   const renderBinGrid = () => (
-    <Grid container spacing={3}>
-      {Object.entries(binsForSelectedLocation).length > 0 ? (
-        Object.entries(binsForSelectedLocation).map(([binId, binData]) => (
-          <Grid item key={binId} xs={12} sm={6} md={4} lg={3}>
-            <Bin
-              locationId={selectedLocation}
-              binId={binId}
-              binData={binData}
-            />
+    <Fade in={true} timeout={500}>
+      <Grid container spacing={3}>
+        {Object.entries(binsForSelectedLocation).length > 0 ? (
+          Object.entries(binsForSelectedLocation).map(([binId, binData]) => (
+            <Grid item key={binId} xs={12} sm={6} md={4} lg={3}>
+              <Bin
+                locationId={selectedLocation}
+                binId={binId}
+                binData={binData}
+              />
+            </Grid>
+          ))
+        ) : (
+          <Grid item xs={12}>
+            <Typography color="error" align="center">No bins found for this location.</Typography>
           </Grid>
-        ))
-      ) : (
-        <Grid item xs={12}>
-          <Typography color="error">No bins found for this location.</Typography>
-        </Grid>
-      )}
-    </Grid>
+        )}
+      </Grid>
+    </Fade>
   );
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'background.default' }}>
       <Navbar />
       <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
-        <Typography variant="h4" gutterBottom>Bins List</Typography>
+        <Typography variant="h4" gutterBottom sx={{ mb: 3, fontWeight: 'bold', color: 'primary.main' }}>
+          Bins Management
+        </Typography>
 
-        <Box sx={{ mb: 3 }}>
-          <FormControl fullWidth>
+        <Box sx={{ mb: 3, display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 2, alignItems: 'center' }}>
+          <FormControl fullWidth={isMobile} sx={{ minWidth: 200 }}>
             <InputLabel id="location-select-label">Select Location</InputLabel>
             <Select
               labelId="location-select-label"
@@ -133,14 +157,7 @@ const Bins = () => {
               ))}
             </Select>
           </FormControl>
-        </Box>
-
-        {/* Render bins summary only for authorized roles */}
-        {user?.role === 'Admin' || user?.role === 'Manager' ? renderBinsSummary() : null}
-
-        <Box sx={{ mb: 3 }}>
-          {/* Render create bin button only for authorized roles */}
-          {(user?.role === 'Admin' || user?.role === 'Manager') && (
+          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
             <Button
               component={Link}
               to={`/users/create-bin/${encodeURIComponent(selectedLocation)}`}
@@ -149,20 +166,25 @@ const Bins = () => {
               startIcon={<AddIcon />}
               disabled={!selectedLocation}
             >
-              Create Bin
+              Create New Bin
             </Button>
-          )}
+            <Button
+              onClick={handleRefresh}
+              variant="contained"
+              color="secondary"
+              startIcon={<RefreshIcon />}
+            >
+              Refresh Data
+            </Button>
+          </Box>
         </Box>
 
-        {binLoading ? (
-          renderLoading()
-        ) : binError ? (
-          renderError()
-        ) : selectedLocation ? (
-          renderBinGrid()
-        ) : (
-          <Typography color="primary">Please select a location to view bins.</Typography>
-        )}
+        {renderBinsSummary()}
+
+        {binLoading ? renderLoading() :
+          binError ? renderError() :
+            selectedLocation ? renderBinGrid() :
+              <Typography color="primary" align="center">Please select a location to view bins.</Typography>}
       </Box>
     </Box>
   );

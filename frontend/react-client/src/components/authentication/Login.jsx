@@ -46,12 +46,23 @@ function Login() {
         Technician: { email: 'praveengabap@gmail.com', password: '1' },
     };
 
+    // Define role-based routing
+    const roleRoutes = {
+        Admin: '/dashboard',
+        Manager: '/dashboard',
+        Supervisor: '/users/supervisor-bins',
+        Technician: '/dashboard',
+    };
+
     const handleLogin = async (values) => {
         try {
             setIsLoading(true);
             const decodedUser = await login(values.email, values.password);
             toast.success('Login successful!');
-            navigate(decodedUser.role === 'Admin' ? '/dashboard' : '/users/bins');
+
+            // Use the roleRoutes mapping to determine the correct route
+            const route = roleRoutes[decodedUser.role] || '/users/bins';
+            navigate(route);
         } catch (error) {
             console.error("Login error: ", error);
             toast.error(error.response?.data?.message || 'Login failed. Please try again.');
@@ -126,8 +137,8 @@ function Login() {
                                         name="email"
                                         autoComplete="email"
                                         autoFocus
-                                        error={touched.email && errors.email}
-                                        helperText={touched.email && errors.email}
+                                        error={touched.email && !!errors.email} // Ensure this is boolean
+                                        helperText={touched.email && errors.email} // Error message
                                         InputProps={{
                                             startAdornment: (
                                                 <InputAdornment position="start">
@@ -146,8 +157,8 @@ function Login() {
                                         type={showPassword ? 'text' : 'password'}
                                         id="password"
                                         autoComplete="current-password"
-                                        error={touched.password && errors.password}
-                                        helperText={touched.password && errors.password}
+                                        error={touched.password && !!errors.password} // Ensure this is boolean
+                                        helperText={touched.password && errors.password} // Error message
                                         InputProps={{
                                             startAdornment: (
                                                 <InputAdornment position="start">

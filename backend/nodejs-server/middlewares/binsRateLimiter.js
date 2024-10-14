@@ -37,6 +37,12 @@ const getBinsLimiter = rateLimit({
     message: `Too many requests to fetch bins. Please try again later. You can try again in ${rateLimits.getBins.timeFrame} minutes.`
 });
 
+const getBinsBySupervisorAssignedLocationsLimiter = rateLimit({
+    windowMs: rateLimits.getBinById.timeFrame * 60 * 1000,
+    max: rateLimits.getBinById.requests,
+    message: `Too many requests to fetch specific bin. Please try again later. You can try again in ${rateLimits.getBinById.timeFrame} minutes.`
+});
+
 const getBinByIdLimiter = rateLimit({
     windowMs: rateLimits.getBinById.timeFrame * 60 * 1000,
     max: rateLimits.getBinById.requests,
@@ -60,6 +66,7 @@ module.exports = {
     sensorDistanceLimiter,
     heartbeatLimiter,
     getBinsLimiter,
+    getBinsBySupervisorAssignedLocationsLimiter,
     getBinByIdLimiter,
     editBinLimiter,
     deleteBinLimiter

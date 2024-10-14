@@ -67,8 +67,6 @@ export const AuthProvider = ({ children }) => {
         // await axios.post(`${import.meta.env.VITE_SERVER_HOST_URL}/api/user/logout`);
     };
 
-
-
     return (
         <AuthContext.Provider value={{ user, loading, error, setUser, login, logout }}>
             {children}

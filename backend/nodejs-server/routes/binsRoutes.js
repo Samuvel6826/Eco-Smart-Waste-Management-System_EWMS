@@ -9,9 +9,9 @@ const { errorHandlerMiddleware } = require('../middlewares/errorHandlers');
 
 // Bin management routes
 router.get('/list',
-    // BinsRateLimiter.getBinsLimiter,
+    BinsRateLimiter.getBinsLimiter,
     auth.validate,
-    auth.roleGuard('Admin', 'Manager', 'Supervisor'),
+    auth.roleGuard('Admin', 'Manager'),
     (req, res, next) => {
         logger.info('Fetching all bins');
         BinsController.getBins(req, res, next);
@@ -26,6 +26,18 @@ router.get('/getBinByLocationAndId',
         BinsController.getBinByLocationAndId(req, res, next);
     }
 );
+
+// Route to get all bins under the supervisor's assigned bin locations
+router.get('/supervisor/assigned-bins',
+    BinsRateLimiter.getBinsBySupervisorAssignedLocationsLimiter,
+    auth.validate,
+    auth.roleGuard('Admin', 'Manager', 'Supervisor'),  // Adjust role if needed
+    (req, res, next) => {
+        logger.info(`Fetching all bins for supervisor with employeeId: ${req.query.employeeId}`);
+        BinsController.getBinsBySupervisorAssignedLocations(req, res, next);
+    }
+);
+
 
 router.post('/create',
     BinsRateLimiter.createBinLimiter,
