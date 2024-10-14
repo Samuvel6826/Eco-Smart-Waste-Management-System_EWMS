@@ -44,7 +44,6 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import DescriptionIcon from '@mui/icons-material/Description';
 import AddIcon from '@mui/icons-material/Add';
 import AssignmentIcon from '@mui/icons-material/Assignment';
-import EditIcon from '@mui/icons-material/Edit';
 
 const AssignBinLocations = React.lazy(() => import('./AssignBinLocations'));
 
@@ -220,18 +219,13 @@ function Dashboard() {
                                 <LockIcon fontSize="small" />
                             </IconButton>
                         </Tooltip>
-                        <Tooltip title="Edit User">
-                            <IconButton size="small" onClick={() => navigate(`/edit-user/${user.employeeId}`)}>
-                                <EditIcon fontSize="small" />
-                            </IconButton>
-                        </Tooltip>
                         <Tooltip title="Delete User">
                             <IconButton size="small" onClick={() => handleDeleteUser(user.employeeId)}>
                                 <DeleteIcon fontSize="small" />
                             </IconButton>
                         </Tooltip>
-                        <Tooltip title="View User Details">
-                            <IconButton size="small" onClick={() => navigate(`/user-description/${user.employeeId}`)}>
+                        <Tooltip title="View User Profile">
+                            <IconButton size="small" onClick={() => navigate(`/user-profile/${user.employeeId}`)}>
                                 <DescriptionIcon fontSize="small" />
                             </IconButton>
                         </Tooltip>
