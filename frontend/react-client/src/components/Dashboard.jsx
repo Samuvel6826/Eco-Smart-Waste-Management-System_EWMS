@@ -33,6 +33,9 @@ import {
     CardContent,
     Fade,
     Skeleton,
+    AppBar,
+    Toolbar,
+    Divider
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -68,6 +71,7 @@ function Dashboard() {
 
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+    const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
 
     const fetchData = useCallback(async () => {
         if (token) {
@@ -196,11 +200,14 @@ function Dashboard() {
 
     const renderUserCard = (user, index) => (
         <Fade in={true} timeout={300} style={{ transitionDelay: `${index * 50}ms` }}>
-            <Card elevation={3} sx={{ mb: 2, position: 'relative' }}>
+            <Card elevation={3} sx={{ mb: 2, position: 'relative', transition: 'transform 0.3s', '&:hover': { transform: 'translateY(-5px)' } }}>
                 <CardContent>
-                    <Typography variant="h6" gutterBottom>
-                        {user.firstName} {user.lastName}
-                    </Typography>
+                    <Box display="flex" alignItems="center" mb={2}>
+                        <PersonIcon fontSize="large" color="primary" sx={{ mr: 2 }} />
+                        <Typography variant="h6" gutterBottom>
+                            {user.firstName} {user.lastName}
+                        </Typography>
+                    </Box>
                     <Typography variant="body2" color="textSecondary" gutterBottom>
                         Employee ID: {user.employeeId}
                     </Typography>
@@ -208,7 +215,7 @@ function Dashboard() {
                         Email: {user.email}
                     </Typography>
                     <Box mt={1}>
-                        <Chip label={user.role} color="primary" size="small" />
+                        <Chip label={user.role} color="primary" size="small" sx={{ fontWeight: 'bold' }} />
                     </Box>
                     <Typography variant="body2" color="textSecondary" mt={1}>
                         Bin Locations: {user.assignedBinLocations?.join(', ') || 'Not Assigned'}
@@ -259,30 +266,50 @@ function Dashboard() {
     }
 
     return (
-        <Container maxWidth="xl">
+        <Box sx={{ flexGrow: 1 }}>
             <Navbar />
-            <Box my={4}>
-                <Typography variant="h4" gutterBottom align="center" color="primary">
-                    User Dashboard
-                </Typography>
-                <Grid container spacing={2} justifyContent="center" alignItems="center" mb={2}>
+            <AppBar position="static" color="default" elevation={0} sx={{ borderBottom: '1px solid rgba(0, 0, 0, 0.12)' }}>
+                <Toolbar>
+                    <Typography variant="h5" color="primary" sx={{ flexGrow: 1 }}>
+                        User Dashboard
+                    </Typography>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={() => navigate('/create-user')}
+                        startIcon={<AddIcon />}
+                        sx={{ mr: 2 }}
+                    >
+                        Add User
+                    </Button>
+                    <Button
+                        variant="contained"
+                        color="secondary"
+                        onClick={openAssignDialogHandler}
+                        startIcon={<AssignmentIcon />}
+                    >
+                        Manage Bins
+                    </Button>
+                </Toolbar>
+            </AppBar>
+            <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                <Grid container spacing={3} alignItems="center" mb={3}>
                     <Grid item xs={12} md={6}>
                         <TextField
                             variant="outlined"
                             placeholder="Search Users"
                             onChange={(e) => setSearchTerm(e.target.value)}
                             InputProps={{
-                                endAdornment: (
-                                    <IconButton>
-                                        <SearchIcon />
-                                    </IconButton>
+                                startAdornment: (
+                                    <SearchIcon color="action" sx={{ mr: 1 }} />
                                 ),
                             }}
                             fullWidth
+                            size="small"
                         />
                     </Grid>
-                    <Grid item xs={12} md={3}>
-                        <FormControl variant="outlined" fullWidth>
+                    <Grid item xs={12} md={6}>
+                        <FormControl variant="outlined" fullWidth size="small">
                             <InputLabel>Role</InputLabel>
                             <Select value={selectedRole} onChange={(e) => setSelectedRole(e.target.value)} label="Role">
                                 <MenuItem value="All">All</MenuItem>
@@ -293,29 +320,18 @@ function Dashboard() {
                             </Select>
                         </FormControl>
                     </Grid>
-                    <Grid item xs={12} md={3} display="flex" justifyContent="space-between">
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            onClick={() => navigate('/create-user')}
-                            startIcon={<AddIcon />}
-                        >
-                            Add User
-                        </Button>
-                        <Button
-                            variant="contained"
-                            color="secondary"
-                            onClick={openAssignDialogHandler}
-                            startIcon={<AssignmentIcon />}
-                        >
-                            Manage Bins
-                        </Button>
-                    </Grid>
                 </Grid>
-                {isMobile ? (
-                    <Box>
-                        {paginatedUsers.map((user, index) => renderUserCard(user, index))}
-                    </Box>
+
+                <Divider sx={{ mb: 3 }} />
+
+                {isMobile || isTablet ? (
+                    <Grid container spacing={2}>
+                        {paginatedUsers.map((user, index) => (
+                            <Grid item xs={12} sm={6} key={user.employeeId}>
+                                {renderUserCard(user, index)}
+                            </Grid>
+                        ))}
+                    </Grid>
                 ) : (
                     <Paper elevation={3}>
                         <TableContainer>
@@ -375,9 +391,9 @@ function Dashboard() {
                         />
                     </Paper>
                 )}
-            </Box>
+            </Container>
 
-            {/* Enhanced Change Password Dialog */}
+            {/* Change Password Dialog */}
             <Dialog open={changePasswordDialog} onClose={closeChangePasswordDialog}>
                 <DialogTitle>Change Password</DialogTitle>
                 <DialogContent>
@@ -403,12 +419,13 @@ function Dashboard() {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={closeChangePasswordDialog} disabled={isChangingPassword}>Cancel</Button>
-                    <Button onClick={submitChangePassword} disabled={isChangingPassword}>
+                    <Button onClick={submitChangePassword} disabled={isChangingPassword} variant="contained" color="primary">
                         {isChangingPassword ? <CircularProgress size={24} /> : 'Change Password'}
                     </Button>
                 </DialogActions>
             </Dialog>
 
+            {/* Confirm Delete Dialog */}
             <Dialog open={showConfirmation} onClose={() => setShowConfirmation(false)}>
                 <DialogTitle>Confirm Deletion</DialogTitle>
                 <DialogContent>
@@ -418,19 +435,20 @@ function Dashboard() {
                     <Button onClick={() => setShowConfirmation(false)} color="primary">
                         Cancel
                     </Button>
-                    <Button onClick={confirmDeleteUser} color="secondary">
+                    <Button onClick={confirmDeleteUser} color="secondary" variant="contained">
                         Confirm
                     </Button>
                 </DialogActions>
             </Dialog>
 
+            {/* Assign Bin Locations Dialog */}
             <Dialog
                 open={openAssignDialog}
                 onClose={closeAssignDialogHandler}
                 fullWidth
                 maxWidth="md"
             >
-                <Suspense fallback={<CircularProgress />}>
+                <Suspense fallback={<Box display="flex" justifyContent="center" alignItems="center" height="200px"><CircularProgress /></Box>}>
                     <MemoizedAssignBinLocations
                         open={openAssignDialog}
                         onClose={closeAssignDialogHandler}
@@ -438,7 +456,7 @@ function Dashboard() {
                     />
                 </Suspense>
             </Dialog>
-        </Container >
+        </Box>
     );
 }
 

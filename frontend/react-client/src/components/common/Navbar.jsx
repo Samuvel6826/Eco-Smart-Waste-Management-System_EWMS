@@ -14,6 +14,7 @@ import {
     useTheme,
     Box,
     Button,
+    Avatar
 } from "@mui/material";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
@@ -47,16 +48,13 @@ function Navbar() {
         setDrawerOpen(false);
     };
 
-    // Updated menuItems to include Manager role for the Dashboard
     const menuItems = [
         { text: 'Dashboard', icon: <DashboardIcon />, link: '/dashboard', admin: true, manager: true },
         { text: 'Bins', icon: <ListAltIcon />, link: '/users/bins', admin: true, manager: true },
-        // { text: 'Supervisor Bins', icon: <ListAltIcon />, link: '/users/supervisor-bins', admin: true, manager: true, supervisor: true },
     ];
 
-    // Filtering menu items based on roles
     const filteredMenuItems = menuItems.filter(item =>
-        (item.admin && isAdmin) || (item.manager && isManager) || (!item.admin && !item.manager)
+        (item.admin && isAdmin) || (item.manager && isManager)
     );
 
     const drawer = (
@@ -66,11 +64,14 @@ function Navbar() {
             onClick={handleDrawerToggle}
             onKeyDown={handleDrawerToggle}
         >
-            <Box sx={{ p: 2, bgcolor: 'primary.main', color: 'primary.contrastText' }}>
-                <Typography variant="h6">EWMS</Typography>
-                {user && (
-                    <Typography variant="body2">{`${user.role}: ${user.firstName}`}</Typography>
-                )}
+            <Box sx={{ p: 2, bgcolor: 'primary.main', color: 'primary.contrastText', display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Avatar>{user?.firstName.charAt(0)}</Avatar>
+                <Box>
+                    <Typography variant="h6">EWMS</Typography>
+                    {user && (
+                        <Typography variant="body2">{`${user.role}: ${user.firstName}`}</Typography>
+                    )}
+                </Box>
             </Box>
             <Divider />
             <List>
@@ -110,8 +111,16 @@ function Navbar() {
                         <MenuIcon />
                     </IconButton>
                     <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-                        EWMS Eco-Smart Waste Management System with Automation PKC
+                        EWMS ( Eco-Smart Waste Management System with Automation ) PKC
                     </Typography>
+                    {!isMobile && user && (
+                        <Box sx={{ display: 'flex', alignItems: 'center', ml: 2 }}>
+                            <Avatar sx={{ bgcolor: 'primary.contrastText', color: 'primary.main', mr: 1 }}>
+                                {user.firstName.charAt(0)}
+                            </Avatar>
+                            <Typography variant="body2" color="inherit">{`${user.role}: ${user.firstName}`}</Typography>
+                        </Box>
+                    )}
                     {!isMobile && (
                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
                             {filteredMenuItems.map((item) => (
@@ -122,23 +131,20 @@ function Navbar() {
                                     to={item.link}
                                     sx={{
                                         display: 'flex',
-                                        flexDirection: 'row',
                                         alignItems: 'center',
                                         ml: 1,
                                         bgcolor: location.pathname === item.link ? 'primary.dark' : 'transparent',
                                         '&:hover': { bgcolor: 'primary.dark' },
                                     }}
                                 >
-                                    <Box display="flex" alignItems="center">
-                                        {item.icon}
-                                        <Typography sx={{ ml: 1 }}>{item.text}</Typography>
-                                    </Box>
+                                    {item.icon}
+                                    <Typography sx={{ ml: 1 }}>{item.text}</Typography>
                                 </Button>
                             ))}
                             <Button
                                 color="inherit"
                                 onClick={handleLogout}
-                                sx={{ ml: 1, display: 'flex', alignItems: 'center' }}
+                                sx={{ ml: 2, display: 'flex', alignItems: 'center' }}
                             >
                                 <LogoutIcon />
                                 <Typography sx={{ ml: 1 }}>Logout</Typography>
@@ -152,7 +158,7 @@ function Navbar() {
                 open={drawerOpen}
                 onClose={handleDrawerToggle}
                 ModalProps={{
-                    keepMounted: true, // Better open performance on mobile.
+                    keepMounted: true,
                 }}
                 sx={{
                     display: { xs: 'block', sm: 'none' },

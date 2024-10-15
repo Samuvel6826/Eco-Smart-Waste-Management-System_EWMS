@@ -17,6 +17,10 @@ import {
     Fade,
     useTheme,
     useMediaQuery,
+    AppBar,
+    Toolbar,
+    Container,
+    Divider,
 } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
@@ -150,14 +154,13 @@ const SupervisorBins = () => {
     );
 
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'background.default' }}>
+        <Box sx={{ flexGrow: 1 }}>
             <Navbar />
-            <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
-                <Typography variant="h4" gutterBottom sx={{ mb: 3, fontWeight: 'bold', color: 'primary.main' }}>
-                    Supervisor Bins Management
-                </Typography>
-
-                <Box sx={{ mb: 3, display: 'flex', justifyContent: 'flex-end' }}>
+            <AppBar position="static" color="default" elevation={0} sx={{ borderBottom: '1px solid rgba(0, 0, 0, 0.12)' }}>
+                <Toolbar>
+                    <Typography variant="h5" color="primary" sx={{ flexGrow: 1 }}>
+                        Supervisor Bins Management
+                    </Typography>
                     <Button
                         onClick={handleRefresh}
                         variant="contained"
@@ -166,15 +169,18 @@ const SupervisorBins = () => {
                     >
                         Refresh Data
                     </Button>
-                </Box>
-
+                </Toolbar>
+            </AppBar>
+            <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                 {renderLocationsSummary()}
+
+                <Divider sx={{ mb: 3 }} />
 
                 {loading ? renderLoading() :
                     error ? renderError() :
                         selectedLocation ? renderBinGrid() :
                             <Typography color="primary" align="center">Please select a location to view bins.</Typography>}
-            </Box>
+            </Container>
         </Box>
     );
 };

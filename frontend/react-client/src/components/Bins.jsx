@@ -22,6 +22,10 @@ import {
   Fade,
   useTheme,
   useMediaQuery,
+  AppBar,
+  Toolbar,
+  Container,
+  Divider,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import RefreshIcon from '@mui/icons-material/Refresh';
@@ -60,8 +64,7 @@ const Bins = () => {
     }
   }, [bins]);
 
-  const handleLocationChange = (e) => {
-    const newLocation = e.target.value;
+  const handleLocationChange = (newLocation) => {
     setSelectedLocation(newLocation);
     localStorage.setItem('selectedLocation', newLocation);
   };
@@ -94,7 +97,18 @@ const Bins = () => {
       <Grid container spacing={2}>
         {Object.entries(bins).map(([location, locationBins]) => (
           <Grid item key={location} xs={12} sm={6} md={4}>
-            <Card variant="outlined" sx={{ bgcolor: location === selectedLocation ? 'primary.light' : 'background.paper' }}>
+            <Card
+              variant="outlined"
+              sx={{
+                bgcolor: location === selectedLocation ? 'primary.light' : 'background.paper',
+                cursor: 'pointer',
+                '&:hover': {
+                  bgcolor: 'primary.light',
+                  transition: 'background-color 0.3s',
+                },
+              }}
+              onClick={() => handleLocationChange(location)}
+            >
               <CardContent>
                 <Typography variant="subtitle1" component="div" sx={{ display: 'flex', alignItems: 'center' }}>
                   <LocationOnIcon sx={{ mr: 1 }} />
@@ -134,21 +148,43 @@ const Bins = () => {
   );
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'background.default' }}>
+    <Box sx={{ flexGrow: 1 }}>
       <Navbar />
-      <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
-        <Typography variant="h4" gutterBottom sx={{ mb: 3, fontWeight: 'bold', color: 'primary.main' }}>
-          Bins Management
-        </Typography>
-
-        <Box sx={{ mb: 3, display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 2, alignItems: 'center' }}>
+      <AppBar position="static" color="default" elevation={0} sx={{ borderBottom: '1px solid rgba(0, 0, 0, 0.12)' }}>
+        <Toolbar>
+          <Typography variant="h5" color="primary" sx={{ flexGrow: 1 }}>
+            Bins Management
+          </Typography>
+          <Button
+            component={Link}
+            to={`/users/create-bin/${encodeURIComponent(selectedLocation)}`}
+            variant="contained"
+            color="primary"
+            startIcon={<AddIcon />}
+            disabled={!selectedLocation}
+            sx={{ mr: 2 }}
+          >
+            Create New Bin
+          </Button>
+          <Button
+            onClick={handleRefresh}
+            variant="contained"
+            color="secondary"
+            startIcon={<RefreshIcon />}
+          >
+            Refresh Data
+          </Button>
+        </Toolbar>
+      </AppBar>
+      <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+        <Box sx={{ mb: 3 }}>
           <FormControl fullWidth={isMobile} sx={{ minWidth: 200 }}>
             <InputLabel id="location-select-label">Select Location</InputLabel>
             <Select
               labelId="location-select-label"
               id="location-select"
               value={selectedLocation}
-              onChange={handleLocationChange}
+              onChange={(e) => handleLocationChange(e.target.value)}
               aria-label="Select location"
               disabled={Object.keys(bins).length === 0}
             >
@@ -157,27 +193,9 @@ const Bins = () => {
               ))}
             </Select>
           </FormControl>
-          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-            <Button
-              component={Link}
-              to={`/users/create-bin/${encodeURIComponent(selectedLocation)}`}
-              variant="contained"
-              color="primary"
-              startIcon={<AddIcon />}
-              disabled={!selectedLocation}
-            >
-              Create New Bin
-            </Button>
-            <Button
-              onClick={handleRefresh}
-              variant="contained"
-              color="secondary"
-              startIcon={<RefreshIcon />}
-            >
-              Refresh Data
-            </Button>
-          </Box>
         </Box>
+
+        <Divider sx={{ mb: 3 }} />
 
         {renderBinsSummary()}
 
@@ -185,7 +203,7 @@ const Bins = () => {
           binError ? renderError() :
             selectedLocation ? renderBinGrid() :
               <Typography color="primary" align="center">Please select a location to view bins.</Typography>}
-      </Box>
+      </Container>
     </Box>
   );
 };

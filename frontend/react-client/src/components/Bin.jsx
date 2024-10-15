@@ -1,49 +1,26 @@
-import React, { useState, useCallback } from 'react';
-import { toast } from 'react-hot-toast';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBinsContext } from '../contexts/BinsContext';
+import { useAuth } from '../contexts/AuthContext';
+import { toast } from 'react-hot-toast';
 import {
-    Card, CardContent, Typography, Button, Dialog, DialogActions, DialogContent,
-    DialogContentText, DialogTitle, LinearProgress, Chip, Box, IconButton,
-    Tooltip, Collapse, Avatar, Grid, Divider
+    Card, CardContent, CardActions, Typography, Button, Dialog, DialogActions,
+    DialogContent, DialogContentText, DialogTitle, LinearProgress, Chip, Box,
+    IconButton, Collapse, Grid, Divider, Avatar
 } from '@mui/material';
 import {
     Delete as DeleteIcon, Edit as EditIcon, LocationOn as LocationIcon,
-    WarningAmber as WarningIcon, ExpandMore as ExpandMoreIcon,
-    ExpandLess as ExpandLessIcon, Delete as TrashIcon, CheckCircle as CheckCircleIcon
+    Warning as WarningIcon, ExpandMore as ExpandMoreIcon,
+    ExpandLess as ExpandLessIcon, Delete as TrashIcon, CheckCircle as CheckCircleIcon,
+    PowerSettingsNew as PowerIcon
 } from '@mui/icons-material';
 
-const Bin = React.memo(({ locationId, binId, binData }) => {
+const Bin = ({ locationId, binId, binData }) => {
     const [showModal, setShowModal] = useState(false);
     const [expanded, setExpanded] = useState(false);
     const navigate = useNavigate();
     const { deleteBin } = useBinsContext();
-
-    const handleDelete = useCallback(() => {
-        setShowModal(true);
-    }, []);
-
-    const confirmDelete = useCallback(async () => {
-        try {
-            await deleteBin(locationId, binId);
-            toast.success('Bin deleted successfully');
-        } catch (error) {
-            console.error('Error deleting bin:', error);
-            toast.error('Error deleting bin. Please try again.');
-        } finally {
-            setShowModal(false);
-        }
-    }, [binId, locationId, deleteBin]);
-
-    const handleCloseModal = useCallback(() => {
-        setShowModal(false);
-    }, []);
-
-    const handleExpand = useCallback(() => {
-        setExpanded(!expanded);
-    }, [expanded]);
-
-    if (!binData) return <Typography color="error">Loading bin data...</Typography>;
+    const { user } = useAuth();
 
     const {
         binLocation = 'N/A',
@@ -55,23 +32,40 @@ const Bin = React.memo(({ locationId, binId, binData }) => {
         microProcessorStatus = 'N/A',
         sensorStatus = 'N/A',
         filledBinPercentage = 0,
-        maxBinCapacity = 'N/A'
+        maxBinCapacity = 'N/A',
+        binActiveStatus = 'N/A'
     } = binData;
+
+    const handleDelete = () => setShowModal(true);
+    const handleCloseModal = () => setShowModal(false);
+    const handleExpand = () => setExpanded(!expanded);
+
+    const confirmDelete = async () => {
+        try {
+            await deleteBin(locationId, binId);
+            toast.success('Bin deleted successfully');
+        } catch (error) {
+            console.error('Error deleting bin:', error);
+            toast.error('Error deleting bin. Please try again.');
+        } finally {
+            setShowModal(false);
+        }
+    };
 
     const getStatusColor = (status) => {
         switch (status.toLowerCase()) {
             case 'active':
-            case 'open':
+            case 'on':
+            case 'closed':
                 return 'success';
             case 'inactive':
-            case 'closed':
+            case 'off':
+            case 'open':
                 return 'error';
             default:
                 return 'default';
         }
     };
-
-    const needsAttention = filledBinPercentage > 80 || binLidStatus.toLowerCase() === 'open' || microProcessorStatus.toLowerCase() === 'inactive' || sensorStatus.toLowerCase() === 'inactive';
 
     const getFilledColor = (percentage) => {
         if (percentage > 80) return 'error';
@@ -79,36 +73,38 @@ const Bin = React.memo(({ locationId, binId, binData }) => {
         return 'success';
     };
 
+    const needsAttention = filledBinPercentage > 80 || binLidStatus.toLowerCase() === 'open' ||
+        microProcessorStatus.toLowerCase() === 'off' || sensorStatus.toLowerCase() === 'off' ||
+        binActiveStatus.toLowerCase() === 'inactive';
+
+    // Memoize the permissions check to avoid unnecessary re-renders
+    const permissions = useMemo(() => ({
+        canEdit: user?.role === 'Admin' || user?.role === 'Manager',
+        canDelete: user?.role === 'Admin' || user?.role === 'Manager'
+    }), [user?.role]);
+
     return (
         <>
             <Card sx={{ mb: 2, position: 'relative', overflow: 'visible', boxShadow: 3 }}>
                 {needsAttention && (
-                    <Tooltip title="Needs attention">
-                        <WarningIcon color="warning" sx={{ position: 'absolute', top: -10, right: -10 }} />
-                    </Tooltip>
+                    <WarningIcon color="warning" sx={{ position: 'absolute', top: -10, right: -10 }} />
                 )}
                 <CardContent>
                     <Grid container spacing={2} alignItems="center">
                         <Grid item>
-                            <Avatar sx={{ bgcolor: getFilledColor(filledBinPercentage) }}>
-                                {filledBinPercentage > 80 ? <WarningIcon /> : <TrashIcon />}
+                            <Avatar sx={{ bgcolor: theme => theme.palette[getStatusColor(binActiveStatus)].main }}>
+                                <PowerIcon />
                             </Avatar>
                         </Grid>
                         <Grid item xs>
-                            <Typography variant="h6" component="div">
-                                {id}
-                            </Typography>
+                            <Typography variant="h6">{id}</Typography>
                             <Typography variant="body2" color="text.secondary">
                                 <LocationIcon sx={{ verticalAlign: 'middle', mr: 1 }} />
                                 {binLocation}
                             </Typography>
                         </Grid>
                         <Grid item>
-                            <Chip
-                                label={`Type: ${binType}`}
-                                color="primary"
-                                sx={{ fontWeight: 'bold' }}
-                            />
+                            <Chip label={`Type: ${binType}`} color="primary" />
                         </Grid>
                     </Grid>
 
@@ -123,99 +119,100 @@ const Bin = React.memo(({ locationId, binId, binData }) => {
                         <Typography variant="body2" align="right">{filledBinPercentage}% full</Typography>
                     </Box>
 
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
+                        <Chip
+                            icon={<PowerIcon />}
+                            label={`Status: ${binActiveStatus}`}
+                            color={getStatusColor(binActiveStatus)}
+                            size="small"
+                        />
+                        <Chip
+                            icon={binLidStatus.toLowerCase() === 'closed' ? <CheckCircleIcon /> : <WarningIcon />}
+                            label={`Lid: ${binLidStatus}`}
+                            size="small"
+                            color={getStatusColor(binLidStatus)}
+                        />
+                    </Box>
+
                     <Collapse in={expanded} timeout="auto" unmountOnExit>
-                        <Box sx={{ mt: 2 }}>
-                            <Divider sx={{ my: 1 }} />
-                            <Typography variant="subtitle2" gutterBottom>Detailed Information</Typography>
-                            <Grid container spacing={1}>
-                                <Grid item xs={6}>
-                                    <Typography variant="body2">Capacity: {maxBinCapacity} cm</Typography>
-                                    <Typography variant="body2">Distance: {distance} cm</Typography>
-                                </Grid>
-                                <Grid item xs={6}>
-                                    <Typography variant="body2">
-                                        Lat: {geoLocation.latitude || 'N/A'}
-                                    </Typography>
-                                    <Typography variant="body2">
-                                        Lon: {geoLocation.longitude || 'N/A'}
-                                    </Typography>
-                                </Grid>
+                        <Divider sx={{ my: 2 }} />
+                        <Grid container spacing={2}>
+                            <Grid item xs={6}>
+                                <Typography variant="body2">Max Capacity: {maxBinCapacity} cm</Typography>
+                                <Typography variant="body2">Distance: {distance} cm</Typography>
                             </Grid>
-                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
-                                <Chip
-                                    icon={binLidStatus.toLowerCase() === 'open' ? <WarningIcon /> : <CheckCircleIcon />}
-                                    label={`Lid: ${binLidStatus}`}
-                                    size="small"
-                                    color={getStatusColor(binLidStatus)}
-                                />
-                                <Chip
-                                    icon={microProcessorStatus.toLowerCase() === 'active' ? <CheckCircleIcon /> : <WarningIcon />}
-                                    label={`Processor: ${microProcessorStatus}`}
-                                    size="small"
-                                    color={getStatusColor(microProcessorStatus)}
-                                />
-                                <Chip
-                                    icon={sensorStatus.toLowerCase() === 'active' ? <CheckCircleIcon /> : <WarningIcon />}
-                                    label={`Sensor: ${sensorStatus}`}
-                                    size="small"
-                                    color={getStatusColor(sensorStatus)}
-                                />
-                            </Box>
+                            <Grid item xs={6}>
+                                <Typography variant="body2">Lat: {geoLocation.latitude || 'N/A'}</Typography>
+                                <Typography variant="body2">Lon: {geoLocation.longitude || 'N/A'}</Typography>
+                            </Grid>
+                        </Grid>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+                            <Chip
+                                icon={microProcessorStatus.toLowerCase() === 'on' ? <CheckCircleIcon /> : <WarningIcon />}
+                                label={`Processor: ${microProcessorStatus}`}
+                                size="small"
+                                color={getStatusColor(microProcessorStatus)}
+                            />
+                            <Chip
+                                icon={sensorStatus.toLowerCase() === 'on' ? <CheckCircleIcon /> : <WarningIcon />}
+                                label={`Sensor: ${sensorStatus}`}
+                                size="small"
+                                color={getStatusColor(sensorStatus)}
+                            />
                         </Box>
                     </Collapse>
-
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
-                        <Button
-                            variant="outlined"
-                            startIcon={<EditIcon />}
-                            onClick={() => navigate(`/users/edit-bin/${locationId}/${binId}`)}
-                            size="small"
-                        >
-                            Edit
-                        </Button>
-                        <IconButton
-                            color="error"
-                            onClick={handleDelete}
-                            aria-label="delete bin"
-                            size="small"
-                        >
-                            <DeleteIcon />
-                        </IconButton>
-                        <Button
-                            variant="text"
-                            onClick={handleExpand}
-                            endIcon={expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                            size="small"
-                        >
-                            {expanded ? 'Less' : 'More'}
-                        </Button>
-                    </Box>
                 </CardContent>
+
+                <CardActions sx={{ justifyContent: 'space-between' }}>
+                    <Box>
+                        {permissions.canEdit && (
+                            <Button
+                                variant="outlined"
+                                startIcon={<EditIcon />}
+                                onClick={() => navigate(`/users/edit-bin/${locationId}/${binId}`)}
+                                size="small"
+                            >
+                                Edit
+                            </Button>
+                        )}
+                        {permissions.canDelete && (
+                            <IconButton
+                                color="error"
+                                onClick={handleDelete}
+                                size="small"
+                            >
+                                <DeleteIcon />
+                            </IconButton>
+                        )}
+                    </Box>
+
+                    <Button
+                        onClick={handleExpand}
+                        endIcon={expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                        size="small"
+                    >
+                        {expanded ? 'Less' : 'More'}
+                    </Button>
+                </CardActions>
             </Card>
 
             <Dialog
                 open={showModal}
                 onClose={handleCloseModal}
-                aria-labelledby="alert-dialog-title"
-                aria-describedby="alert-dialog-description"
             >
-                <DialogTitle id="alert-dialog-title">{"Confirm Deletion"}</DialogTitle>
+                <DialogTitle>Confirm Deletion</DialogTitle>
                 <DialogContent>
-                    <DialogContentText id="alert-dialog-description">
+                    <DialogContentText>
                         Are you sure you want to delete this bin? This action cannot be undone.
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleCloseModal} color="primary">Cancel</Button>
-                    <Button onClick={confirmDelete} color="error" autoFocus>
-                        Delete
-                    </Button>
+                    <Button onClick={confirmDelete} color="error" autoFocus>Delete</Button>
                 </DialogActions>
             </Dialog>
         </>
     );
-});
+};
 
-Bin.displayName = 'Bin';
-
-export default Bin;
+export default React.memo(Bin);
