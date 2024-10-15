@@ -1,7 +1,7 @@
 // Import necessary Firebase modules
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getDatabase, ref, onValue, remove, update, get, set } from "firebase/database"; // Ensure `remove` is imported
+import { getDatabase, ref, onValue, off } from "firebase/database"; // Ensure `remove` is imported
 
 // Firebase configuration object using environment variables
 const firebaseConfig = {
@@ -22,4 +22,4 @@ const auth = getAuth(firebaseApp);          // Authentication service
 const database = getDatabase(firebaseApp);  // Realtime Database service
 
 // Export Firebase services and commonly used database functions
-export { firebaseApp, auth, database, ref, onValue, remove, update, get, set };
+export { firebaseApp, auth, database, ref, onValue, off };

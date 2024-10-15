@@ -69,13 +69,6 @@ const SupervisorBins = () => {
         fetchBinsByLocation(location);
     };
 
-    const handleRefresh = () => {
-        setRefreshKey(prevKey => prevKey + 1);
-        if (selectedLocation) {
-            fetchBinsByLocation(selectedLocation);
-        }
-    };
-
     const binsForSelectedLocation = useMemo(() =>
         bins[selectedLocation] || [],
         [bins, selectedLocation]
@@ -161,14 +154,6 @@ const SupervisorBins = () => {
                     <Typography variant="h5" color="primary" sx={{ flexGrow: 1 }}>
                         Supervisor Bins Management
                     </Typography>
-                    <Button
-                        onClick={handleRefresh}
-                        variant="contained"
-                        color="secondary"
-                        startIcon={<RefreshIcon />}
-                    >
-                        Refresh Data
-                    </Button>
                 </Toolbar>
             </AppBar>
             <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>

@@ -69,10 +69,6 @@ const Bins = () => {
     localStorage.setItem('selectedLocation', newLocation);
   };
 
-  const handleRefresh = () => {
-    setRefreshKey(prevKey => prevKey + 1);
-  };
-
   const binsForSelectedLocation = useMemo(() => bins[selectedLocation] || {}, [bins, selectedLocation]);
 
   const renderLoading = () => (
@@ -165,14 +161,6 @@ const Bins = () => {
             sx={{ mr: 2 }}
           >
             Create New Bin
-          </Button>
-          <Button
-            onClick={handleRefresh}
-            variant="contained"
-            color="secondary"
-            startIcon={<RefreshIcon />}
-          >
-            Refresh Data
           </Button>
         </Toolbar>
       </AppBar>
