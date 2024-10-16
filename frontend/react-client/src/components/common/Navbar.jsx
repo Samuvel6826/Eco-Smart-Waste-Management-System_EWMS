@@ -51,6 +51,7 @@ function Navbar() {
     const menuItems = [
         { text: 'Dashboard', icon: <DashboardIcon />, link: '/dashboard', admin: true, manager: true },
         { text: 'Bins', icon: <ListAltIcon />, link: '/users/bins', admin: true, manager: true },
+        { text: 'IoT Remote', icon: <ListAltIcon />, link: '/iot-remote', admin: true, manager: true },
     ];
 
     const filteredMenuItems = menuItems.filter(item =>

@@ -18,6 +18,7 @@ const ErrorPage = lazy(() => import('./components/ErrorPage'));
 const NotAuthorized = lazy(() => import('./components/NotAuthorized'));
 const CreateUser = lazy(() => import('./components/CreateUser'));
 const Dashboard = lazy(() => import('./components/Dashboard'));
+const IotAutomationControl = lazy(() => import('./components/iotRemote/IotAutomationControl'));
 const UserProfile = lazy(() => import('./components/UserProfile')); // Renamed for clarity
 const Bins = lazy(() => import('./components/Bins'));
 const SupervisorBins = lazy(() => import('./components/SupervisorBins'))
@@ -128,6 +129,8 @@ function App() {
 
                     {/* Default route to navigate to the login page if the provided route is not matched */}
                     <Route path='*' element={<Navigate to='/login' />} />
+
+                    <Route path='/iot-remote' element={<IotAutomationControl />} />
                   </Routes>
                 </ErrorBoundary>
               </Suspense>
