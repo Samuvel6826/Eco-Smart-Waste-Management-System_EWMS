@@ -50,9 +50,11 @@ const IotAutomationControl = () => {
         startListening,
         stopListening,
         recognizedCommand,
-        audioLevel,
+        audioStream,
+        analyzer,
         error: voiceError,
     } = useVoiceRecognition(memoizedDeviceStates, memoizedToggleDevice, memoizedToggleAllDevices);
+
 
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
@@ -128,10 +130,12 @@ const IotAutomationControl = () => {
 
                 <Fade in={isListening}>
                     <Box sx={{ mt: 4 }}>
-                        <VoiceVisualizer audioLevel={audioLevel} />
-                        <Typography variant="body2" sx={{ mt: 1 }}>
-                            Current Audio Level: {audioLevel.toFixed(2)}
-                        </Typography>
+                        <VoiceVisualizer audioStream={audioStream} analyzer={analyzer} />
+                        {recognizedCommand && (
+                            <Typography variant="body2" sx={{ mt: 1 }}>
+                                Recognized: {recognizedCommand}
+                            </Typography>
+                        )}
                     </Box>
                 </Fade>
 

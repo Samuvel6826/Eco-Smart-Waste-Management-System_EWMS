@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { database, ref, child, get, set, update } from '../../firebase.config';
+import { database, ref, child, get, set } from '../../firebase.config';
 
 const useDeviceStates = () => {
     const [deviceStates, setDeviceStates] = useState({});
@@ -189,35 +189,74 @@ const useVoiceRecognition = (deviceStates, toggleDevice, toggleAllDevices) => {
     const [lastExecutedCommand, setLastExecutedCommand] = useState(null);
     const recognitionRef = useRef(null);
     const commandBufferRef = useRef([]);
+    const timeoutRef = useRef(null);
     const confidenceThreshold = 0.7;
 
+    const stopListening = useCallback(() => {
+        if (recognitionRef.current && isListening) {
+            console.log("Stopping speech recognition...");
+            recognitionRef.current.stop();
+            setIsListening(false);
+            clearTimeout(timeoutRef.current);
+            processCommandBuffer();
+        }
+    }, [isListening]);
+
+    const resetInactivityTimer = useCallback(() => {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = setTimeout(() => {
+            console.log("Inactivity detected. Stopping listening.");
+            stopListening();
+        }, 10000);
+    }, [stopListening]);
+
     const getAvailableDevices = useCallback(() => {
-        const devices = Object.entries(deviceStates).flatMap(([category, devices]) =>
-            Object.keys(devices).map(deviceId => deviceId)
-        );
-        console.log("Available devices:", devices);
-        return devices;
+        return Object.entries(deviceStates).flatMap(([, devices]) => Object.keys(devices));
     }, [deviceStates]);
 
     const findBestMatchDevice = useCallback((deviceName, availableDevices) => {
-        console.log(`Finding best match for device: ${deviceName}`);
-        const normalizedDeviceName = deviceName.trim().toLowerCase().replace(/\s+/g, '');
+        console.log(`Finding best match for device: "${deviceName}"`);
+        console.log("Available devices:", availableDevices);
 
-        const matchDevice = (device) => {
-            const normalizedDevice = device.toLowerCase().replace(/[^a-z0-9]/g, '');
-            return normalizedDevice.includes(normalizedDeviceName) || normalizedDeviceName.includes(normalizedDevice);
-        };
+        const normalizeString = str => str.toLowerCase().replace(/[^a-z0-9]/g, '');
 
-        const matches = availableDevices.filter(matchDevice);
+        // Normalize the input device name
+        let normalizedDeviceName = normalizeString(deviceName);
 
-        if (matches.length > 0) {
-            console.log(`Matches found: ${matches.join(', ')}`);
-            const bestMatch = matches.reduce((a, b) => a.length <= b.length ? a : b);
-            console.log(`Best match: ${bestMatch}`);
-            return bestMatch;
+        // Replace number words with digits
+        const numberWords = { 'one': '1', 'two': '2', 'to': '2', 'three': '3', 'four': '4', 'five': '5' };
+        normalizedDeviceName = normalizedDeviceName.replace(/\b(one|two|three|four|five)\b/g, match => numberWords[match] || match);
+
+        console.log(`Normalized device name: "${normalizedDeviceName}"`);
+
+        // Find the best match
+        const bestMatch = availableDevices.reduce((best, device) => {
+            const normalizedDevice = normalizeString(device);
+            console.log(`Comparing with normalized device: "${normalizedDevice}"`);
+
+            // Check for exact match (ignoring hyphens)
+            if (normalizedDevice === normalizedDeviceName) {
+                console.log(`Exact match found: "${device}"`);
+                return { device, score: 0 };
+            }
+
+            // Check for partial match
+            const [deviceType, deviceNumber] = normalizedDevice.split('');
+            if (normalizedDeviceName.includes(deviceType) && normalizedDeviceName.includes(deviceNumber)) {
+                const score = Math.abs(normalizedDevice.length - normalizedDeviceName.length);
+                console.log(`Partial match found: "${device}" with score ${score}`);
+                return score < best.score ? { device, score } : best;
+            }
+
+            return best;
+        }, { device: null, score: Infinity });
+
+        if (bestMatch.device) {
+            console.log(`Best match found: "${bestMatch.device}" with score ${bestMatch.score}`);
+            return bestMatch.device;
         }
 
-        console.log(`No match found for: ${deviceName}`);
+        console.log(`No match found for: "${deviceName}"`);
         return null;
     }, []);
 
@@ -230,11 +269,18 @@ const useVoiceRecognition = (deviceStates, toggleDevice, toggleAllDevices) => {
             return;
         }
 
+        if (/^(stop|top) listening$/i.test(command.trim())) {
+            stopListening();
+            setLastExecutedCommand({ type: 'system', action: 'stop_listening' });
+            return;
+        }
+
         const availableDevices = getAvailableDevices();
+        console.log(availableDevices);
+
 
         if (/turn (on|off) all/i.test(command)) {
             const state = /turn on all/i.test(command);
-            console.log(`Toggling all devices to ${state ? 'ON' : 'OFF'}`);
             toggleAllDevices(state);
             setLastExecutedCommand({ type: 'all', state });
             return;
@@ -244,36 +290,28 @@ const useVoiceRecognition = (deviceStates, toggleDevice, toggleAllDevices) => {
         if (deviceMatch) {
             const [, action, deviceName] = deviceMatch;
             const state = action.toLowerCase() === 'on';
-
-            console.log(`Parsed command - Action: ${action}, Device: ${deviceName}`);
-
             const foundDevice = findBestMatchDevice(deviceName, availableDevices);
 
             if (foundDevice) {
-                console.log(`Toggling device: ${foundDevice} to ${state ? 'ON' : 'OFF'}`);
                 toggleDevice(foundDevice, state);
                 setLastExecutedCommand({ type: 'device', device: foundDevice, state });
             } else {
-                console.warn(`Device not found: ${deviceName}`);
-                setError(`Device "${deviceName}" not found. Please try again.`);
+                setError(`Device "${deviceName}" not found. Please try again with a valid device name.`);
             }
         } else {
-            console.warn(`Unrecognized command: ${command}`);
-            setError(`Unrecognized command: "${command}". Please try again.`);
+            setError(`Unrecognized command: "${command}". Please try saying "turn on/off [device name]", "turn on/off all", or "stop listening".`);
         }
-    }, [deviceStates, toggleDevice, toggleAllDevices, getAvailableDevices, findBestMatchDevice]);
+    }, [deviceStates, toggleDevice, toggleAllDevices, getAvailableDevices, findBestMatchDevice, stopListening]);
 
     const processCommandBuffer = useCallback(() => {
         const fullCommand = commandBufferRef.current.join(' ').toLowerCase().trim();
         if (fullCommand) {
-            console.log(`Processing command buffer: ${fullCommand}`);
             setRecognizedCommand(fullCommand);
-            // Assuming a confidence of 1 for final results. In a real-world scenario, 
-            // you might want to calculate an average confidence from interim results.
             executeCommand(fullCommand, 1);
             commandBufferRef.current = [];
+            resetInactivityTimer();
         }
-    }, [executeCommand]);
+    }, [executeCommand, resetInactivityTimer]);
 
     const initSpeechRecognition = useCallback(() => {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -284,9 +322,9 @@ const useVoiceRecognition = (deviceStates, toggleDevice, toggleAllDevices) => {
             recognitionRef.current.lang = 'en-US';
 
             recognitionRef.current.onstart = () => {
-                console.log("Speech recognition started");
                 setIsListening(true);
                 setError(null);
+                resetInactivityTimer();
             };
 
             recognitionRef.current.onresult = (event) => {
@@ -300,81 +338,78 @@ const useVoiceRecognition = (deviceStates, toggleDevice, toggleAllDevices) => {
                 } else {
                     setRecognizedCommand(transcript);
                 }
+                resetInactivityTimer();
             };
 
             recognitionRef.current.onerror = (event) => {
-                console.error('Speech recognition error', event.error);
-                if (event.error === 'no-speech') {
-                    setError('No speech detected. Please try again.');
-                } else {
-                    setError(`Speech recognition error: ${event.error}`);
-                }
-                setIsListening(false);
+                console.error("Speech recognition error:", event.error);
             };
 
             recognitionRef.current.onend = () => {
-                console.log("Speech recognition ended");
-                setIsListening(false);
+                if (isListening) {
+                    recognitionRef.current.start();
+                } else {
+                    setIsListening(false);
+                }
             };
         } else if (!SpeechRecognition) {
             console.error('Speech recognition is not supported in this browser.');
             setError('Speech recognition is not supported in this browser.');
         }
-    }, [processCommandBuffer]);
-
-    const updateAudioLevel = useCallback(() => {
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        const analyser = audioContext.createAnalyser();
-        navigator.mediaDevices.getUserMedia({ audio: true })
-            .then(stream => {
-                const source = audioContext.createMediaStreamSource(stream);
-                source.connect(analyser);
-                analyser.fftSize = 2048;
-                const dataArray = new Uint8Array(analyser.frequencyBinCount);
-
-                const getAudioLevel = () => {
-                    analyser.getByteFrequencyData(dataArray);
-                    const average = dataArray.reduce((sum, value) => sum + value) / dataArray.length;
-                    setAudioLevel(average);
-                    requestAnimationFrame(getAudioLevel);
-                };
-                getAudioLevel();
-            })
-            .catch(err => {
-                console.error('Error accessing microphone:', err);
-                setError('Unable to access the microphone. Please check your settings.');
-            });
-    }, []);
+    }, [isListening, processCommandBuffer, resetInactivityTimer]);
 
     const startListening = useCallback(() => {
-        if (!recognitionRef.current) {
-            initSpeechRecognition();
-        }
-        if (recognitionRef.current && !isListening) {
-            console.log("Starting speech recognition...");
-            setError(null);
-            commandBufferRef.current = [];
-            recognitionRef.current.start();
-            updateAudioLevel(); // Add this to start audio level updates
-        }
-    }, [isListening, initSpeechRecognition]);
+        const setupAndStart = async () => {
+            if (!recognitionRef.current) {
+                initSpeechRecognition();
+            }
 
-    const stopListening = useCallback(() => {
-        if (recognitionRef.current && isListening) {
-            console.log("Stopping speech recognition...");
-            recognitionRef.current.stop();
-            processCommandBuffer(); // Process any remaining commands
-        }
-    }, [isListening, processCommandBuffer]);
+            try {
+                await navigator.mediaDevices.getUserMedia({ audio: true });
+            } catch (err) {
+                console.error('Error accessing microphone:', err);
+                setError('Unable to access the microphone. Please check your browser permissions.');
+                return;
+            }
+
+            if (recognitionRef.current && !isListening) {
+                setError(null);
+                commandBufferRef.current = [];
+
+                let startAttempts = 0;
+                const maxAttempts = 3;
+
+                const attemptStart = () => {
+                    try {
+                        recognitionRef.current.start();
+                        setIsListening(true);
+                        resetInactivityTimer();
+                    } catch (err) {
+                        console.error('Error starting speech recognition:', err);
+                        startAttempts++;
+                        if (startAttempts < maxAttempts) {
+                            setTimeout(attemptStart, 1000);
+                        } else {
+                            setError('Failed to start speech recognition after multiple attempts. Please refresh the page and try again.');
+                        }
+                    }
+                };
+
+                attemptStart();
+            }
+        };
+
+        setupAndStart();
+    }, [isListening, initSpeechRecognition, resetInactivityTimer]);
 
     useEffect(() => {
         initSpeechRecognition();
         return () => {
             if (recognitionRef.current) {
-                // console.log("Cleaning up speech recognition");
                 recognitionRef.current.stop();
                 recognitionRef.current = null;
             }
+            clearTimeout(timeoutRef.current);
         };
     }, [initSpeechRecognition]);
 
@@ -382,8 +417,7 @@ const useVoiceRecognition = (deviceStates, toggleDevice, toggleAllDevices) => {
         let intervalId;
         if (isListening) {
             intervalId = setInterval(() => {
-                const newAudioLevel = Math.random() * 100;
-                setAudioLevel(newAudioLevel);
+                setAudioLevel(Math.random() * 100);
             }, 100);
         }
         return () => clearInterval(intervalId);
