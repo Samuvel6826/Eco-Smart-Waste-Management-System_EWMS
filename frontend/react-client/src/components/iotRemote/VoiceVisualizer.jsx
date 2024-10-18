@@ -1,56 +1,121 @@
-import React from 'react';
-import { Box, Typography, Tooltip } from '@mui/material';
+import React, { useState, useEffect, useRef } from 'react';
+import { Box, Button, Typography } from '@mui/material';
 
-const VoiceVisualizer = ({ audioLevel }) => {
-    // Ensure audioLevel is a number between 0 and 100
-    const normalizedAudioLevel = Math.min(Math.max(Number(audioLevel) || 0, 0), 100);
+const VoiceMonitor = () => {
+    const [isListening, setIsListening] = useState(false);
+    const audioContext = useRef(null);
+    const analyser = useRef(null);
+    const dataArray = useRef(null);
+    const canvasRef = useRef(null);
+    const animationFrameId = useRef(null);
 
-    // Determine background color based on audio level
-    let barColor;
-    if (normalizedAudioLevel > 75) {
-        barColor = 'green'; // High level
-    } else if (normalizedAudioLevel > 30) {
-        barColor = 'orange'; // Medium level
-    } else {
-        barColor = 'red'; // Low level
-    }
+    useEffect(() => {
+        return () => {
+            stopListening();
+        };
+    }, []);
+
+    const startListening = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+            audioContext.current = new (window.AudioContext || window.webkitAudioContext)();
+            analyser.current = audioContext.current.createAnalyser();
+            const source = audioContext.current.createMediaStreamSource(stream);
+            source.connect(analyser.current);
+
+            analyser.current.fftSize = 2048;
+            const bufferLength = analyser.current.frequencyBinCount;
+            dataArray.current = new Uint8Array(bufferLength);
+
+            setIsListening(true);
+            drawWaveform();
+        } catch (error) {
+            console.error("Error accessing microphone:", error);
+        }
+    };
+
+    const stopListening = () => {
+        if (audioContext.current && audioContext.current.state !== 'closed') {
+            audioContext.current.close();
+        }
+        if (animationFrameId.current) {
+            cancelAnimationFrame(animationFrameId.current);
+        }
+        setIsListening(false);
+
+        // Clear the canvas
+        const canvas = canvasRef.current;
+        const canvasCtx = canvas.getContext('2d');
+        canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+    };
+
+    const drawWaveform = () => {
+        if (!analyser.current) return;
+
+        const canvas = canvasRef.current;
+        const canvasCtx = canvas.getContext('2d');
+        const width = canvas.width;
+        const height = canvas.height;
+
+        analyser.current.getByteTimeDomainData(dataArray.current);
+
+        canvasCtx.fillStyle = 'rgb(200, 200, 200)';
+        canvasCtx.fillRect(0, 0, width, height);
+
+        canvasCtx.lineWidth = 2;
+        canvasCtx.strokeStyle = 'rgb(0, 0, 0)';
+        canvasCtx.beginPath();
+
+        const sliceWidth = width * 1.0 / dataArray.current.length;
+        let x = 0;
+
+        for (let i = 0; i < dataArray.current.length; i++) {
+            const v = dataArray.current[i] / 128.0;
+            const y = v * height / 2;
+
+            if (i === 0) {
+                canvasCtx.moveTo(x, y);
+            } else {
+                canvasCtx.lineTo(x, y);
+            }
+
+            x += sliceWidth;
+        }
+
+        canvasCtx.lineTo(canvas.width, canvas.height / 2);
+        canvasCtx.stroke();
+
+        animationFrameId.current = requestAnimationFrame(drawWaveform);
+    };
 
     return (
-        <Box sx={{ mt: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <Typography variant="h6" gutterBottom>
-                Voice Input Level
-            </Typography>
-            <Tooltip title={`${normalizedAudioLevel.toFixed(0)}%`} arrow>
-                <Box
-                    sx={{
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, p: 3 }}>
+            <Typography variant="h4">Voice Monitor</Typography>
+
+            <Button
+                variant="contained"
+                onClick={isListening ? stopListening : startListening}
+                color={isListening ? "secondary" : "primary"}
+            >
+                {isListening ? 'Stop Listening' : 'Start Listening'}
+            </Button>
+
+            <Box sx={{ width: '100%', maxWidth: 600, mt: 2 }}>
+                <Typography variant="h6" gutterBottom>Waveform Visualizer</Typography>
+                <canvas
+                    ref={canvasRef}
+                    width={600}
+                    height={200}
+                    style={{
                         width: '100%',
-                        maxWidth: '300px', // Limit max width for better appearance
-                        height: '20px', // Increased height for better visibility
-                        backgroundColor: '#e0e0e0',
-                        borderRadius: '10px',
-                        overflow: 'hidden',
-                        boxShadow: '0 4px 8px rgba(0,0,0,0.2)', // Added shadow
+                        height: 'auto',
+                        border: '1px solid #ccc',
+                        borderRadius: '4px'
                     }}
-                    role="progressbar" // Accessibility role
-                    aria-valuenow={normalizedAudioLevel} // Current value
-                    aria-valuemin={0} // Minimum value
-                    aria-valuemax={100} // Maximum value
-                >
-                    <Box
-                        sx={{
-                            height: '100%',
-                            width: `${normalizedAudioLevel}%`,
-                            backgroundColor: barColor, // Dynamic color
-                            transition: 'width 0.2s ease-in-out', // Smoother transition
-                        }}
-                    />
-                </Box>
-            </Tooltip>
-            <Typography variant="body2" sx={{ mt: 1 }}>
-                {normalizedAudioLevel.toFixed(0)}%
-            </Typography>
+                />
+            </Box>
         </Box>
     );
 };
 
-export default VoiceVisualizer;
+export default VoiceMonitor;
