@@ -63,16 +63,17 @@ const useVoiceRecognitionHook = (deviceStates, toggleDevice, toggleAllDevices) =
     };
 
     const stopListening = useCallback(() => {
-        if (recognitionRef.current && isListening) {
+        if (recognitionRef.current) {
             console.log("Stopping speech recognition...");
-            recognitionRef.current.stop();
+            recognitionRef.current.abort(); // Use abort() instead of stop()
+            recognitionRef.current = null; // Clear the reference
             setIsListening(false);
             clearTimeout(timeoutRef.current);
             clearInterval(intervalRef.current);
             setRemainingTime(10);
             processCommandBuffer();
         }
-    }, [isListening]);
+    }, []);
 
     const resetInactivityTimer = useCallback(() => {
         clearTimeout(timeoutRef.current);
@@ -154,6 +155,7 @@ const useVoiceRecognitionHook = (deviceStates, toggleDevice, toggleAllDevices) =
     }, []);
 
 
+    // Update the executeCommand function
     const executeCommand = useCallback((command, confidence) => {
         console.log(`Executing command: ${command} (Confidence: ${confidence})`);
 
@@ -167,8 +169,9 @@ const useVoiceRecognitionHook = (deviceStates, toggleDevice, toggleAllDevices) =
         console.log(`Mapped command: ${mappedCommand}`);
 
         if (/^stop listening$/i.test(mappedCommand.trim())) {
-            stopListening();
+            console.log("Stop listening command received");
             setLastExecutedCommand({ type: 'system', action: 'stop_listening' });
+            stopListening();
             return;
         }
 
@@ -250,8 +253,7 @@ const useVoiceRecognitionHook = (deviceStates, toggleDevice, toggleAllDevices) =
             recognitionRef.current.onerror = (event) => {
                 console.log("Speech recognition error:", event.error);
                 if (event.error === 'aborted') {
-                    // This is an expected error when we stop listening
-                    console.log("Speech recognition aborted");
+                    setIsListening(false); // Ensure state is updated on abort
                 } else {
                     setError(`Speech recognition error: ${event.error}`);
                 }
@@ -260,7 +262,8 @@ const useVoiceRecognitionHook = (deviceStates, toggleDevice, toggleAllDevices) =
             recognitionRef.current.onend = () => {
                 console.log("Speech recognition ended");
                 setIsListening(false);
-                if (isListening) {
+                // Only restart if we're still supposed to be listening
+                if (isListening && recognitionRef.current) {
                     console.log("Attempting to restart speech recognition");
                     startListening();
                 }
@@ -270,6 +273,7 @@ const useVoiceRecognitionHook = (deviceStates, toggleDevice, toggleAllDevices) =
             setError('Speech recognition is not supported in this browser.');
         }
     }, [isListening, processCommandBuffer, resetInactivityTimer]);
+
 
     const startListening = useCallback(() => {
         const setupAndStart = async () => {

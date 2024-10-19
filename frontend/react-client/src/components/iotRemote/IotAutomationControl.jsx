@@ -54,6 +54,7 @@ const IotAutomationControl = () => {
         stopListening,
         recognizedCommand,
         error: voiceError,
+        lastExecutedCommand,
         remainingTime,
     } = useVoiceRecognitionHook(memoizedDeviceStates, memoizedToggleDevice, memoizedToggleAllDevices);
 
