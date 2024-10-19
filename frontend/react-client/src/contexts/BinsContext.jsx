@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo, useRef } from 'react';
 import axios from 'axios';
 import { useAuth } from './AuthContext';
 import { toast } from 'react-hot-toast';
@@ -89,13 +89,13 @@ export const BinsProvider = ({ children }) => {
         listenersSetup.current = true;
     }, []);
 
-    const fetchBins = useCallback(async () => {
+    const fetchBins = useCallback(async (forceRefresh = false) => {
         if (!user) {
             console.log('No user logged in, skipping bin fetch');
             return;
         }
-        if (listenersSetup.current) {
-            console.log('Listeners already set up, skipping server fetch');
+        if (listenersSetup.current && !forceRefresh) {
+            console.log('Listeners already set up, using existing data');
             return;
         }
         setLoading(true);
@@ -116,23 +116,7 @@ export const BinsProvider = ({ children }) => {
         }
     }, [user, handleError, axiosInstance, setupFirebaseListeners]);
 
-    const refreshBins = useCallback(async () => {
-        console.log('Manually refreshing bins');
-        setLoading(true);
-        try {
-            const response = await axiosInstance.get('/api/bin/list');
-            const fetchedBins = response.data || {};
-            console.log('Refreshed bins:', fetchedBins);
-            setBins(fetchedBins);
-            setError(null);
-            toast.success('Bins refreshed successfully');
-        } catch (err) {
-            console.error('Error refreshing bins:', err);
-            handleError(err);
-        } finally {
-            setLoading(false);
-        }
-    }, [axiosInstance, handleError]);
+    const refreshBins = useCallback(() => fetchBins(true), [fetchBins]);
 
     const fetchBinsByLocation = useCallback(async (location) => {
         console.log(`Fetching bins for location: ${location}`);
@@ -254,20 +238,16 @@ export const BinsProvider = ({ children }) => {
         }
     }, [user, handleError, axiosInstance]);
 
-    useEffect(() => {
-        fetchBins();
-
-        return () => {
-            console.log('Cleaning up Firebase listeners');
-            Object.entries(activeListeners.current).forEach(([path, listener]) => {
-                const binRef = ref(database, path);
-                off(binRef, 'value', listener);
-                console.log(`Removed listener for: ${path}`);
-            });
-            activeListeners.current = {};
-            listenersSetup.current = false;
-        };
-    }, [fetchBins]);
+    const cleanupListeners = useCallback(() => {
+        console.log('Cleaning up Firebase listeners');
+        Object.entries(activeListeners.current).forEach(([path, listener]) => {
+            const binRef = ref(database, path);
+            off(binRef, 'value', listener);
+            console.log(`Removed listener for: ${path}`);
+        });
+        activeListeners.current = {};
+        listenersSetup.current = false;
+    }, []);
 
     const value = useMemo(() => ({
         bins,
@@ -280,7 +260,8 @@ export const BinsProvider = ({ children }) => {
         createBin,
         editBin,
         deleteBin,
-    }), [bins, loading, error, fetchBins, refreshBins, fetchBinsByLocation, getBinByLocationAndId, createBin, editBin, deleteBin]);
+        cleanupListeners,
+    }), [bins, loading, error, fetchBins, refreshBins, fetchBinsByLocation, getBinByLocationAndId, createBin, editBin, deleteBin, cleanupListeners]);
 
     return (
         <BinsContext.Provider value={value}>
