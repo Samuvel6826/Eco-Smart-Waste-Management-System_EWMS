@@ -1,21 +1,25 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Box, Button, Typography } from '@mui/material';
+import React, { useRef, useEffect } from 'react';
 
-const VoiceMonitor = () => {
-    const [isListening, setIsListening] = useState(false);
+const VoiceVisualizer = ({ isListening }) => {
+    const canvasRef = useRef(null);
     const audioContext = useRef(null);
     const analyser = useRef(null);
     const dataArray = useRef(null);
-    const canvasRef = useRef(null);
     const animationFrameId = useRef(null);
 
     useEffect(() => {
-        return () => {
-            stopListening();
-        };
-    }, []);
+        if (isListening) {
+            startVisualization();
+        } else {
+            stopVisualization();
+        }
 
-    const startListening = async () => {
+        return () => {
+            stopVisualization();
+        };
+    }, [isListening]);
+
+    const startVisualization = async () => {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
             audioContext.current = new (window.AudioContext || window.webkitAudioContext)();
@@ -23,99 +27,89 @@ const VoiceMonitor = () => {
             const source = audioContext.current.createMediaStreamSource(stream);
             source.connect(analyser.current);
 
-            analyser.current.fftSize = 2048;
+            analyser.current.fftSize = 256;
             const bufferLength = analyser.current.frequencyBinCount;
             dataArray.current = new Uint8Array(bufferLength);
 
-            setIsListening(true);
-            drawWaveform();
+            drawVisualization();
         } catch (error) {
             console.error("Error accessing microphone:", error);
         }
     };
 
-    const stopListening = () => {
+    const stopVisualization = () => {
         if (audioContext.current && audioContext.current.state !== 'closed') {
             audioContext.current.close();
         }
         if (animationFrameId.current) {
             cancelAnimationFrame(animationFrameId.current);
         }
-        setIsListening(false);
 
-        // Clear the canvas
         const canvas = canvasRef.current;
-        const canvasCtx = canvas.getContext('2d');
-        canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
     };
 
-    const drawWaveform = () => {
+    const getColor = (intensity) => {
+        // Smooth transition colors: purple to pink gradient
+        const r = intensity < 0.5 ? 255 : Math.floor(510 * (1 - intensity));
+        const g = 0;
+        const b = intensity > 0.5 ? 255 : Math.floor(510 * intensity);
+        return `rgb(${r}, ${g}, ${b})`;
+    };
+
+    const drawVisualization = () => {
         if (!analyser.current) return;
 
         const canvas = canvasRef.current;
-        const canvasCtx = canvas.getContext('2d');
-        const width = canvas.width;
-        const height = canvas.height;
+        const ctx = canvas.getContext('2d');
+        const WIDTH = canvas.width;
+        const HEIGHT = canvas.height;
 
-        analyser.current.getByteTimeDomainData(dataArray.current);
+        analyser.current.getByteFrequencyData(dataArray.current);
 
-        canvasCtx.fillStyle = 'rgb(200, 200, 200)';
-        canvasCtx.fillRect(0, 0, width, height);
+        ctx.fillStyle = 'rgba(30, 30, 50, 0.9)'; // Dark background
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
-        canvasCtx.lineWidth = 2;
-        canvasCtx.strokeStyle = 'rgb(0, 0, 0)';
-        canvasCtx.beginPath();
-
-        const sliceWidth = width * 1.0 / dataArray.current.length;
+        const barWidth = (WIDTH / dataArray.current.length) * 2.5;
         let x = 0;
 
         for (let i = 0; i < dataArray.current.length; i++) {
-            const v = dataArray.current[i] / 128.0;
-            const y = v * height / 2;
+            const intensity = dataArray.current[i] / 255;
+            const barHeight = intensity * HEIGHT;
 
-            if (i === 0) {
-                canvasCtx.moveTo(x, y);
-            } else {
-                canvasCtx.lineTo(x, y);
-            }
+            ctx.fillStyle = getColor(intensity);
+            ctx.fillRect(x, HEIGHT - barHeight, barWidth, barHeight);
 
-            x += sliceWidth;
+            x += barWidth + 1;
         }
 
-        canvasCtx.lineTo(canvas.width, canvas.height / 2);
-        canvasCtx.stroke();
-
-        animationFrameId.current = requestAnimationFrame(drawWaveform);
+        animationFrameId.current = requestAnimationFrame(drawVisualization);
     };
 
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, p: 3 }}>
-            <Typography variant="h4">Voice Monitor</Typography>
-
-            <Button
-                variant="contained"
-                onClick={isListening ? stopListening : startListening}
-                color={isListening ? "secondary" : "primary"}
-            >
-                {isListening ? 'Stop Listening' : 'Start Listening'}
-            </Button>
-
-            <Box sx={{ width: '100%', maxWidth: 600, mt: 2 }}>
-                <Typography variant="h6" gutterBottom>Waveform Visualizer</Typography>
-                <canvas
-                    ref={canvasRef}
-                    width={600}
-                    height={200}
-                    style={{
-                        width: '100%',
-                        height: 'auto',
-                        border: '1px solid #ccc',
-                        borderRadius: '4px'
-                    }}
-                />
-            </Box>
-        </Box>
+        <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: '20px',
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            borderRadius: '16px',
+            boxShadow: '0 8px 16px rgba(0, 0, 0, 0.3)',
+            margin: '20px',
+            width: '90%',
+            maxWidth: '800px',
+            height: '300px'
+        }}>
+            <canvas ref={canvasRef} width="800" height="300" style={{
+                width: '100%',
+                height: '100%',
+                borderRadius: '12px',
+                border: '2px solid rgba(255, 255, 255, 0.2)',
+                background: 'linear-gradient(45deg, #ff00cc, #3333ff)',
+            }} />
+        </div>
     );
 };
 
-export default VoiceMonitor;
+export default VoiceVisualizer;

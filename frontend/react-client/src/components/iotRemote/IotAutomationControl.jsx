@@ -13,6 +13,7 @@ import {
     Paper,
     Snackbar,
     Alert,
+    LinearProgress,
 } from '@mui/material';
 import MicIcon from '@mui/icons-material/Mic';
 import MicOffIcon from '@mui/icons-material/MicOff';
@@ -20,7 +21,9 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import LightControls from './LightControls';
 import VoiceVisualizer from './VoiceVisualizer';
-import { useDeviceStates, useVoiceRecognition } from './IotControlHooks';
+import InactivityTimer from './InactivityTimer';
+import { useDeviceStatesHook } from './iotHooks/useDeviceStatesHook';
+import { useVoiceRecognitionHook } from './iotHooks/useVoiceRecognitionHook';
 
 const IotAutomationControl = () => {
     const {
@@ -31,7 +34,7 @@ const IotAutomationControl = () => {
         fetchDeviceStates,
         loading,
         error: deviceError,
-    } = useDeviceStates();
+    } = useDeviceStatesHook();
 
     const memoizedDeviceStates = useMemo(() => deviceStates, [deviceStates]);
 
@@ -50,11 +53,9 @@ const IotAutomationControl = () => {
         startListening,
         stopListening,
         recognizedCommand,
-        audioStream,
-        analyzer,
         error: voiceError,
-    } = useVoiceRecognition(memoizedDeviceStates, memoizedToggleDevice, memoizedToggleAllDevices);
-
+        remainingTime,
+    } = useVoiceRecognitionHook(memoizedDeviceStates, memoizedToggleDevice, memoizedToggleAllDevices);
 
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
@@ -130,7 +131,8 @@ const IotAutomationControl = () => {
 
                 <Fade in={isListening}>
                     <Box sx={{ mt: 4 }}>
-                        <VoiceVisualizer audioStream={audioStream} analyzer={analyzer} />
+                        <VoiceVisualizer isListening={isListening} />
+                        <InactivityTimer remainingTime={remainingTime} />
                         {recognizedCommand && (
                             <Typography variant="body2" sx={{ mt: 1 }}>
                                 Recognized: {recognizedCommand}
@@ -161,6 +163,8 @@ const IotAutomationControl = () => {
                         4. The recognized command will be displayed, and the corresponding action will be performed.
                         <br />
                         5. Click "Stop Listening" or say "Stop listening" to end voice control.
+                        <br />
+                        6. The inactivity timer will stop listening after 10 seconds of silence.
                     </Typography>
                 </Paper>
             </Container>
