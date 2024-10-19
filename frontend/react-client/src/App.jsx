@@ -45,7 +45,7 @@ function App() {
                   position="top-right"
                   toastOptions={{
                     duration: 3000,
-                    style: { background: '#333', color: '#fff' }
+                    style: { background: '#333', color: '#fff', maxWidth: '500px' }
                   }}
                 />
 

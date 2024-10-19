@@ -26,7 +26,7 @@ const useVoiceRecognitionHook = (deviceStates, toggleDevice, toggleAllDevices) =
         'five': ['five', '5'],
         'led': ['led', 'lead', 'let', 'lad', 'light'],
         'fan': ['fan', 'van', 'flan'],
-        'listening': ['listening', 'listing', 'loosening']
+        'listening': ['listening', 'listen', 'listing', 'loosening']
     };
 
     const mapWord = (word) => {
