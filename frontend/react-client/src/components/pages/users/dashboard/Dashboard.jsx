@@ -32,7 +32,6 @@ import {
     Card,
     CardContent,
     Fade,
-    Skeleton,
     AppBar,
     Toolbar,
     Divider
@@ -53,14 +52,12 @@ const AssignBinLocations = React.lazy(() => import('./AssignBinLocations'));
 function Dashboard() {
     const { user, logout } = useAuth();
     const { users, loading: userLoading, error: userError, fetchUsers, deleteUser: deleteUserFromContext, changePassword } = useUsersContext();
-    const token = sessionStorage.getItem('token');
     const [deleteUserId, setDeleteUserId] = useState(null);
     const [showConfirmation, setShowConfirmation] = useState(false);
     const [selectedRole, setSelectedRole] = useState('All');
     const [openAssignDialog, setOpenAssignDialog] = useState(false);
-    const [selectedUserId, setSelectedUserId] = useState(null);
     const [changePasswordDialog, setChangePasswordDialog] = useState(false);
-    const [passwordData, setPasswordData] = useState({ password: '', confirmPassword: '' });
+    const [passwordData, setPasswordData] = useState({ newPassword: '', confirmPassword: '' });
     const [changePasswordUserId, setChangePasswordUserId] = useState(null);
     const [isChangingPassword, setIsChangingPassword] = useState(false);
     const navigate = useNavigate();
@@ -74,18 +71,16 @@ function Dashboard() {
     const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
 
     const fetchData = useCallback(async () => {
-        if (token) {
-            try {
-                await fetchUsers();
-            } catch (error) {
-                console.error('Error fetching data:', error);
-                toast.error('Error fetching data. Please try again.');
-                if (error?.response?.status === 401) {
-                    logout();
-                }
+        try {
+            await fetchUsers();
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            toast.error('Error fetching data. Please try again.');
+            if (error?.response?.status === 401) {
+                logout();
             }
         }
-    }, [token, fetchUsers, logout]);
+    }, [fetchUsers, logout]);
 
     useEffect(() => {
         fetchData();
@@ -96,12 +91,6 @@ function Dashboard() {
             toast.error(`User Error: ${userError}`);
         }
     }, [userError]);
-
-    useEffect(() => {
-        if (user?.employeeId) {
-            setSelectedUserId(user.employeeId);
-        }
-    }, [user]);
 
     const rolesOrder = {
         Admin: 1,
@@ -145,7 +134,7 @@ function Dashboard() {
 
     const closeChangePasswordDialog = () => {
         setChangePasswordDialog(false);
-        setPasswordData({ password: '', confirmPassword: '' });
+        setPasswordData({ newPassword: '', confirmPassword: '' });
     };
 
     const submitChangePassword = async () => {
@@ -187,16 +176,11 @@ function Dashboard() {
         }
     };
 
-    const openAssignDialogHandler = useCallback(() => {
-        setOpenAssignDialog(true);
-    }, []);
-
-    const closeAssignDialogHandler = useCallback(() => {
+    const openAssignDialogHandler = () => setOpenAssignDialog(true);
+    const closeAssignDialogHandler = () => {
         setOpenAssignDialog(false);
         fetchData();
-    }, [fetchData]);
-
-    const MemoizedAssignBinLocations = useMemo(() => React.memo(AssignBinLocations), []);
+    };
 
     const renderUserCard = (user, index) => (
         <Fade in={true} timeout={300} style={{ transitionDelay: `${index * 50}ms` }}>
@@ -242,27 +226,47 @@ function Dashboard() {
         </Fade>
     );
 
-    if (userLoading) {
-        return (
-            <Container maxWidth="xl">
-                <Box my={4}>
-                    <Skeleton variant="rectangular" height={50} />
-                    <Box mt={2}>
-                        <Skeleton variant="rectangular" height={40} />
-                    </Box>
-                    <Box mt={2} display="flex" justifyContent="space-between">
-                        <Skeleton variant="rectangular" width={120} height={40} />
-                        <Skeleton variant="rectangular" width={120} height={40} />
-                    </Box>
-                    {[...Array(5)].map((_, index) => (
-                        <Box key={index} mt={2}>
-                            <Skeleton variant="rectangular" height={100} />
-                        </Box>
-                    ))}
-                </Box>
-            </Container>
-        );
-    }
+    const renderTableContent = () => (
+        <>
+            {userLoading ? (
+                <TableRow>
+                    <TableCell colSpan={7} align="center">
+                        <CircularProgress />
+                    </TableCell>
+                </TableRow>
+            ) : (
+                paginatedUsers.map((user, index) => (
+                    <TableRow key={user.employeeId} hover>
+                        <TableCell>{index + 1 + page * rowsPerPage}</TableCell>
+                        <TableCell>{user.employeeId}</TableCell>
+                        <TableCell>{`${user.firstName} ${user.lastName}`}</TableCell>
+                        <TableCell>{user.email}</TableCell>
+                        <TableCell>
+                            <Chip label={user.role} color="primary" size="small" />
+                        </TableCell>
+                        <TableCell>{user.assignedBinLocations?.join(', ') || 'Not Assigned'}</TableCell>
+                        <TableCell>
+                            <Tooltip title="Change Password">
+                                <IconButton size="small" onClick={() => handleChangePassword(user.employeeId)}>
+                                    <LockIcon fontSize="small" />
+                                </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Delete User">
+                                <IconButton size="small" onClick={() => handleDeleteUser(user.employeeId)}>
+                                    <DeleteIcon fontSize="small" />
+                                </IconButton>
+                            </Tooltip>
+                            <Tooltip title="View User Profile">
+                                <IconButton size="small" onClick={() => navigate(`/user-profile/${user.employeeId}`)}>
+                                    <DescriptionIcon fontSize="small" />
+                                </IconButton>
+                            </Tooltip>
+                        </TableCell>
+                    </TableRow>
+                ))
+            )}
+        </>
+    );
 
     return (
         <Box sx={{ flexGrow: 1 }}>
@@ -346,35 +350,7 @@ function Dashboard() {
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
-                                    {paginatedUsers.map((user, index) => (
-                                        <TableRow key={user.employeeId} hover>
-                                            <TableCell>{index + 1 + page * rowsPerPage}</TableCell>
-                                            <TableCell>{user.employeeId}</TableCell>
-                                            <TableCell>{`${user.firstName} ${user.lastName}`}</TableCell>
-                                            <TableCell>{user.email}</TableCell>
-                                            <TableCell>
-                                                <Chip label={user.role} color="primary" size="small" />
-                                            </TableCell>
-                                            <TableCell>{user.assignedBinLocations?.join(', ') || 'Not Assigned'}</TableCell>
-                                            <TableCell>
-                                                <Tooltip title="Change Password">
-                                                    <IconButton size="small" onClick={() => handleChangePassword(user.employeeId)}>
-                                                        <LockIcon fontSize="small" />
-                                                    </IconButton>
-                                                </Tooltip>
-                                                <Tooltip title="Delete User">
-                                                    <IconButton size="small" onClick={() => handleDeleteUser(user.employeeId)}>
-                                                        <DeleteIcon fontSize="small" />
-                                                    </IconButton>
-                                                </Tooltip>
-                                                <Tooltip title="View User Profile">
-                                                    <IconButton size="small" onClick={() => navigate(`/user-profile/${user.employeeId}`)}>
-                                                        <DescriptionIcon fontSize="small" />
-                                                    </IconButton>
-                                                </Tooltip>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
+                                    {renderTableContent()}
                                 </TableBody>
                             </Table>
                         </TableContainer>
@@ -447,7 +423,7 @@ function Dashboard() {
                 maxWidth="md"
             >
                 <Suspense fallback={<Box display="flex" justifyContent="center" alignItems="center" height="200px"><CircularProgress /></Box>}>
-                    <MemoizedAssignBinLocations
+                    <AssignBinLocations
                         open={openAssignDialog}
                         onClose={closeAssignDialogHandler}
                         onAssignSuccess={fetchData}

@@ -1,17 +1,12 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
+import PreLoader from '../common/preloader/PreLoader';
 
 const ProtectedRoute = ({ children, requiredRoles }) => {
     const { user, loading, error } = useAuth();
 
     if (loading) {
-        return (
-            <div className="flex h-screen items-center justify-center">
-                <div className="spinner-border inline-block h-8 w-8 animate-spin rounded-full border-4 border-current border-t-transparent text-blue-600" role="status">
-                    <span className="sr-only">Loading...</span>
-                </div>
-            </div>
-        );
+        return <PreLoader />;
     }
 
     // If an error occurred during authentication, show error message

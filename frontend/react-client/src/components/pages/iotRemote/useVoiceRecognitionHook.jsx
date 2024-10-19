@@ -22,10 +22,10 @@ const useVoiceRecognitionHook = (deviceStates, toggleDevice, toggleAllDevices) =
         'one': ['one', '1', 'won'],
         'two': ['two', '2', 'to', 'too', 'through'],
         'three': ['three', '3', 'tree'],
-        'four': ['four', '4', 'for'],
+        'four': ['four', '4', 'for', 'phone'],
         'five': ['five', '5'],
-        'led': ['led', 'lead', 'let', 'lad', 'light'],
-        'fan': ['fan', 'van', 'flan'],
+        'led': ['led', 'lead', 'let', 'lad'],
+        'fan': ['fan', 'van'],
         'listening': ['listening', 'listen', 'listing', 'loosening']
     };
 
