@@ -1,9 +1,9 @@
 import React, { Suspense, lazy, useEffect } from 'react';
 import './styles/App.css';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import AOS from 'aos';
 import 'aos/dist/aos.css'; // Import AOS styles
-import PreLoader from './components/common/PreLoader';
+import PreLoader from './components/common/preloader/PreLoader';
 import { Toaster } from 'react-hot-toast';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import ScrollToTopButton from './components/common/ScrollTopBtn';
@@ -14,16 +14,17 @@ import { UsersProvider } from './contexts/UsersContext'; // Adjust the path as n
 
 // Lazy-load components
 const Login = lazy(() => import('./components/authentication/Login'));
-const ErrorPage = lazy(() => import('./components/ErrorPage'));
-const NotAuthorized = lazy(() => import('./components/NotAuthorized'));
-const CreateUser = lazy(() => import('./components/CreateUser'));
-const Dashboard = lazy(() => import('./components/Dashboard'));
-const IotAutomationControl = lazy(() => import('./components/iotRemote/IotAutomationControl'));
-const UserProfile = lazy(() => import('./components/UserProfile')); // Renamed for clarity
-const Bins = lazy(() => import('./components/Bins'));
-const SupervisorBins = lazy(() => import('./components/SupervisorBins'))
-const CreateBin = lazy(() => import('./components/CreateBin'));
-const EditBin = lazy(() => import('./components/EditBin'));
+const ErrorPage = lazy(() => import('./components/pages/errorHandlers/ErrorPage'));
+const NotAuthorized = lazy(() => import('./components/pages/errorHandlers/NotAuthorized'));
+const Navbar = lazy(() => import('./components/common/Navbar'));
+const Dashboard = lazy(() => import('./components/pages/users/dashboard/Dashboard'));
+const CreateUser = lazy(() => import('./components/pages/users/CreateUser'));
+const IotAutomationControl = lazy(() => import('./components/pages/iotRemote/IotAutomationControl'));
+const UserProfile = lazy(() => import('./components/pages/users/UserProfile')); // Renamed for clarity
+const Bins = lazy(() => import('./components/pages/bins/Bins'));
+const SupervisorBins = lazy(() => import('./components/pages/bins/SupervisorBins'));
+const CreateBin = lazy(() => import('./components/pages/bins/CreateBin'));
+const EditBin = lazy(() => import('./components/pages/bins/EditBin'));
 
 function App() {
   // Initialize AOS for animations
@@ -31,114 +32,122 @@ function App() {
     AOS.init({ duration: 750 });
   }, []);
 
+  // Get the current location
+  const location = useLocation();
+
   return (
-    <Router>
-      <AuthProvider>
-        <UsersProvider>
-          <BinsProvider>
-            <main id='App'>
-              <Suspense fallback={<PreLoader />}>
-                {/* Scroll To Top Button for better UX */}
-                <ScrollToTopButton />
 
-                <Toaster
-                  position="top-right"
-                  toastOptions={{
-                    duration: 3000,
-                    style: { background: '#333', color: '#fff', maxWidth: '500px' }
-                  }}
-                />
+    <AuthProvider>
+      <UsersProvider>
+        <BinsProvider>
+          <main id='App'>
+            <Suspense fallback={<PreLoader />}>
 
-                {/* Define routes within ErrorBoundary for error handling */}
-                <ErrorBoundary>
-                  <Routes>
-                    {/* Route for the login page */}
-                    <Route path='/login' element={<Login />} />
-                    <Route path="/error" element={<ErrorPage />} />
-                    <Route path="/not-authorized" element={<NotAuthorized />} />
+              {/* Conditionally render Navbar based on the current route */}
+              {location.pathname !== '/login' && <Navbar />}
 
-                    {/* Protected Routes */}
-                    <Route
-                      path='/dashboard'
-                      element={
-                        <ProtectedRoute requiredRoles={['Admin', 'Manager']}>
-                          <Dashboard />
-                        </ProtectedRoute>
-                      }
-                    />
+              {/* Scroll To Top Button for better UX */}
+              <ScrollToTopButton />
 
-                    {/* Route for creating a new user */}
-                    <Route
-                      path='/create-user'
-                      element={
-                        <ProtectedRoute requiredRoles={['Admin']}>
-                          <CreateUser />
-                        </ProtectedRoute>
-                      }
-                    />
+              <Toaster
+                position="top-right"
+                toastOptions={{
+                  duration: 3000,
+                  style: { background: '#333', color: '#fff', maxWidth: '500px' }
+                }}
+              />
 
-                    {/* Route for user profile, dynamic ID provided */}
-                    <Route
-                      path='/user-profile/:id'
-                      element={
-                        <ProtectedRoute requiredRoles={['Admin', 'Manager', 'Supervisor']}>
-                          <UserProfile />
-                        </ProtectedRoute>
-                      }
-                    />
+              {/* Define routes within ErrorBoundary for error handling */}
+              <ErrorBoundary>
+                <Routes>
+                  {/* Route for the login page */}
+                  <Route path='/login' element={<Login />} />
+                  <Route path="/error" element={<ErrorPage />} />
+                  <Route path="/not-authorized" element={<NotAuthorized />} />
 
-                    {/* Route for managing bins related to users */}
-                    <Route
-                      path='/users/bins'
-                      element={
-                        <ProtectedRoute requiredRoles={['Admin', 'Manager']}>
-                          <Bins />
-                        </ProtectedRoute>
-                      }
-                    />
+                  {/* Protected Routes */}
+                  <Route
+                    path='/dashboard'
+                    element={
+                      <ProtectedRoute requiredRoles={['Admin', 'Manager']}>
+                        <Dashboard />
+                      </ProtectedRoute>
+                    }
+                  />
 
-                    {/* Route for managing Supervisor bins related to users */}
-                    <Route
-                      path='/users/supervisor-bins'
-                      element={
-                        <ProtectedRoute requiredRoles={['Admin', 'Manager', 'Supervisor']}>
-                          <SupervisorBins />
-                        </ProtectedRoute>
-                      }
-                    />
+                  {/* Route for creating a new user */}
+                  <Route
+                    path='/create-user'
+                    element={
+                      <ProtectedRoute requiredRoles={['Admin']}>
+                        <CreateUser />
+                      </ProtectedRoute>
+                    }
+                  />
 
-                    {/* Route for editing a bin, dynamic ID provided */}
-                    <Route
-                      path='/users/edit-bin/:locationId/:binId'
-                      element={
-                        <ProtectedRoute requiredRoles={['Admin', 'Manager']}>
-                          <EditBin />
-                        </ProtectedRoute>
-                      }
-                    />
+                  {/* Route for user profile, dynamic ID provided */}
+                  <Route
+                    path='/user-profile/:id'
+                    element={
+                      <ProtectedRoute requiredRoles={['Admin', 'Manager', 'Supervisor']}>
+                        <UserProfile />
+                      </ProtectedRoute>
+                    }
+                  />
 
-                    {/* Route for creating a new bin */}
-                    <Route
-                      path='/users/create-bin/:locationId'
-                      element={
-                        <ProtectedRoute requiredRoles={['Admin', 'Manager']}>
-                          <CreateBin />
-                        </ProtectedRoute>
-                      }
-                    />
+                  {/* Route for managing bins related to users */}
+                  <Route
+                    path='/users/bins'
+                    element={
+                      <ProtectedRoute requiredRoles={['Admin', 'Manager']}>
+                        <Bins />
+                      </ProtectedRoute>
+                    }
+                  />
 
-                    {/* Default route to navigate to the login page if the provided route is not matched */}
-                    <Route path='*' element={<Navigate to='/login' />} />
+                  {/* Route for managing Supervisor bins related to users */}
+                  <Route
+                    path='/users/supervisor-bins'
+                    element={
+                      <ProtectedRoute requiredRoles={['Admin', 'Manager', 'Supervisor']}>
+                        <SupervisorBins />
+                      </ProtectedRoute>
+                    }
+                  />
 
-                    <Route path='/iot-remote' element={<IotAutomationControl />} />
-                  </Routes>
-                </ErrorBoundary>
-              </Suspense>
-            </main>
-          </BinsProvider>
-        </UsersProvider>
-      </AuthProvider>
-    </Router>
+                  {/* Route for editing a bin, dynamic ID provided */}
+                  <Route
+                    path='/users/edit-bin/:locationId/:binId'
+                    element={
+                      <ProtectedRoute requiredRoles={['Admin', 'Manager']}>
+                        <EditBin />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Route for creating a new bin */}
+                  <Route
+                    path='/users/create-bin/:locationId'
+                    element={
+                      <ProtectedRoute requiredRoles={['Admin', 'Manager']}>
+                        <CreateBin />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Default route to navigate to the login page if the provided route is not matched */}
+                  <Route path='*' element={<Navigate to='/login' />} />
+
+                  {/* Route for IoT Remote Control */}
+                  <Route path='/iot-remote' element={<IotAutomationControl />} />
+                </Routes>
+              </ErrorBoundary>
+            </Suspense>
+          </main>
+        </BinsProvider>
+      </UsersProvider>
+    </AuthProvider>
+
   );
 }
 

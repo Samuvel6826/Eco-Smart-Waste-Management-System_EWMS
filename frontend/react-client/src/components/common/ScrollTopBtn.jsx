@@ -8,14 +8,20 @@ import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
 import BusinessCenterIcon from '@mui/icons-material/BusinessCenter';
 import PhoneIcon from '@mui/icons-material/Phone';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import ListAltIcon from '@mui/icons-material/ListAlt';
 import { Link, Events, scrollSpy } from 'react-scroll';
 
-// Styled SpeedDial component for positioning
+// Styled SpeedDial component for positioning and alignment with navbar's theme
 const StyledSpeedDial = styled(SpeedDial)(({ theme }) => ({
     position: 'fixed',
     bottom: theme.spacing(8),
     right: theme.spacing(4),
     zIndex: 100,
+    '& .MuiSpeedDial-fab': {
+        backgroundColor: theme.palette.primary.main,
+        color: theme.palette.primary.contrastText,
+    },
 }));
 
 const ScrollToTopButton = () => {
@@ -58,14 +64,11 @@ const ScrollToTopButton = () => {
         };
     }, []);
 
-    // Define the menu items with Material UI icons
+    // Define the menu items with Material UI icons and navigation links
     const menuItems = [
-        { id: 'home', icon: <HomeIcon />, label: 'Home', offset: -68 },
-        { id: 'about', icon: <PersonIcon />, label: 'About', offset: -63 },
-        { id: 'education', icon: <SchoolIcon />, label: 'Education', offset: -63 },
-        { id: 'skills', icon: <WorkspacePremiumIcon />, label: 'Skills', offset: -63 },
-        { id: 'projects', icon: <BusinessCenterIcon />, label: 'Projects', offset: -63 },
-        { id: 'contact', icon: <PhoneIcon />, label: 'Contact', offset: -63 },
+        { id: 'dashboard', icon: <DashboardIcon />, label: 'Dashboard', link: '/dashboard' },
+        { id: 'bins', icon: <ListAltIcon />, label: 'Bins', link: '/users/bins' },
+        { id: 'iot-remote', icon: <ListAltIcon />, label: 'IoT Remote', link: '/iot-remote' },
     ];
 
     return (
@@ -79,23 +82,45 @@ const ScrollToTopButton = () => {
             >
                 {/* Map through the menu items */}
                 {menuItems.map((item) => (
-                    <SpeedDialAction
-                        key={item.id}
-                        icon={
-                            <Link
-                                to={item.id}
-                                spy={true}
-                                smooth={true}
-                                offset={item.offset}
-                                duration={500}
-                                className={`${activeMenu === item.id ? 'active' : ''}`}
-                                onClick={() => setActiveMenu(item.id)}
-                            >
-                                {item.icon}
-                            </Link>
-                        }
-                        tooltipTitle={<Typography variant="body2">{item.label}</Typography>}
-                    />
+                    item.link ? (
+                        // Link-based navigation for Dashboard, Bins, and IoT Remote
+                        <SpeedDialAction
+                            key={item.id}
+                            icon={
+                                <Link
+                                    to={item.link}
+                                    spy={true}
+                                    smooth={true}
+                                    offset={item.offset}
+                                    duration={500}
+                                    className={`${activeMenu === item.id ? 'active' : ''}`}
+                                    onClick={() => setActiveMenu(item.id)}
+                                >
+                                    {item.icon}
+                                </Link>
+                            }
+                            tooltipTitle={<Typography variant="body2">{item.label}</Typography>}
+                        />
+                    ) : (
+                        // Scroll-based navigation for other sections
+                        <SpeedDialAction
+                            key={item.id}
+                            icon={
+                                <Link
+                                    to={item.id}
+                                    spy={true}
+                                    smooth={true}
+                                    offset={item.offset}
+                                    duration={500}
+                                    className={`${activeMenu === item.id ? 'active' : ''}`}
+                                    onClick={() => setActiveMenu(item.id)}
+                                >
+                                    {item.icon}
+                                </Link>
+                            }
+                            tooltipTitle={<Typography variant="body2">{item.label}</Typography>}
+                        />
+                    )
                 ))}
 
                 {/* Scroll to Top Action */}
