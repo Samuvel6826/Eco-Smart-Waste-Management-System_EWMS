@@ -117,12 +117,6 @@ const IotAutomationControl = () => {
                         >
                             {isListening ? "Stop Listening" : "Start Voice Control"}
                         </Button>
-
-                        <Tooltip title="Refresh device states">
-                            <IconButton onClick={fetchDevicesData} color="primary">
-                                <RefreshIcon />
-                            </IconButton>
-                        </Tooltip>
                     </Box>
                 </Toolbar>
             </AppBar>

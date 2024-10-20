@@ -14,7 +14,7 @@ import {
     Box,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { useUsersContext } from '../../../contexts/UsersContext';
+import { useUsersContext } from '../../contexts/UsersContext';
 import { toast } from 'react-hot-toast';
 
 const roleOptions = ['Admin', 'Manager', 'Supervisor', 'Technician'];

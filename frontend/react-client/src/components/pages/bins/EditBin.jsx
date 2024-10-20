@@ -14,7 +14,7 @@ import {
     Autocomplete,
 } from '@mui/material';
 import { createFilterOptions } from '@mui/material/Autocomplete';
-import { useBinsContext } from '../../../contexts/BinsContext';
+import { useBinsContext } from '../../contexts/BinsContext';
 
 const filter = createFilterOptions();
 

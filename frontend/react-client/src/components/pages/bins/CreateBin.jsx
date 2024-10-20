@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { toast } from 'react-hot-toast';
@@ -14,7 +14,7 @@ import {
     Autocomplete,
 } from '@mui/material';
 import { createFilterOptions } from '@mui/material/Autocomplete';
-import { useBinsContext } from '../../../contexts/BinsContext';
+import { useBinsContext } from '../../contexts/BinsContext';
 
 const filter = createFilterOptions();
 

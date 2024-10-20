@@ -15,8 +15,8 @@ import {
 } from '@mui/material';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '../../../../contexts/AuthContext';
-import { useUsersContext } from '../../../../contexts/UsersContext';
-import { useBinsContext } from '../../../../contexts/BinsContext';
+import { useUsersContext } from '../../../contexts/UsersContext';
+import { useBinsContext } from '../../../contexts/BinsContext';
 
 function AssignBinLocations({ open, onClose, onAssignSuccess }) {
     const { logout } = useAuth();

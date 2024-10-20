@@ -37,8 +37,8 @@ import {
     Divider
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../../../contexts/AuthContext';
-import { useUsersContext } from '../../../../contexts/UsersContext';
+import { useAuth } from '../../../contexts/AuthContext';
+import { useUsersContext } from '../../../contexts/UsersContext';
 import LockIcon from '@mui/icons-material/Lock';
 import SearchIcon from '@mui/icons-material/Search';
 import DeleteIcon from '@mui/icons-material/Delete';

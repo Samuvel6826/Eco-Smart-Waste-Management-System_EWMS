@@ -11,9 +11,9 @@ import { Toaster } from 'react-hot-toast';
 import ScrollToTopButton from './components/common/ScrollTopBtn';
 
 // Context Providers
-import { AuthProvider } from "./contexts/AuthContext";
-import { BinsProvider } from './contexts/BinsContext';
-import { UsersProvider } from './contexts/UsersContext';
+import { AuthProvider } from "./components/contexts/AuthContext";
+import { BinsProvider } from './components/contexts/BinsContext';
+import { UsersProvider } from './components/contexts/UsersContext';
 
 // Lazy-loaded components
 const Login = lazy(() => import('./components/authentication/Login'));

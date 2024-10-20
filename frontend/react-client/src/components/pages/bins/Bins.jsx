@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback, useMemo } from 'react';
 import { toast } from 'react-hot-toast';
 import { Link } from 'react-router-dom';
 import Bin from './Bin';
-import { useBinsContext } from '../../../contexts/BinsContext';
+import { useBinsContext } from '../../contexts/BinsContext';
 import {
   Button,
   Typography,

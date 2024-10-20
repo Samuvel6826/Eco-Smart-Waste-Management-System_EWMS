@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
-import { decodeToken } from '../components/authentication/authUtils'; // Adjust the path as necessary
+import { decodeToken } from '../authentication/authUtils'; // Adjust the path as necessary
 
 const AuthContext = createContext();
 

@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useCallback, useMemo, useRe
 import axios from 'axios';
 import { useAuth } from './AuthContext';
 import { toast } from 'react-hot-toast';
-import { database, ref, onValue, off } from '../../firebase.config';
+import { database, ref, onValue, off } from '../../../firebase.config';
 
 const BinsContext = createContext();
 

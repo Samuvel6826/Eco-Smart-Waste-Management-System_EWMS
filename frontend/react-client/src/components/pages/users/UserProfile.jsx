@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useUsersContext } from '../../../contexts/UsersContext';
-import { useAuth } from '../../../contexts/AuthContext';
+import { useUsersContext } from '../../contexts/UsersContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { Formik, Form, Field } from 'formik';
 import * as Yup from 'yup';
 import { toast } from 'react-hot-toast';

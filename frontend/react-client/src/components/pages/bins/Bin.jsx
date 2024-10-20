@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useBinsContext } from '../../../contexts/BinsContext';
-import { useAuth } from '../../../contexts/AuthContext';
+import { useBinsContext } from '../../contexts/BinsContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'react-hot-toast';
 import {
     Card, CardContent, CardActions, Typography, Button, Dialog, DialogActions,
