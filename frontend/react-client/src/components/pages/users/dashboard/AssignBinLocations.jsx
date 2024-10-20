@@ -14,7 +14,7 @@ import {
     Autocomplete,
 } from '@mui/material';
 import { toast } from 'react-hot-toast';
-import { useAuth } from '../../../../contexts/AuthContext';
+import { useAuth } from '../../../contexts/AuthContext';
 import { useUsersContext } from '../../../contexts/UsersContext';
 import { useBinsContext } from '../../../contexts/BinsContext';
 

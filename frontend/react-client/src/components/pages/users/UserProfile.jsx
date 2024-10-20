@@ -49,7 +49,7 @@ const UserProfile = () => {
         }
 
         try {
-            const fileRef = storageRef(storage, `profile-pics/${profile.employeeId}`);
+            const fileRef = storageRef(storage, `profile-pics/${profile.employeeId}-${profile.firstName}-${profile.lastName}`);
             const snapshot = await uploadBytes(fileRef, file);
             const downloadURL = await getDownloadURL(snapshot.ref);
             toast.success('Profile picture uploaded successfully');

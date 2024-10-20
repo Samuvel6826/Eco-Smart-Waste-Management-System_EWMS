@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { database, ref, child, get, set } from '../../../../firebase.config';
+import { database, databaseRef, child, get, set } from '../../../../firebase.config';
 
 const useDeviceStatesHook = () => {
     const [deviceStates, setDeviceStates] = useState({});
@@ -19,7 +19,7 @@ const useDeviceStatesHook = () => {
         setError(null);
         // console.log("Fetching device states from the database...");
         try {
-            const dbRef = ref(database);
+            const dbRef = databaseRef(database);
             const snapshot = await get(child(dbRef, 'Automation'));
             if (snapshot.exists()) {
                 const fetchedStates = snapshot.val();
@@ -42,7 +42,7 @@ const useDeviceStatesHook = () => {
     const initializeDefaultStates = async () => {
         console.log("Checking for existing device states...");
         try {
-            const dbRef = ref(database, 'Automation');
+            const dbRef = databaseRef(database, 'Automation');
             const snapshot = await get(dbRef); // Fetch existing states
             let currentStates = {};
 
@@ -117,7 +117,7 @@ const useDeviceStatesHook = () => {
                 throw new Error(`Device ${deviceId} not found in any category`);
             }
 
-            const dbRef = ref(database, `Automation/${category}/${deviceId}`);
+            const dbRef = databaseRef(database, `Automation/${category}/${deviceId}`);
             const lastUpdated = new Date().toLocaleString();
             const updatedDevice = { ...deviceStates[category][deviceId], state: state ? 1 : 0, lastUpdated };
 
@@ -155,7 +155,7 @@ const useDeviceStatesHook = () => {
                 return acc;
             }, {});
 
-            const dbRef = ref(database, 'Automation');
+            const dbRef = databaseRef(database, 'Automation');
             await set(dbRef, updatedStates);
             // console.log("All devices state updated in the database:", updatedStates);
             setDeviceStates(updatedStates);
