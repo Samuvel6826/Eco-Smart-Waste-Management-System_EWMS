@@ -62,6 +62,9 @@ app.use(cookieParser());
 // Enable trust proxy
 app.set('trust proxy', 1);
 
+// Serve static files
+app.use(express.static('public'));
+
 // Define Routes
 app.use('/api', indexRouter);
 app.use('/api/user', usersRouter);
@@ -70,10 +73,6 @@ app.use('/api/bin', binsRouter);
 // 404 Error Handler
 app.use((req, res, next) => {
   next(createError(404));
-});
-
-app.get('/', (req, res) => {
-  res.status(200).json({ message: 'EWMS API is running' });
 });
 
 // Global Error Handler
