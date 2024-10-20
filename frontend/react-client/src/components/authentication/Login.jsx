@@ -4,10 +4,10 @@ import * as Yup from 'yup';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
+import PreLoader from '../common/preloader/PreLoader';
 import {
     Box,
     Button,
-    Container,
     CssBaseline,
     FormControl,
     Grid,
@@ -23,6 +23,7 @@ import {
     useMediaQuery,
 } from '@mui/material';
 import { Visibility, VisibilityOff, Email, Lock } from '@mui/icons-material';
+import pkcLogo from "../../assets/pkc-logo.jpeg";
 
 // Validation schema for login
 const LoginSchema = Yup.object().shape({
@@ -46,7 +47,6 @@ function Login() {
         Technician: { email: 'praveengabap@gmail.com', password: '1' },
     };
 
-    // Define role-based routing
     const roleRoutes = {
         Admin: '/dashboard',
         Manager: '/dashboard',
@@ -54,13 +54,11 @@ function Login() {
         Technician: '/dashboard',
     };
 
-    const handleLogin = async (values) => {
+    const handleLogin = async (values, { setSubmitting }) => {
         try {
             setIsLoading(true);
             const decodedUser = await login(values.email, values.password);
             toast.success('Login successful!');
-
-            // Use the roleRoutes mapping to determine the correct route
             const route = roleRoutes[decodedUser.role] || '/users/bins';
             navigate(route);
         } catch (error) {
@@ -68,6 +66,7 @@ function Login() {
             toast.error(error.response?.data?.message || 'Login failed. Please try again.');
         } finally {
             setIsLoading(false);
+            setSubmitting(false);
         }
     };
 
@@ -75,6 +74,10 @@ function Login() {
         setFieldValue('email', demoCredentials[role].email);
         setFieldValue('password', demoCredentials[role].password);
     };
+
+    if (isLoading) {
+        return <PreLoader />;
+    }
 
     return (
         <Grid container component="main" sx={{ height: '100vh' }}>
@@ -91,32 +94,60 @@ function Login() {
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
                     opacity: 0.9,
+                    transition: 'opacity 0.5s ease-in-out',
+                    '&:hover': {
+                        opacity: 1,
+                    },
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                 }}
             />
-            <Grid item xs={12} sm={8} md={5} component={Paper} elevation={10} square>
+            <Grid
+                item
+                xs={12}
+                sm={8}
+                md={5}
+                component={Paper}
+                elevation={10}
+                square
+                sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                }}
+            >
                 <Box
                     sx={{
-                        my: 8,
+                        my: 0,
                         mx: 4,
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
+                        justifyContent: 'center',
                         backgroundColor: 'white',
                         borderRadius: '15px',
                         padding: '20px',
                         boxShadow: 4,
+                        transition: 'all 0.3s ease-in-out',
+                        '&:hover': {
+                            boxShadow: 8,
+                        },
+                        maxWidth: '500px',
+                        width: '100%',
                     }}
                 >
-                    <Typography component="h1" variant="h4" align="center" gutterBottom>
+                    <img src={pkcLogo} alt="Pioneer Kumaraswamy College" style={{ width: '35%', marginBottom: '1rem' }} />
+                    <Typography component="h1" variant="h5" align="center" gutterBottom>
                         PIONEER KUMARASWAMY COLLEGE
                     </Typography>
-                    <Typography variant="subtitle1" color="text.secondary" align="center">
+                    <Typography variant="subtitle2" color="text.secondary" align="center">
                         Affiliated to Manonmaniam Sundaranar University, Tirunelveli
                     </Typography>
-                    <Typography variant="subtitle1" color="text.secondary" align="center">
+                    <Typography variant="subtitle2" color="text.secondary" align="center">
                         Reaccredited with B<sup>++</sup> grade by NAAC
                     </Typography>
-                    <Typography variant="subtitle1" color="text.secondary" align="center" gutterBottom>
+                    <Typography variant="subtitle2" color="text.secondary" align="center" gutterBottom>
                         Vetturnimadam, Nagercoil - 3.
                     </Typography>
                     <Box sx={{ mt: 2, width: '100%' }}>
@@ -125,7 +156,7 @@ function Login() {
                             validationSchema={LoginSchema}
                             onSubmit={handleLogin}
                         >
-                            {({ errors, touched, setFieldValue }) => (
+                            {({ errors, touched, setFieldValue, isSubmitting }) => (
                                 <Form>
                                     <Field
                                         as={TextField}
@@ -137,8 +168,8 @@ function Login() {
                                         name="email"
                                         autoComplete="email"
                                         autoFocus
-                                        error={touched.email && !!errors.email} // Ensure this is boolean
-                                        helperText={touched.email && errors.email} // Error message
+                                        error={touched.email && !!errors.email}
+                                        helperText={touched.email && errors.email}
                                         InputProps={{
                                             startAdornment: (
                                                 <InputAdornment position="start">
@@ -157,8 +188,8 @@ function Login() {
                                         type={showPassword ? 'text' : 'password'}
                                         id="password"
                                         autoComplete="current-password"
-                                        error={touched.password && !!errors.password} // Ensure this is boolean
-                                        helperText={touched.password && errors.password} // Error message
+                                        error={touched.password && !!errors.password}
+                                        helperText={touched.password && errors.password}
                                         InputProps={{
                                             startAdornment: (
                                                 <InputAdornment position="start">
@@ -209,10 +240,11 @@ function Login() {
                                             '&:hover': {
                                                 backgroundColor: '#303f9f',
                                             },
+                                            transition: 'all 0.3s ease-in-out',
                                         }}
-                                        disabled={isLoading}
+                                        disabled={isSubmitting}
                                     >
-                                        {isLoading ? 'Logging in...' : 'Login'}
+                                        Login
                                     </Button>
                                 </Form>
                             )}

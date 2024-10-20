@@ -48,6 +48,13 @@ const UserProfile = () => {
             return null;
         }
 
+        // Check file size (2MB = 2 * 1024 * 1024 bytes)
+        const maxSize = 2 * 1024 * 1024; // 2MB in bytes
+        if (file.size > maxSize) {
+            toast.error('File size exceeds 2MB limit');
+            return null;
+        }
+
         try {
             const fileRef = storageRef(storage, `profile-pics/${profile.employeeId}-${profile.firstName}-${profile.lastName}`);
             const snapshot = await uploadBytes(fileRef, file);
