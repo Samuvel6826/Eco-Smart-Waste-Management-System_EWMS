@@ -1,7 +1,7 @@
-// Import necessary Firebase modules
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getDatabase, ref, onValue, off, set, child, get, update } from "firebase/database"; // Ensure `remove` is imported
+import { getDatabase, ref as databaseRef, onValue, off, set, child, get, update } from "firebase/database";
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
 
 // Firebase configuration object using environment variables
 const firebaseConfig = {
@@ -20,6 +20,22 @@ const firebaseApp = initializeApp(firebaseConfig);
 // Initialize Firebase services
 const auth = getAuth(firebaseApp);          // Authentication service
 const database = getDatabase(firebaseApp);  // Realtime Database service
+const storage = getStorage(firebaseApp);    // Storage service
 
-// Export Firebase services and commonly used database functions
-export { firebaseApp, auth, database, ref, onValue, off, set, child, get, update };
+// Export Firebase services and commonly used functions
+export {
+    firebaseApp,
+    auth,
+    database,
+    storage,
+    databaseRef,
+    storageRef,
+    onValue,
+    off,
+    set,
+    child,
+    get,
+    update,
+    uploadBytes,
+    getDownloadURL
+};

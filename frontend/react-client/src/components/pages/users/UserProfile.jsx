@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useUsersContext } from '../../contexts/UsersContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { Formik, Form, Field } from 'formik';
 import * as Yup from 'yup';
 import { toast } from 'react-hot-toast';
+import { storage, storageRef, uploadBytes, getDownloadURL } from '../../../../firebase.config';
 
 const roleOptions = ['Admin', 'Manager', 'Supervisor', 'Technician'];
 
@@ -14,9 +15,9 @@ const validationSchema = Yup.object().shape({
     lastName: Yup.string().required('Last Name is required'),
     email: Yup.string().email('Invalid email').required('Email is required'),
     role: Yup.string().required('Role is required'),
-    phoneNumber: Yup.string(),
+    phoneNumber: Yup.string().matches(/^[0-9]+$/, "Must be only digits").min(10, "Must be at least 10 digits"),
     profilePic: Yup.string().url('Must be a valid URL'),
-    userDesc: Yup.string(),
+    userDesc: Yup.string().max(500, 'Description must be 500 characters or less'),
 });
 
 const UserProfile = () => {
@@ -32,23 +33,51 @@ const UserProfile = () => {
             try {
                 const fetchedProfile = await getUserByEmployeeId(id || authUser?.employeeId);
                 setProfile(fetchedProfile);
+                toast.success('Profile loaded successfully');
             } catch (error) {
-                console.error('Error fetching profile:', error);
                 toast.error('Failed to fetch user profile');
             }
         };
         fetchProfile();
     }, [id, authUser, getUserByEmployeeId]);
 
+    const handleImageUpload = useCallback(async (file) => {
+        if (!file) return null;
+        if (!file.type.startsWith('image/')) {
+            toast.error('Please select a valid image file');
+            return null;
+        }
+
+        try {
+            const fileRef = storageRef(storage, `profile-pics/${profile.employeeId}`);
+            const snapshot = await uploadBytes(fileRef, file);
+            const downloadURL = await getDownloadURL(snapshot.ref);
+            toast.success('Profile picture uploaded successfully');
+            return downloadURL;
+        } catch (error) {
+            toast.error(`Failed to upload image: ${error.message}`);
+            return null;
+        }
+    }, [profile]);
+
     const handleSubmit = async (values, { setSubmitting }) => {
         try {
-            await editUser(values.employeeId, values);
-            setProfile(values);
+            let updatedValues = { ...values };
+            delete updatedValues.newProfilePic;
+
+            if (values.newProfilePic) {
+                const imageUrl = await handleImageUpload(values.newProfilePic);
+                if (imageUrl) {
+                    updatedValues.profilePic = imageUrl;
+                }
+            }
+
+            await editUser(updatedValues.employeeId, updatedValues);
+            setProfile(updatedValues);
             setIsEditing(false);
             toast.success('Profile updated successfully!');
         } catch (error) {
-            console.error('Error updating profile:', error);
-            toast.error('Failed to update profile. Please try again.');
+            toast.error(`Failed to update profile: ${error.message}`);
         } finally {
             setSubmitting(false);
         }
@@ -68,73 +97,48 @@ const UserProfile = () => {
                 <img
                     src={profile.profilePic}
                     alt={`${profile.firstName} ${profile.lastName}`}
-                    className="mx-auto mb-4 h-40 w-40 rounded-full border-4 border-blue-500"
+                    className="mx-auto mb-4 h-40 w-40 rounded-full border-4 border-blue-500 object-cover"
                 />
                 <h2 className="text-3xl font-bold">{`${profile.firstName} ${profile.lastName}`}</h2>
                 <p className="text-lg text-gray-600">{profile.role}</p>
             </div>
 
             <Formik
-                initialValues={profile}
+                initialValues={{ ...profile, newProfilePic: null }}
                 validationSchema={validationSchema}
                 onSubmit={handleSubmit}
                 enableReinitialize
             >
-                {({ errors, touched, isSubmitting, values }) => (
+                {({ errors, touched, isSubmitting, values, setFieldValue }) => (
                     <Form className="space-y-6">
-                        <div>
-                            <label htmlFor="employeeId" className="block text-sm font-medium text-gray-700">Employee ID</label>
-                            <Field name="employeeId" type="text" className="mt-1 block w-full rounded-md border border-gray-300 bg-gray-100 p-2 shadow-sm" readOnly />
-                        </div>
+                        <FormField name="employeeId" label="Employee ID" readOnly />
+                        <FormField name="firstName" label="First Name" readOnly={!isEditing} />
+                        <FormField name="lastName" label="Last Name" readOnly={!isEditing} />
+                        <FormField name="email" label="Email" type="email" readOnly={!isEditing} />
+                        <FormField name="role" label="Role" as="select" readOnly={!isEditing}>
+                            {roleOptions.map((role) => (
+                                <option key={role} value={role}>{role}</option>
+                            ))}
+                        </FormField>
+                        <FormField name="phoneNumber" label="Phone Number" readOnly={!isEditing} />
+                        <FormField name="userDesc" label="User Description" as="textarea" rows="4" readOnly={!isEditing} />
 
                         <div>
-                            <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">First Name</label>
-                            <Field name="firstName" type="text" className="mt-1 block w-full rounded-md border border-gray-300 p-2 shadow-sm" readOnly={!isEditing} />
-                            {touched.firstName && errors.firstName && <div className="mt-1 text-sm text-red-500">{errors.firstName}</div>}
-                        </div>
-
-                        <div>
-                            <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">Last Name</label>
-                            <Field name="lastName" type="text" className="mt-1 block w-full rounded-md border border-gray-300 p-2 shadow-sm" readOnly={!isEditing} />
-                            {touched.lastName && errors.lastName && <div className="mt-1 text-sm text-red-500">{errors.lastName}</div>}
-                        </div>
-
-                        <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
-                            <Field name="email" type="email" className="mt-1 block w-full rounded-md border border-gray-300 p-2 shadow-sm" readOnly={!isEditing} />
-                            {touched.email && errors.email && <div className="mt-1 text-sm text-red-500">{errors.email}</div>}
-                        </div>
-
-                        <div>
-                            <label htmlFor="role" className="block text-sm font-medium text-gray-700">Role</label>
+                            <label htmlFor="newProfilePic" className="block text-sm font-medium text-gray-700">Profile Picture</label>
                             {isEditing ? (
-                                <Field as="select" name="role" className="mt-1 block w-full rounded-md border border-gray-300 p-2 shadow-sm">
-                                    {roleOptions.map((role) => (
-                                        <option key={role} value={role}>{role}</option>
-                                    ))}
-                                </Field>
+                                <input
+                                    id="newProfilePic"
+                                    name="newProfilePic"
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(event) => {
+                                        setFieldValue("newProfilePic", event.currentTarget.files[0]);
+                                    }}
+                                    className="mt-1 block w-full rounded-md border border-gray-300 p-2 shadow-sm"
+                                />
                             ) : (
-                                <div className="mt-1 rounded-md bg-gray-100 p-2">{values.role}</div>
+                                <div className="mt-1 rounded-md bg-gray-100 p-2">{profile.profilePic}</div>
                             )}
-                            {touched.role && errors.role && <div className="mt-1 text-sm text-red-500">{errors.role}</div>}
-                        </div>
-
-                        <div>
-                            <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700">Phone Number</label>
-                            <Field name="phoneNumber" type="text" className="mt-1 block w-full rounded-md border border-gray-300 p-2 shadow-sm" readOnly={!isEditing} />
-                            {touched.phoneNumber && errors.phoneNumber && <div className="mt-1 text-sm text-red-500">{errors.phoneNumber}</div>}
-                        </div>
-
-                        <div>
-                            <label htmlFor="profilePic" className="block text-sm font-medium text-gray-700">Profile Picture URL</label>
-                            <Field name="profilePic" type="text" className="mt-1 block w-full rounded-md border border-gray-300 p-2 shadow-sm" readOnly={!isEditing} />
-                            {touched.profilePic && errors.profilePic && <div className="mt-1 text-sm text-red-500">{errors.profilePic}</div>}
-                        </div>
-
-                        <div>
-                            <label htmlFor="userDesc" className="block text-sm font-medium text-gray-700">User Description</label>
-                            <Field name="userDesc" as="textarea" rows="4" className="mt-1 block w-full rounded-md border border-gray-300 p-2 shadow-sm" readOnly={!isEditing} />
-                            {touched.userDesc && errors.userDesc && <div className="mt-1 text-sm text-red-500">{errors.userDesc}</div>}
                         </div>
 
                         {isEditing ? (
@@ -157,5 +161,31 @@ const UserProfile = () => {
         </div>
     );
 };
+
+const FormField = ({ name, label, as, readOnly, children, ...props }) => (
+    <div>
+        <label htmlFor={name} className="block text-sm font-medium text-gray-700">{label}</label>
+        <Field
+            name={name}
+            as={as}
+            readOnly={readOnly}
+            className={`mt-1 block w-full rounded-md border ${readOnly ? 'bg-gray-100' : 'border-gray-300'} p-2 shadow-sm`}
+            {...props}
+        >
+            {children}
+        </Field>
+        <ErrorMessage name={name} />
+    </div>
+);
+
+const ErrorMessage = ({ name }) => (
+    <Field name={name}>
+        {({ form }) => {
+            const error = form.errors[name];
+            const touched = form.touched[name];
+            return touched && error ? <div className="mt-1 text-sm text-red-500">{error}</div> : null;
+        }}
+    </Field>
+);
 
 export default UserProfile;

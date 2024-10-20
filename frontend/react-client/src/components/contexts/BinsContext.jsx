@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useCallback, useMemo, useRe
 import axios from 'axios';
 import { useAuth } from './AuthContext';
 import { toast } from 'react-hot-toast';
-import { database, ref, onValue, off } from '../../../firebase.config';
+import { database, databaseRef, onValue, off } from '../../../firebase.config';
 
 const BinsContext = createContext();
 
@@ -73,7 +73,7 @@ export const BinsProvider = ({ children }) => {
             return;
         }
         console.log('Setting up Firebase listeners');
-        const binsRef = ref(database, 'Trash-Bins');
+        const binsRef = databaseRef(database, 'Trash-Bins');
         const listener = onValue(binsRef, (snapshot) => {
             const data = snapshot.val();
             if (data) {
@@ -241,7 +241,7 @@ export const BinsProvider = ({ children }) => {
     const cleanupListeners = useCallback(() => {
         console.log('Cleaning up Firebase listeners');
         Object.entries(activeListeners.current).forEach(([path, listener]) => {
-            const binRef = ref(database, path);
+            const binRef = databaseRef(database, path);
             off(binRef, 'value', listener);
             console.log(`Removed listener for: ${path}`);
         });
