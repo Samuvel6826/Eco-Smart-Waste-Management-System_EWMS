@@ -2,14 +2,14 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { logger } = require('../utils/logger'); // Assuming you have a logger utility
 
-const saltRound = 10;
+const saltRounds = 10;
 
 const hashPassword = async (password) => {
     try {
-        const salt = await bcrypt.genSalt(saltRound);
+        const salt = await bcrypt.genSalt(saltRounds);
         return await bcrypt.hash(password, salt);
     } catch (error) {
-        logger.error("Error hashing password:", error);
+        logger.error("Error hashing password:", error.message || error);
         throw new Error("Hashing failed");
     }
 };
@@ -71,7 +71,7 @@ const validate = (req, res, next) => {
 };
 
 const roleGuard = (...allowedRoles) => {
-    return (req, res, next) => {
+    return async (req, res, next) => {
         try {
             const authHeader = req.headers.authorization;
             const token = authHeader && authHeader.split(" ")[1];

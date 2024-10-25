@@ -63,8 +63,8 @@ const getAssignedBinLocations = async (req, res) => {
 
 const createUser = async (req, res) => {
     try {
-        // Destructure user data from the request body
         const {
+            employeeId,
             firstName,
             lastName,
             email,
@@ -73,15 +73,26 @@ const createUser = async (req, res) => {
             phoneNumber,
             profilePic,
             assignedBinLocations,
-            employeeId,
-            userDesc
+            userDescription,
+            address,
+            dateOfBirth,
+            gender,
+            createdBy
         } = req.body;
 
         // Validate required fields
-        const requiredFields = ['firstName', 'lastName', 'email', 'password', 'role', 'employeeId'];
+        const requiredFields = ['employeeId', 'firstName', 'lastName', 'email', 'password', 'role', 'gender', 'address'];
         for (const field of requiredFields) {
             if (!req.body[field]) {
                 return handleClientError(res, `Missing required field: ${field}. Please ensure all required fields are provided.`);
+            }
+        }
+
+        // Validate address fields
+        const addressFields = ['country', 'state', 'district', 'city', 'streetAddress', 'pinCode'];
+        for (const field of addressFields) {
+            if (!address[field]) {
+                return handleClientError(res, `Missing required address field: ${field}. Please ensure all required address fields are provided.`);
             }
         }
 
@@ -93,31 +104,31 @@ const createUser = async (req, res) => {
         if (existingUser) {
             return handleClientError(res,
                 existingUser.email === email
-                    ? `The email address ${email} is already associated with another account. Please use a different email.`
-                    : `The Employee ID ${employeeId} is already in use. Please provide a unique Employee ID.`
+                    ? `The email address ${email} is already associated with another account.`
+                    : `The Employee ID ${employeeId} is already in use.`
             );
         }
 
-        // Hash the password securely
-        const hashedPassword = await auth.hashPassword(password);
-
         // Create the user record in the database
         const newUser = await UsersModel.create({
+            employeeId,
             firstName,
             lastName,
             email,
+            password, // No hashing here, as it's handled in the schema
             phoneNumber,
             profilePic,
             role,
-            password: hashedPassword,
             assignedBinLocations,
-            employeeId,
-            userDesc,
-            createdAtString: getFormattedDate(),
-            updatedAtString: getFormattedDate()
+            userDescription,
+            address,
+            dateOfBirth,
+            gender,
+            createdBy,
+            lastLogin: null, // Initialize lastLogin to null
+            lastPasswordChangedAt: null // Initialize lastPasswordChangedAt to null
         });
 
-        // Respond with success message
         return res.status(201).json({
             message: `User created successfully with Employee ID: ${newUser.employeeId}.`
         });
@@ -129,10 +140,7 @@ const createUser = async (req, res) => {
             });
         }
 
-        // Log the error for debugging
         console.error('Error creating user:', error);
-
-        // Handle server error
         return handleServerError(res, error);
     }
 };
@@ -140,7 +148,7 @@ const createUser = async (req, res) => {
 
 const editUserByEmployeeId = async (req, res) => {
     try {
-        const employeeId = sanitize.isString(req.query.employeeId);
+        const employeeId = req.query.employeeId; // Get employeeId from query params
         const {
             firstName,
             lastName,
@@ -149,14 +157,29 @@ const editUserByEmployeeId = async (req, res) => {
             phoneNumber,
             profilePic,
             assignedBinLocations,
-            userDesc // Include userDesc
+            userDescription,
+            address,
+            dateOfBirth,
+            gender,
+            updatedBy, // Include updatedBy here
         } = req.body;
 
         const updatedUser = await UsersModel.findOneAndUpdate(
             { employeeId },
             {
-                ...req.body,
-                updatedAt: getFormattedDate() // Use getFormattedDate here
+                firstName,
+                lastName,
+                email,
+                role,
+                phoneNumber,
+                profilePic,
+                assignedBinLocations,
+                userDescription,
+                address,
+                dateOfBirth,
+                gender,
+                updatedBy, // Include updatedBy here
+                updatedAt: getFormattedDate() // Update timestamp
             },
             { new: true, runValidators: true }
         ).select('-password');
@@ -170,9 +193,11 @@ const editUserByEmployeeId = async (req, res) => {
             data: updatedUser
         });
     } catch (error) {
+        console.error('Error updating user:', error);
         handleServerError(res, error);
     }
 };
+
 
 const deleteUserByEmployeeId = async (req, res) => {
     try {
@@ -218,6 +243,15 @@ const loginUser = async (req, res) => {
             return handleClientError(res, 'Invalid email or password');
         }
 
+        // Update the user's lastLogin timestamp
+        await UsersModel.updateOne(
+            { email },
+            {
+                lastLogin: getFormattedDate(), // Set to current date and time
+                updatedAt: getFormattedDate() // Update updatedAt field
+            }
+        );
+
         const token = await auth.createToken({
             email: user.email,
             role: user.role,
@@ -255,17 +289,18 @@ const changePassword = async (req, res) => {
             return handleClientError(res, 'Passwords do not match');
         }
 
-        const user = await UsersModel.findOne({ employeeId: employeeId });
+        const user = await UsersModel.findOne({ employeeId });
         if (!user) {
             return handleClientError(res, 'User not found with the provided employeeId');
         }
 
-        user.password = await auth.hashPassword(password);
-        user.updatedAt = new Date();
-        await user.save();
+        // Hash the new password
+        user.password = password; // Set plain password; hashing happens in the schema
+        user.lastPasswordChangedAt = getFormattedDate(); // Update lastPasswordChangedAt to current date
+        await user.save(); // This will invoke the pre-save hook
 
         res.status(200).json({
-            message: `Password changed successfully with employeeId: ${employeeId}`
+            message: `Password changed successfully for employeeId: ${employeeId}`
         });
     } catch (error) {
         handleServerError(res, error);
@@ -286,7 +321,7 @@ const assignBinsByEmployeeId = async (req, res) => {
             {
                 assignedBinLocations: bins,
                 supervisorId,
-                updatedAt: new Date()
+                updatedAt: getFormattedDate()
             },
             { new: true, runValidators: true }
         );

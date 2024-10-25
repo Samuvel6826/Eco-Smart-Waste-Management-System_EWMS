@@ -1,4 +1,3 @@
-// models/binModel.js
 const Joi = require('joi');
 
 const binMetaDataSchema = Joi.object({
@@ -19,7 +18,11 @@ const binMetaDataSchema = Joi.object({
     distance: Joi.number().default(0),
     filledBinPercentage: Joi.number().min(0).max(100).default(0),
     maxBinCapacity: Joi.number().min(0).default(0),
-    lastMaintenance: Joi.string().default("")
+    lastMaintenance: Joi.string().default(""),
+    lastEmptied: Joi.string().default("").allow(""),
+    temperature: Joi.string().default('0'), // Added field
+    humidity: Joi.string().default('0'), // Added field
+    batteryLevel: Joi.string().default('0') // Added field
 });
 
 const distanceSchema = Joi.object({
@@ -36,6 +39,10 @@ const distanceSchema = Joi.object({
     distance: Joi.number().required(),
     filledBinPercentage: Joi.number().min(0).max(100).required(),
     maxBinCapacity: Joi.number().min(0).required(),
+    lastEmptied: Joi.string().default("").allow(""),
+    temperature: Joi.string().default('0'), // Added field
+    humidity: Joi.string().default('0'), // Added field
+    batteryLevel: Joi.string().default('0') // Added field
 });
 
 const heartbeatSchema = Joi.object({

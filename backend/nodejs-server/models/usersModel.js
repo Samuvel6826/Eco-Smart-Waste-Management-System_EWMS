@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 const { getFormattedDate } = require('../utils/deviceMonitoring');
+const { hashPassword } = require('../common/Auth');
+const { number } = require('joi');
 
 // Validation function for email
 const emailValidator = {
@@ -13,11 +15,32 @@ const emailValidator = {
 // Validation function for phone number
 const phoneValidator = {
   validator: (phone) => {
-    // Accept empty string or a valid phone number
-    const phonePattern = /^(?:\+?\d{1,3})?\s?\d{10}$/; // Adjust regex as needed
+    const phonePattern = /^(?:\+?\d{1,3}\s?)?\d{10}$/; // Adjust regex to allow formats with and without country code
     return phone === '' || phonePattern.test(phone);
   },
   message: 'Invalid phone number format',
+};
+
+// Validation function for zip code
+const pinCodeValidator = {
+  validator: (pinCode) => {
+    const pinCodePattern = /^\d{6}$/; // 6-digit number
+    return pinCode === '' || pinCodePattern.test(pinCode);
+  },
+  message: 'Pin code must be a 6-digit number.',
+};
+
+
+// Password complexity validation
+const passwordValidator = {
+  validator: (password) => {
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumbers = /\d/.test(password);
+    const hasSpecialChars = /[!@#$%^&*]/.test(password);
+    return password.length >= 8 && hasUpperCase && hasLowerCase && hasNumbers && hasSpecialChars;
+  },
+  message: 'Password must be at least 8 characters long and include uppercase, lowercase, numbers, and special characters.',
 };
 
 // User Schema
@@ -38,6 +61,11 @@ const usersSchema = new mongoose.Schema({
     required: [true, 'Last name is required'],
     trim: true
   },
+  gender: {
+    type: String,
+    enum: ['Male', 'Female', 'Other', 'Prefer not to say'],
+    default: 'Prefer not to say'
+  },
   email: {
     type: String,
     required: [true, 'Email is required'],
@@ -48,6 +76,7 @@ const usersSchema = new mongoose.Schema({
   password: {
     type: String,
     required: [true, 'Password is required'],
+    // validate: passwordValidator, // Add password validation
     trim: true
   },
   phoneNumber: {
@@ -56,7 +85,7 @@ const usersSchema = new mongoose.Schema({
     default: "",
     trim: true
   },
-  userDesc: {
+  userDescription: {
     type: String,
     default: "",
     trim: true
@@ -76,30 +105,100 @@ const usersSchema = new mongoose.Schema({
     type: String,
     default: []
   }],
+  address: {
+    country: {
+      type: String,
+      required: [true, 'Country is required'],
+      default: 'India',
+      trim: true
+    },
+    state: {
+      type: String,
+      required: [true, 'State / Union Territory is required'],
+      default: 'Tamil Nadu',
+      trim: true
+    },
+    district: {
+      type: String,
+      required: [true, 'District is required'],
+      default: 'Kanyakumari',
+      trim: true
+    },
+    city: {
+      type: String,
+      default: 'Nagercoil',
+      trim: true
+    },
+    streetAddress: {
+      type: String,
+      required: [true, 'Postal Address is required'],
+      trim: true
+    },
+    pinCode: {
+      type: Number,
+      validate: pinCodeValidator, // Add zip code validation
+      default: "",
+      trim: true
+    },
+  },
+  dateOfBirth: {
+    type: String,
+    default: null
+  },
+  createdBy: {
+    type: String,
+    trim: true,
+    enum: ['Admin', 'Manager', 'Supervisor', 'Technician']
+  },
   createdAt: {
     type: String,
-    default: getFormattedDate
+    default: getFormattedDate // Use Date type instead of String
+  },
+  updatedBy: {
+    type: String,
+    trim: true,
+    enum: ['Admin', 'Manager', 'Supervisor', 'Technician']
   },
   updatedAt: {
     type: String,
-    default: getFormattedDate
+    default: getFormattedDate // Use Date type instead of String
+  },
+  lastLogin: {
+    type: String,
+    default: null
+  },
+  lastPasswordChangedAt: {
+    type: String,
+    default: null
   }
 },
   {
     versionKey: false,
     collection: 'ewms-users',
-    timestamps: true
+    timestamps: true,
+    toJSON: { virtuals: true, versionKey: false },
+    toObject: { virtuals: true, versionKey: false }
   });
 
-// Middleware to format timestamps
-usersSchema.pre('save', function (next) {
-  const currentDate = getFormattedDate();
-  this.createdAt = this.createdAt || currentDate;
-  this.updatedAt = currentDate;
+// Hash password before saving user
+usersSchema.pre('save', async function (next) {
+  if (this.isModified('password')) {
+    try {
+      this.password = await hashPassword(this.password);
+    } catch (error) {
+      console.error('Error hashing password:', error);
+      return next(error);
+    }
+  }
+  next();
+});
+
+// Middleware to update `updatedAt` timestamp
+usersSchema.pre('updateOne', function (next) {
+  this.set({ updatedAt: getFormattedDate() });
   next();
 });
 
 // User Model
 const usersModel = mongoose.model('ewms-users', usersSchema);
-
 module.exports = usersModel;

@@ -1,58 +1,67 @@
 // middleware/errorHandler.js
 const { logger } = require('../utils/logger');
 
-// General error handler middleware
-const errorHandlerMiddleware = (err, req, res, next) => {
-    const status = err.status || 500;
-    const message = err.message || 'An unexpected error occurred. Please try again later.';
-
-    logger.error('Error:', {
-        status,
+// Error handler functions
+const handleClientError = (res, message, statusCode = 400) => {
+    logger.error(`Client Error: ${message}`);
+    res.status(statusCode).json({
+        status: 'fail',
         message,
-        stack: err.stack,
+    });
+};
+
+const handleServerError = (res, error) => {
+    logger.error('Server Error:', error);
+    res.status(500).json({
+        status: 'error',
+        message: 'Internal server error'
+    });
+};
+
+const handleNotFoundError = (res, message = 'Resource not found') => {
+    logger.error(`Not Found Error: ${message}`);
+    res.status(404).json({
+        status: 'fail',
+        message
+    });
+};
+
+const handleDuplicateError = (res, message) => {
+    logger.error(`Duplicate Error: ${message}`);
+    res.status(409).json({
+        status: 'fail',
+        message
+    });
+};
+
+// Main error handler middleware
+const errorHandlerMiddleware = (err, req, res, next) => {
+    logger.error('Error:', {
+        message: err.message,
         url: req.originalUrl,
         method: req.method,
         body: req.body,
-        query: req.query,
-        params: req.params,
-        headers: req.headers
+        query: req.query
     });
 
-    res.status(status).json({
-        message,
-        error: {
-            code: status,
-            detail: process.env.NODE_ENV === 'production' ? message : err.stack
-        }
-    });
-};
+    // Handle validation errors (e.g., from Joi)
+    if (err.isJoi) {
+        return handleClientError(res, err.details.map(detail => detail.message).join(', '));
+    }
 
-// Helper function for client errors
-const handleClientError = (res, message) => {
-    logger.error(`Client Error: ${message}`);
-    res.status(400).json({
-        message,
-        error: {
-            code: 400,
-            detail: message
-        }
-    });
-};
+    // Handle Firebase errors
+    if (err.code && err.code.startsWith('auth/')) {
+        return handleClientError(res, 'Authentication failed', 401);
+    }
 
-// Helper function for server errors
-const handleServerError = (res, error) => {
-    logger.error('Server Error:', error.message);
-    res.status(500).json({
-        message: 'Internal Server Error',
-        error: {
-            code: 500,
-            detail: error.message
-        }
-    });
+    // Default to server error
+    handleServerError(res, err);
 };
 
 module.exports = {
-    errorHandlerMiddleware,
     handleClientError,
-    handleServerError
+    handleServerError,
+    handleNotFoundError,
+    handleDuplicateError,
+    errorHandlerMiddleware
 };

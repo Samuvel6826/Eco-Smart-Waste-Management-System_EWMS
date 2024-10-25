@@ -1,0 +1,322 @@
+[
+  {
+    "_id": {
+      "$oid": "66fd4114caf104fa37887b72"
+    },
+    "employeeId": "EMP001",
+    "firstName": "Samuvel",
+    "lastName": "A",
+    "gender": null,
+    "email": "samuvel6826@gmail.com",
+    "password": "$2a$10$kxOteNwn3doXRz86VnB.muyKQOMNAqsDFS79XElJMID1nVAH63BYi",
+    "phoneNumber": "+91 0000000000",
+    "userDescription": "Admin description.",
+    "profilePic": "https://firebasestorage.googleapis.com/v0/b/eco-smart-wms.appspot.com/o/profile-pics%2FEMP001-Samuvel-A?alt=media&token=27a867d9-074a-4d14-aaac-fbf8b51371b5",
+    "role": "Admin",
+    "assignedBinLocations": [
+      "Canteen",
+      "Lab"
+    ],
+    "address": {
+      "country": "India",
+      "state": "Tamil Nadu",
+      "district": "Kanyakumari",
+      "city": "Nagercoil",
+      "streetAddress": "123 Admin St",
+      "pinCode": 629001
+    },
+    "dateOfBirth": "1990-01-01",
+    "createdBy": "adminUser",
+    "lastLogin": "25/10/2024, 02:44:35 PM",
+    "lastPasswordChangedAt": "25/10/2024, 02:44:35 PM",
+    "createdAt": "2024-10-02T12:48:20.979Z",
+    "updatedAt": "25/10/2024, 02:44:35 PM"
+  },
+  {
+    "_id": {
+      "$oid": "66fd4114caf104fa37887b73"
+    },
+    "employeeId": "EMP002",
+    "firstName": "Jaya Prasanna",
+    "lastName": "E",
+    "gender": null,
+    "email": "jayaprasanna991@gmail.com",
+    "password": "$2a$10$7PRALEqV6GWUQmyxQJU62OznxHDmIMWFj1TVxDPp7DnJof79vnehq",
+    "phoneNumber": "+91 0000000000",
+    "userDescription": "Supervisor description.",
+    "profilePic": "https://thispersondoesnotexist.com/",
+    "role": "Supervisor",
+    "assignedBinLocations": [
+      "Canteen",
+      "Gym",
+      "Lab"
+    ],
+    "address": {
+      "country": "India",
+      "state": "Tamil Nadu",
+      "district": "Kanyakumari",
+      "city": "Nagercoil",
+      "streetAddress": "123 Supervisor St",
+      "pinCode": 629001
+    },
+    "dateOfBirth": "1990-01-01",
+    "createdBy": "adminUser",
+    "lastLogin": "25/10/2024, 03:16:13 PM",
+    "lastPasswordChangedAt": "25/10/2024, 03:15:58 PM",
+    "createdAt": "2024-10-02T12:48:20.979Z",
+    "updatedAt": "Fri Oct 25 2024 04:31:17 GMT+0000"
+  },
+  {
+    "_id": {
+      "$oid": "66fd4114caf104fa37887b74"
+    },
+    "employeeId": "EMP003",
+    "firstName": "Booja",
+    "lastName": "R",
+    "gender": null,
+    "email": "jenitharajan029@gmail.com",
+    "password": "$2a$10$Y9NBehTYYuczcjgnQQn0Bu12Xf6AT5dhlJ/Liib0TFZGyyezMy3EG",
+    "phoneNumber": "+91 0000000000",
+    "userDescription": "Supervisor description.",
+    "profilePic": "https://thispersondoesnotexist.com/",
+    "role": "Supervisor",
+    "assignedBinLocations": [
+      "Gym"
+    ],
+    "address": {
+      "country": "India",
+      "state": "Tamil Nadu",
+      "district": "Kanyakumari",
+      "city": "Nagercoil",
+      "streetAddress": "123 Supervisor St",
+      "pinCode": 629001
+    },
+    "dateOfBirth": "1990-01-01",
+    "createdBy": "adminUser",
+    "lastLogin": "25/10/2024, 03:16:13 PM",
+    "lastPasswordChangedAt": "25/10/2024, 03:15:58 PM",
+    "createdAt": "2024-10-02T12:48:20.979Z",
+    "updatedAt": "Thu Oct 24 2024 04:43:24 GMT+0000 (Coordinated Universal Time)"
+  },
+  {
+    "_id": {
+      "$oid": "66fd4114caf104fa37887b75"
+    },
+    "employeeId": "EMP004",
+    "firstName": "Pavithra",
+    "lastName": "M.V",
+    "gender": null,
+    "email": "m.v.pavithra.2005@gmail.com",
+    "password": "$2a$10$wlHc2/FeAXbx7JRE3GB10eJK.QYMgfL3j3OXtVfDILLAp9QZzx7Ti",
+    "phoneNumber": "+91 0000000000",
+    "userDescription": "Manager description.",
+    "profilePic": "https://thispersondoesnotexist.com",
+    "role": "Manager",
+    "assignedBinLocations": [
+      "Lab"
+    ],
+    "address": {
+      "country": "India",
+      "state": "Tamil Nadu",
+      "district": "Kanyakumari",
+      "city": "Nagercoil",
+      "streetAddress": "123 Manager St",
+      "pinCode": 629001
+    },
+    "dateOfBirth": "1990-01-01",
+    "createdBy": "adminUser",
+    "lastLogin": "25/10/2024, 03:16:13 PM",
+    "lastPasswordChangedAt": "25/10/2024, 03:15:58 PM",
+    "createdAt": "2024-10-02T12:48:20.979Z",
+    "updatedAt": "Sun Oct 13 2024 20:35:35 GMT+0530 (India Standard Time)"
+  },
+  {
+    "_id": {
+      "$oid": "66fd4114caf104fa37887b76"
+    },
+    "employeeId": "EMP005",
+    "firstName": "Sakthi Pon Rani",
+    "lastName": "R",
+    "gender": null,
+    "email": "sakthiss2613@gmail.com",
+    "password": "$2a$10$3pqOk82DnH49w8A2ZTSCxOumKPW8Kvi3EZAVItCjyhgiON4LFx9Va",
+    "phoneNumber": "+91 0000000000",
+    "userDescription": "Manager description.",
+    "profilePic": "https://thispersondoesnotexist.com/",
+    "role": "Manager",
+    "assignedBinLocations": [
+      "Canteen"
+    ],
+    "address": {
+      "country": "India",
+      "state": "Tamil Nadu",
+      "district": "Kanyakumari",
+      "city": "Nagercoil",
+      "streetAddress": "123 Manager St",
+      "pinCode": 629001
+    },
+    "dateOfBirth": "1990-01-01",
+    "createdBy": "adminUser",
+    "lastLogin": "25/10/2024, 03:16:13 PM",
+    "lastPasswordChangedAt": "25/10/2024, 03:15:58 PM",
+    "createdAt": "2024-10-02T12:48:20.979Z",
+    "updatedAt": "2024-10-13T05:41:54.921Z"
+  },
+  {
+    "_id": {
+      "$oid": "66fd4114caf104fa37887b77"
+    },
+    "employeeId": "EMP006",
+    "firstName": "Segi",
+    "lastName": "S",
+    "gender": null,
+    "email": "segisegi482@gmail.com",
+    "password": "$2a$10$IKlima4oBJCih0.pFCmScew.gSNAikcGJg52PEdcsd./EH2yyU//a",
+    "phoneNumber": "+91 0000000000",
+    "userDescription": "Supervisor description.",
+    "profilePic": "https://thispersondoesnotexist.com/",
+    "role": "Supervisor",
+    "assignedBinLocations": [],
+    "address": {
+      "country": "India",
+      "state": "Tamil Nadu",
+      "district": "Kanyakumari",
+      "city": "Nagercoil",
+      "streetAddress": "123 Supervisor St",
+      "pinCode": 629001
+    },
+    "dateOfBirth": "1990-01-01",
+    "createdBy": "adminUser",
+    "lastLogin": "25/10/2024, 03:16:13 PM",
+    "lastPasswordChangedAt": "25/10/2024, 03:15:58 PM",
+    "createdAt": "2024-10-02T12:48:20.979Z",
+    "updatedAt": "2024-10-13T05:44:25.781Z"
+  },
+  {
+    "_id": {
+      "$oid": "66fd4114caf104fa37887b78"
+    },
+    "employeeId": "EMP007",
+    "firstName": "Titus",
+    "lastName": "K",
+    "gender": null,
+    "email": "titusrajan4@gmail.com",
+    "password": "$2a$10$eJMmHRdzbl9CkMXx7u8x8u2B/ahfR53ytrWZJAm56zTgHiIVRLNS.",
+    "phoneNumber": "+91 0000000000",
+    "userDescription": "Supervisor description.",
+    "profilePic": "https://thispersondoesnotexist.com/",
+    "role": "Supervisor",
+    "assignedBinLocations": [
+      "Canteen",
+      "Lab"
+    ],
+    "address": {
+      "country": "India",
+      "state": "Tamil Nadu",
+      "district": "Kanyakumari",
+      "city": "Nagercoil",
+      "streetAddress": "123 Supervisor St",
+      "pinCode": 629001
+    },
+    "dateOfBirth": "1990-01-01",
+    "createdBy": "adminUser",
+    "lastLogin": "25/10/2024, 03:16:13 PM",
+    "lastPasswordChangedAt": "25/10/2024, 03:15:58 PM",
+    "createdAt": "2024-10-02T12:48:20.979Z",
+    "updatedAt": "2024-10-13T05:48:00.210Z"
+  },
+  {
+    "_id": {
+      "$oid": "66fd4114caf104fa37887b79"
+    },
+    "employeeId": "EMP008",
+    "firstName": "Anu",
+    "lastName": "R",
+    "gender": null,
+    "email": "anuthedon252@gmail.com",
+    "password": "$2a$10$MF6GTTRDKmVS6IUVlgrL3.1wm9Jo02lKPTlLn5t7h11rTgLeTDCA2",
+    "phoneNumber": "+91 0000000000",
+    "userDescription": "Manager description.",
+    "profilePic": "https://thispersondoesnotexist.com/",
+    "role": "Manager",
+    "assignedBinLocations": [
+      "Gym"
+    ],
+    "address": {
+      "country": "India",
+      "state": "Tamil Nadu",
+      "district": "Kanyakumari",
+      "city": "Nagercoil",
+      "streetAddress": "123 Manager St",
+      "pinCode": 629001
+    },
+    "dateOfBirth": "1990-01-01",
+    "createdBy": "adminUser",
+    "lastLogin": "25/10/2024, 03:16:13 PM",
+    "lastPasswordChangedAt": "25/10/2024, 03:15:58 PM",
+    "createdAt": "2024-10-02T12:48:20.979Z",
+    "updatedAt": "2024-10-13T05:47:45.537Z"
+  },
+  {
+    "_id": {
+      "$oid": "66fd4114caf104fa37887b7a"
+    },
+    "employeeId": "EMP009",
+    "firstName": "Amith",
+    "lastName": "B",
+    "gender": null,
+    "email": "amithraj2511@gmail.com",
+    "password": "$2a$10$fB8Rs6OiKTazVpZZBiUVF.B37YgFPo.m7f.5RFTm/.jPAtMRW46Ou",
+    "phoneNumber": "+91 0000000000",
+    "userDescription": "Supervisor description.",
+    "profilePic": "https://thispersondoesnotexist.com/",
+    "role": "Supervisor",
+    "assignedBinLocations": [
+      "Canteen"
+    ],
+    "address": {
+      "country": "India",
+      "state": "Tamil Nadu",
+      "district": "Kanyakumari",
+      "city": "Nagercoil",
+      "streetAddress": "123 Supervisor St",
+      "pinCode": 629001
+    },
+    "dateOfBirth": "1990-01-01",
+    "createdBy": "adminUser",
+    "lastLogin": "25/10/2024, 03:16:13 PM",
+    "lastPasswordChangedAt": "25/10/2024, 03:15:58 PM",
+    "createdAt": "2024-10-02T12:48:20.979Z",
+    "updatedAt": "2024-10-13T05:45:59.161Z"
+  },
+  {
+    "_id": {
+      "$oid": "66fd4114caf104fa37887b7b"
+    },
+    "employeeId": "EMP010",
+    "firstName": "S Kaviya",
+    "lastName": "Ranjith",
+    "gender": "Female",
+    "email": "ranjithkaviya229@gmail.com",
+    "password": "$2a$10$CFXVJfNpg2VSrS9rrL61KuSy6AIID5IKK5aKTjiUgvgfLKozClR/q",
+    "phoneNumber": "+91 0000000000",
+    "userDescription": "Supervisor description.",
+    "profilePic": "https://thispersondoesnotexist.com/",
+    "role": "Supervisor",
+    "assignedBinLocations": [],
+    "address": {
+      "country": "India",
+      "state": "Tamil Nadu",
+      "district": "Kanyakumari",
+      "city": "Nagercoil",
+      "streetAddress": "123 Supervisor St",
+      "pinCode": 629001
+    },
+    "dateOfBirth": "1990-01-01",
+    "createdBy": "adminUser",
+    "lastLogin": "25/10/2024, 03:16:13 PM",
+    "lastPasswordChangedAt": "25/10/2024, 03:15:58 PM",
+    "createdAt": "2024-10-02T12:48:20.979Z",
+    "updatedAt": "2024-10-24T04:31:17.851Z"
+  }
+]
