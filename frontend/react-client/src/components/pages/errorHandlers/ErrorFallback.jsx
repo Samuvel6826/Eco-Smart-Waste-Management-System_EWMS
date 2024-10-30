@@ -1,30 +1,23 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-    Box,
-    Typography,
     Button,
-    Paper,
     Collapse,
+    Typography,
     IconButton,
-    Snackbar,
-    Container,
-    useTheme,
-    useMediaQuery
-} from '@mui/material';
+    Snackbar
+} from '@material-tailwind/react';
 import {
-    Refresh as RefreshIcon,
-    Home as HomeIcon,
-    ExpandMore as ExpandMoreIcon,
-    ContentCopy as ContentCopyIcon
-} from '@mui/icons-material';
+    RefreshIcon,
+    HomeIcon,
+    ChevronDownIcon,
+    ClipboardIcon
+} from '@heroicons/react/outline';
 
 const ErrorFallback = ({ error }) => {
     const [expanded, setExpanded] = useState(false);
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const navigate = useNavigate();
-    const theme = useTheme();
-    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
     const handleRefresh = () => {
         window.location.reload();
@@ -40,91 +33,73 @@ const ErrorFallback = ({ error }) => {
             .catch(console.error);
     };
 
-    const handleSnackbarClose = (event, reason) => {
-        if (reason === 'clickaway') return;
+    const handleSnackbarClose = () => {
         setSnackbarOpen(false);
     };
 
     return (
-        <Container maxWidth="sm">
-            <Box
-                sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    minHeight: '100vh',
-                    bgcolor: 'background.default',
-                    p: 3,
-                    textAlign: 'center',
-                }}
-            >
-                <Paper
-                    elevation={3}
-                    sx={{
-                        p: 4,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        width: '100%',
-                    }}
-                >
-                    <Typography variant="h4" color="error" gutterBottom>
-                        Oops! Something Went Wrong
-                    </Typography>
-                    <Typography variant="body1" gutterBottom>
-                        We apologize, but an unexpected error has occurred. Our team has been notified and is working on a fix.
-                    </Typography>
-                    <Box sx={{ mt: 3, display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 2 }}>
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            startIcon={<HomeIcon />}
-                            component={Link}
-                            to="/dashboard"
-                        >
-                            Go to Homepage
-                        </Button>
-                        <Button
-                            variant="outlined"
-                            color="secondary"
-                            startIcon={<RefreshIcon />}
-                            onClick={handleRefresh}
-                        >
-                            Refresh Page
-                        </Button>
-                    </Box>
-                    <Box sx={{ mt: 3, width: '100%' }}>
-                        <Button
-                            onClick={handleExpand}
-                            endIcon={<ExpandMoreIcon sx={{ transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }} />}
-                        >
-                            {expanded ? 'Hide' : 'Show'} Technical Details
-                        </Button>
-                        <Collapse in={expanded}>
-                            <Paper elevation={0} variant="outlined" sx={{ mt: 2, p: 2, bgcolor: 'background.paper' }}>
-                                <Typography variant="body2" component="pre" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                                    {error?.toString() || 'Unknown error'}
-                                </Typography>
-                                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
-                                    <IconButton onClick={handleCopyError} size="small" aria-label="copy error details">
-                                        <ContentCopyIcon fontSize="small" />
-                                    </IconButton>
-                                </Box>
-                            </Paper>
-                        </Collapse>
-                    </Box>
-                </Paper>
-            </Box>
+        <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-6 text-center">
+            <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-md">
+                <Typography variant="h4" color="red" className="mb-4">
+                    Oops! Something Went Wrong
+                </Typography>
+                <Typography variant="body1" className="mb-4 text-gray-600">
+                    We apologize, but an unexpected error has occurred. Our team has been notified and is working on a fix.
+                </Typography>
+                <div className="mt-4 flex w-full flex-col gap-4 sm:flex-row">
+                    <Button
+                        color="blue"
+                        variant="filled"
+                        className="flex-1"
+                        onClick={() => navigate('/dashboard')}
+                        startIcon={<HomeIcon className="h-5 w-5" />}
+                    >
+                        Go to Homepage
+                    </Button>
+                    <Button
+                        color="gray"
+                        variant="outlined"
+                        className="flex-1"
+                        onClick={handleRefresh}
+                        startIcon={<RefreshIcon className="h-5 w-5" />}
+                    >
+                        Refresh Page
+                    </Button>
+                </div>
+                <div className="mt-4">
+                    <Button
+                        onClick={handleExpand}
+                        endIcon={
+                            <ChevronDownIcon
+                                className={`h-5 w-5 transition-transform ${expanded ? 'rotate-180' : 'rotate-0'}`}
+                            />
+                        }
+                        variant="text"
+                    >
+                        {expanded ? 'Hide' : 'Show'} Technical Details
+                    </Button>
+                    <Collapse open={expanded}>
+                        <div className="mt-2 rounded-md bg-gray-100 p-4 text-left">
+                            <Typography variant="body2" component="pre" className="whitespace-pre-wrap break-words">
+                                {error?.toString() || 'Unknown error'}
+                            </Typography>
+                            <div className="mt-2 flex justify-end">
+                                <IconButton onClick={handleCopyError} size="small" aria-label="copy error details">
+                                    <ClipboardIcon className="h-5 w-5" />
+                                </IconButton>
+                            </div>
+                        </div>
+                    </Collapse>
+                </div>
+            </div>
             <Snackbar
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
                 open={snackbarOpen}
                 autoHideDuration={3000}
                 onClose={handleSnackbarClose}
                 message="Error details copied to clipboard"
             />
-        </Container>
+        </div>
     );
-}
+};
 
 export default ErrorFallback;
