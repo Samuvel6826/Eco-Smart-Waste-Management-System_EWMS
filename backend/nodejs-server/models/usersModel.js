@@ -25,9 +25,9 @@ const phoneValidator = {
 const pinCodeValidator = {
   validator: (pinCode) => {
     const pinCodePattern = /^\d{6}$/; // 6-digit number
-    return pinCode === '' || pinCodePattern.test(pinCode);
+    return pinCode === null || pinCode === '' || pinCodePattern.test(pinCode);
   },
-  message: 'Pin code must be a 6-digit number.',
+  message: 'Pin code must be a 6-digit number, can be left empty, or can be null.',
 };
 
 
@@ -64,7 +64,13 @@ const usersSchema = new mongoose.Schema({
   gender: {
     type: String,
     enum: ['Male', 'Female', 'Other', 'Prefer not to say'],
-    default: 'Prefer not to say'
+    default: 'Prefer not to say',
+    trim: true
+  },
+  age: {
+    type: Number,
+    default: '',
+    trim: true
   },
   email: {
     type: String,
@@ -108,19 +114,19 @@ const usersSchema = new mongoose.Schema({
   address: {
     country: {
       type: String,
-      required: [true, 'Country is required'],
+      // required: [true, 'Country is required'],
       default: 'India',
       trim: true
     },
     state: {
       type: String,
-      required: [true, 'State / Union Territory is required'],
+      // required: [true, 'State / Union Territory is required'],
       default: 'Tamil Nadu',
       trim: true
     },
     district: {
       type: String,
-      required: [true, 'District is required'],
+      // required: [true, 'District is required'],
       default: 'Kanyakumari',
       trim: true
     },
@@ -131,14 +137,15 @@ const usersSchema = new mongoose.Schema({
     },
     streetAddress: {
       type: String,
-      required: [true, 'Postal Address is required'],
+      // required: [true, 'Postal Address is required'],
       trim: true
     },
     pinCode: {
       type: Number,
       validate: pinCodeValidator, // Add zip code validation
-      default: "",
-      trim: true
+      default: '',
+      trim: true,
+      required: false
     },
   },
   dateOfBirth: {
@@ -147,8 +154,7 @@ const usersSchema = new mongoose.Schema({
   },
   createdBy: {
     type: String,
-    trim: true,
-    enum: ['Admin', 'Manager', 'Supervisor', 'Technician']
+    trim: true
   },
   createdAt: {
     type: String,
@@ -157,13 +163,16 @@ const usersSchema = new mongoose.Schema({
   updatedBy: {
     type: String,
     trim: true,
-    enum: ['Admin', 'Manager', 'Supervisor', 'Technician']
   },
   updatedAt: {
     type: String,
     default: getFormattedDate // Use Date type instead of String
   },
   lastLogin: {
+    type: String,
+    default: null
+  },
+  lastPasswordChangedBy: {
     type: String,
     default: null
   },
@@ -175,7 +184,6 @@ const usersSchema = new mongoose.Schema({
   {
     versionKey: false,
     collection: 'ewms-users',
-    timestamps: true,
     toJSON: { virtuals: true, versionKey: false },
     toObject: { virtuals: true, versionKey: false }
   });

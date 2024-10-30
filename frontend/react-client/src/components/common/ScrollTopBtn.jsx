@@ -1,28 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Box, SpeedDial, SpeedDialAction, SpeedDialIcon, Typography } from '@mui/material';
-import { styled } from '@mui/material/styles';
-import HomeIcon from '@mui/icons-material/Home';
-import PersonIcon from '@mui/icons-material/Person';
-import SchoolIcon from '@mui/icons-material/School';
-import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
-import BusinessCenterIcon from '@mui/icons-material/BusinessCenter';
-import PhoneIcon from '@mui/icons-material/Phone';
-import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
-import DashboardIcon from '@mui/icons-material/Dashboard';
-import ListAltIcon from '@mui/icons-material/ListAlt';
+import { SpeedDial, SpeedDialHandler, SpeedDialContent, SpeedDialAction, IconButton, Typography } from "@material-tailwind/react";
+import { MdDashboard } from "react-icons/md";
+import { BsArrowUpCircleFill } from "react-icons/bs";
+import { ImBin2 } from "react-icons/im";
+import { MdSettingsRemote } from "react-icons/md";
 import { Link, Events, scrollSpy } from 'react-scroll';
-
-// Styled SpeedDial component for positioning and alignment with navbar's theme
-const StyledSpeedDial = styled(SpeedDial)(({ theme }) => ({
-    position: 'fixed',
-    bottom: theme.spacing(8),
-    right: theme.spacing(4),
-    zIndex: 100,
-    '& .MuiSpeedDial-fab': {
-        backgroundColor: theme.palette.primary.main,
-        color: theme.palette.primary.contrastText,
-    },
-}));
 
 const ScrollToTopButton = () => {
     const [activeMenu, setActiveMenu] = useState(null);
@@ -44,14 +26,6 @@ const ScrollToTopButton = () => {
         };
     }, []);
 
-    // Scroll to the top of the page
-    const topFunction = () => {
-        window.scrollTo({
-            top: 0,
-            behavior: 'smooth',
-        });
-    };
-
     // Handle active menu based on scroll event
     useEffect(() => {
         Events.scrollEvent.register('end', (to) => {
@@ -64,73 +38,73 @@ const ScrollToTopButton = () => {
         };
     }, []);
 
-    // Define the menu items with Material UI icons and navigation links
+    // Scroll to the top of the page
+    const topFunction = () => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth',
+        });
+    };
+
+    // Define the menu items with icons and navigation links
     const menuItems = [
-        { id: 'dashboard', icon: <DashboardIcon />, label: 'Dashboard', link: '/dashboard' },
-        { id: 'bins', icon: <ListAltIcon />, label: 'Bins', link: '/users/bins' },
-        { id: 'iot-remote', icon: <ListAltIcon />, label: 'IoT Remote', link: '/iot-remote' },
+        { id: 'dashboard', icon: <MdDashboard className="h-5 w-5" />, label: 'Dashboard', link: '/dashboard' },
+        { id: 'bins', icon: <ImBin2 className="h-5 w-5" />, label: 'Bins', link: '/users/bins' },
+        { id: 'iot-remote', icon: <MdSettingsRemote className="h-5 w-5" />, label: 'IoT Remote', link: '/iot-remote' },
     ];
 
     return (
-        <Box id="scroll-to-top-btn-container" sx={{ display: isVisible ? 'block' : 'none' }}>
-            {/* SpeedDial Component */}
-            <StyledSpeedDial
-                ariaLabel="Navigation SpeedDial"
-                icon={<SpeedDialIcon />}
-                direction="up"
-                onClick={topFunction}
-            >
-                {/* Map through the menu items */}
-                {menuItems.map((item) => (
-                    item.link ? (
-                        // Link-based navigation for Dashboard, Bins, and IoT Remote
-                        <SpeedDialAction
-                            key={item.id}
-                            icon={
-                                <Link
-                                    to={item.link}
-                                    spy={true}
-                                    smooth={true}
-                                    offset={item.offset}
-                                    duration={500}
-                                    className={`${activeMenu === item.id ? 'active' : ''}`}
-                                    onClick={() => setActiveMenu(item.id)}
-                                >
-                                    {item.icon}
-                                </Link>
-                            }
-                            tooltipTitle={<Typography variant="body2">{item.label}</Typography>}
-                        />
-                    ) : (
-                        // Scroll-based navigation for other sections
-                        <SpeedDialAction
-                            key={item.id}
-                            icon={
-                                <Link
-                                    to={item.id}
-                                    spy={true}
-                                    smooth={true}
-                                    offset={item.offset}
-                                    duration={500}
-                                    className={`${activeMenu === item.id ? 'active' : ''}`}
-                                    onClick={() => setActiveMenu(item.id)}
-                                >
-                                    {item.icon}
-                                </Link>
-                            }
-                            tooltipTitle={<Typography variant="body2">{item.label}</Typography>}
-                        />
-                    )
-                ))}
+        <div
+            id="scroll-to-top-btn-container"
+            className={`fixed bottom-8 right-4 z-[100] ${isVisible ? 'block' : 'hidden'}`}
+        >
+            <SpeedDial placement="top">
+                <SpeedDialHandler>
+                    <IconButton
+                        size="lg"
+                        className="rounded-full bg-blue-500 shadow-lg hover:bg-blue-600"
+                        onClick={topFunction}
+                    >
+                        <BsArrowUpCircleFill className="h-5 w-5" />
+                    </IconButton>
+                </SpeedDialHandler>
 
-                {/* Scroll to Top Action */}
-                <SpeedDialAction
-                    icon={<ArrowUpwardIcon />}
-                    tooltipTitle={<Typography variant="body2">Go to Top</Typography>}
-                    onClick={topFunction}
-                />
-            </StyledSpeedDial>
-        </Box>
+                <SpeedDialContent className="flex flex-col gap-2">
+                    {menuItems.map((item) => (
+                        <SpeedDialAction
+                            key={item.id}
+                            className="relative h-16 w-16 bg-white hover:bg-blue-50"
+                        >
+                            <Link
+                                to={item.link}
+                                spy={true}
+                                smooth={true}
+                                offset={item.offset}
+                                duration={500}
+                                className={`flex flex-col items-center gap-1 ${activeMenu === item.id ? 'text-blue-500' : 'text-gray-700'
+                                    }`}
+                                onClick={() => setActiveMenu(item.id)}
+                            >
+                                <div className="rounded-full p-2 hover:bg-blue-100">
+                                    {item.icon}
+                                </div>
+                            </Link>
+                        </SpeedDialAction>
+                    ))}
+
+                    <SpeedDialAction className="relative h-16 w-16 bg-white hover:bg-blue-50">
+                        <div
+                            className="flex flex-col items-center gap-1 text-gray-700"
+                            onClick={topFunction}
+                        >
+                            <div className="rounded-full p-2 hover:bg-blue-100">
+                                <BsArrowUpCircleFill className="h-5 w-5" />
+                            </div>
+                        </div>
+                    </SpeedDialAction>
+                </SpeedDialContent>
+            </SpeedDial>
+        </div>
     );
 };
 

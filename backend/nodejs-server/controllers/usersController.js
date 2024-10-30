@@ -77,24 +77,25 @@ const createUser = async (req, res) => {
             address,
             dateOfBirth,
             gender,
+            age,
             createdBy
         } = req.body;
 
         // Validate required fields
-        const requiredFields = ['employeeId', 'firstName', 'lastName', 'email', 'password', 'role', 'gender', 'address'];
-        for (const field of requiredFields) {
-            if (!req.body[field]) {
-                return handleClientError(res, `Missing required field: ${field}. Please ensure all required fields are provided.`);
-            }
-        }
+        // const requiredFields = ['employeeId', 'firstName', 'lastName', 'email', 'password', 'role', 'gender', 'address'];
+        // for (const field of requiredFields) {
+        //     if (!req.body[field]) {
+        //         return handleClientError(res, `Missing required field: ${field}. Please ensure all required fields are provided.`);
+        //     }
+        // }
 
         // Validate address fields
-        const addressFields = ['country', 'state', 'district', 'city', 'streetAddress', 'pinCode'];
-        for (const field of addressFields) {
-            if (!address[field]) {
-                return handleClientError(res, `Missing required address field: ${field}. Please ensure all required address fields are provided.`);
-            }
-        }
+        // const addressFields = ['country', 'state', 'district', 'city', 'streetAddress', 'pinCode'];
+        // for (const field of addressFields) {
+        //     if (!address[field]) {
+        //         return handleClientError(res, `Missing required address field: ${field}. Please ensure all required address fields are provided.`);
+        //     }
+        // }
 
         // Check for existing user by email or employeeId
         const existingUser = await UsersModel.findOne({
@@ -124,6 +125,7 @@ const createUser = async (req, res) => {
             address,
             dateOfBirth,
             gender,
+            age,
             createdBy,
             lastLogin: null, // Initialize lastLogin to null
             lastPasswordChangedAt: null // Initialize lastPasswordChangedAt to null
@@ -161,6 +163,7 @@ const editUserByEmployeeId = async (req, res) => {
             address,
             dateOfBirth,
             gender,
+            age,
             updatedBy, // Include updatedBy here
         } = req.body;
 
@@ -178,6 +181,7 @@ const editUserByEmployeeId = async (req, res) => {
                 address,
                 dateOfBirth,
                 gender,
+                age,
                 updatedBy, // Include updatedBy here
                 updatedAt: getFormattedDate() // Update timestamp
             },
@@ -296,6 +300,7 @@ const changePassword = async (req, res) => {
 
         // Hash the new password
         user.password = password; // Set plain password; hashing happens in the schema
+        user.lastPasswordChangedBy = getFormattedDate(); // Update lastPasswordChangedBy to current date
         user.lastPasswordChangedAt = getFormattedDate(); // Update lastPasswordChangedAt to current date
         await user.save(); // This will invoke the pre-save hook
 

@@ -1,23 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import {
-    Button,
-    Typography,
-    Box,
-    AppBar,
-    Toolbar,
-    Container,
-    IconButton,
-    Tooltip,
-    Fade,
-    CircularProgress,
-    Paper,
-    Grid,
-    Chip,
-} from '@mui/material';
-import MicIcon from '@mui/icons-material/Mic';
-import MicOffIcon from '@mui/icons-material/MicOff';
-import RefreshIcon from '@mui/icons-material/Refresh';
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import { IoIosMic, IoIosMicOff } from "react-icons/io";
+import { FaCircleInfo } from "react-icons/fa6";
 import LightControls from './LightControls';
 import VoiceVisualizer from './VoiceVisualizer';
 import InactivityTimer from './InactivityTimer';
@@ -83,45 +66,36 @@ const IotAutomationControl = () => {
     }, [deviceError, voiceError]);
 
     const renderLoading = () => (
-        <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
-            <CircularProgress color="primary" />
-        </Box>
+        <div className="flex min-h-[50vh] items-center justify-center">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
+        </div>
     );
 
     return (
-        <Box sx={{ flexGrow: 1, bgcolor: '#F5F5F5', minHeight: '100vh' }}>
-            <AppBar position="static" color="default" elevation={0} sx={{ borderBottom: '1px solid rgba(0, 0, 0, 0.12)', mb: 3 }}>
-                <Toolbar sx={{ justifyContent: 'space-between', gap: 2, py: 2 }}>
-                    <Typography variant="h5" color="primary" sx={{ flexShrink: 0, fontWeight: 'bold' }}>
-                        IoT Automation Control
-                    </Typography>
-
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        <div className="flex min-h-screen flex-col bg-gray-100">
+            <header className="border-b border-gray-300 bg-white shadow">
+                <div className="container mx-auto flex items-center justify-between px-4 py-4">
+                    <h1 className="text-2xl font-bold text-blue-600">IoT Automation Control</h1>
+                    <div className="flex items-center gap-4">
                         {isListening && (
-                            <Chip
-                                icon={<MicIcon />}
-                                label="Voice Control Active"
-                                color="primary"
-                                variant="outlined"
-                            />
+                            <div className="flex items-center rounded-full border border-blue-600 px-3 py-1 text-blue-600">
+                                <IoIosMic className="mr-2" />
+                                Voice Control Active
+                            </div>
                         )}
-
-                        <Button
-                            variant="contained"
-                            color={isListening ? "secondary" : "primary"}
+                        <button
                             onClick={isListening ? stopListening : startListening}
-                            startIcon={isListening ? <MicOffIcon /> : <MicIcon />}
-                            sx={{
-                                transition: 'background-color 0.3s ease',
-                            }}
+                            className={`px-4 py-2 text-white rounded-md transition-all duration-300 ${isListening ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-600 hover:bg-blue-700'
+                                } flex items-center gap-2`}
                         >
+                            {isListening ? <IoIosMicOff /> : <IoIosMic />}
                             {isListening ? "Stop Listening" : "Start Voice Control"}
-                        </Button>
-                    </Box>
-                </Toolbar>
-            </AppBar>
+                        </button>
+                    </div>
+                </div>
+            </header>
 
-            <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+            <main className="container mx-auto px-4 py-8">
                 {loading ? renderLoading() : (
                     <>
                         <LightControls
@@ -132,47 +106,40 @@ const IotAutomationControl = () => {
                             loading={loading}
                         />
 
-                        <Fade in={isListening}>
-                            <Box sx={{ mt: 4 }}>
-                                <Grid container spacing={3}>
-                                    <Grid item xs={12} md={6}>
-                                        <Paper elevation={3} sx={{ p: 3 }}>
-                                            <Typography variant="h6" gutterBottom>
-                                                Voice Recognition Status
-                                            </Typography>
-                                            <VoiceVisualizer isListening={isListening} />
-                                            <InactivityTimer remainingTime={remainingTime} />
-                                            {recognizedCommand && (
-                                                <Typography variant="body2" sx={{ mt: 2 }}>
-                                                    Recognized: {recognizedCommand}
-                                                </Typography>
-                                            )}
-                                        </Paper>
-                                    </Grid>
-                                    <Grid item xs={12} md={6}>
-                                        <Paper elevation={3} sx={{ p: 3, backgroundColor: '#f1f8e9' }}>
-                                            <Typography variant="h6" gutterBottom>
-                                                <InfoOutlinedIcon sx={{ verticalAlign: 'middle', mr: 1 }} />
-                                                Voice Commands Guide
-                                            </Typography>
-                                            <Typography variant="body2">
-                                                • "Turn on/off LED 1-5" - Control individual LEDs
-                                                <br />
-                                                • "Turn on/off Fan 1-5" - Control individual fans
-                                                <br />
-                                                • "Turn on/off all" - Control all devices
-                                                <br />
-                                                • "Stop listening" - End voice control
-                                            </Typography>
-                                        </Paper>
-                                    </Grid>
-                                </Grid>
-                            </Box>
-                        </Fade>
+                        {isListening && (
+                            <div className="mt-8">
+                                <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+                                    <div className="rounded-lg bg-white p-6 shadow-md">
+                                        <h2 className="mb-4 text-lg font-semibold">Voice Recognition Status</h2>
+                                        <VoiceVisualizer isListening={isListening} />
+                                        <InactivityTimer remainingTime={remainingTime} />
+                                        {recognizedCommand && (
+                                            <p className="mt-4 text-sm">
+                                                Recognized: <strong>{recognizedCommand}</strong>
+                                            </p>
+                                        )}
+                                    </div>
+                                    <div className="rounded-lg bg-white p-6 shadow-md">
+                                        <h2 className="mb-4 flex items-center text-lg font-semibold">
+                                            <FaCircleInfo className="mr-2" /> Voice Commands Guide
+                                        </h2>
+                                        <p className="text-sm">
+                                            • "Turn on/off LED 1-5" - Control individual LEDs
+                                            <br />
+                                            • "Turn on/off Fan 1-5" - Control individual fans
+                                            <br />
+                                            • "Turn on/off all" - Control all devices
+                                            <br />
+                                            • "Stop listening" - End voice control
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </>
                 )}
-            </Container>
-        </Box>
+            </main>
+        </div>
     );
 };
 

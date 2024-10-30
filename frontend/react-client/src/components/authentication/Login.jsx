@@ -5,24 +5,6 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
 import PreLoader from '../common/preloader/PreLoader';
-import {
-    Box,
-    Button,
-    CssBaseline,
-    FormControl,
-    Grid,
-    IconButton,
-    InputAdornment,
-    InputLabel,
-    MenuItem,
-    Paper,
-    Select,
-    TextField,
-    Typography,
-    useTheme,
-    useMediaQuery,
-} from '@mui/material';
-import { Visibility, VisibilityOff, Email, Lock } from '@mui/icons-material';
 import pkcLogo from "../../assets/pkc-logo.jpeg";
 
 // Validation schema for login
@@ -37,8 +19,6 @@ function Login() {
     const [showPassword, setShowPassword] = useState(false);
     const navigate = useNavigate();
     const { login } = useAuth();
-    const theme = useTheme();
-    const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
     const demoCredentials = {
         Admin: { email: 'samuvel6826@gmail.com', password: '1' },
@@ -80,179 +60,92 @@ function Login() {
     }
 
     return (
-        <Grid container component="main" sx={{ height: '100vh' }}>
-            <CssBaseline />
-            <Grid
-                item
-                xs={false}
-                sm={4}
-                md={7}
-                sx={{
-                    backgroundImage: 'url(https://res.cloudinary.com/dgsucveh2/image/upload/v1706749935/photo_2024-02-01_06.41.54_nsfqx6.jpg)',
-                    backgroundRepeat: 'no-repeat',
-                    backgroundColor: (t) => t.palette.grey[50],
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    opacity: 0.9,
-                    transition: 'opacity 0.5s ease-in-out',
-                    '&:hover': {
-                        opacity: 1,
-                    },
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                }}
-            />
-            <Grid
-                item
-                xs={12}
-                sm={8}
-                md={5}
-                component={Paper}
-                elevation={10}
-                square
-                sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                }}
-            >
-                <Box
-                    sx={{
-                        my: 0,
-                        mx: 4,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        backgroundColor: 'white',
-                        borderRadius: '15px',
-                        padding: '20px',
-                        boxShadow: 4,
-                        transition: 'all 0.3s ease-in-out',
-                        '&:hover': {
-                            boxShadow: 8,
-                        },
-                        maxWidth: '500px',
-                        width: '100%',
-                    }}
-                >
-                    <img src={pkcLogo} alt="Pioneer Kumaraswamy College" style={{ width: '35%', marginBottom: '1rem' }} />
-                    <Typography component="h1" variant="h5" align="center" gutterBottom>
-                        PIONEER KUMARASWAMY COLLEGE
-                    </Typography>
-                    <Typography variant="subtitle2" color="text.secondary" align="center">
-                        Affiliated to Manonmaniam Sundaranar University, Tirunelveli
-                    </Typography>
-                    <Typography variant="subtitle2" color="text.secondary" align="center">
-                        Reaccredited with B<sup>++</sup> grade by NAAC
-                    </Typography>
-                    <Typography variant="subtitle2" color="text.secondary" align="center" gutterBottom>
-                        Vetturnimadam, Nagercoil - 3.
-                    </Typography>
-                    <Box sx={{ mt: 2, width: '100%' }}>
-                        <Formik
-                            initialValues={{ email: '', password: '' }}
-                            validationSchema={LoginSchema}
-                            onSubmit={handleLogin}
-                        >
-                            {({ errors, touched, setFieldValue, isSubmitting }) => (
-                                <Form>
+        <div className="flex h-screen">
+            <div className="hidden bg-cover bg-center md:flex md:w-1/2" style={{
+                backgroundImage: 'url(https://res.cloudinary.com/dgsucveh2/image/upload/v1706749935/photo_2024-02-01_06.41.54_nsfqx6.jpg)',
+                opacity: 0.9,
+            }}>
+                {/* Optional content or message can be added here */}
+            </div>
+            <div className="flex w-full items-center justify-center md:w-1/2">
+                <div className="w-full max-w-sm rounded-lg bg-white p-8 shadow-lg">
+                    <img src={pkcLogo} alt="Pioneer Kumaraswamy College" className="mx-auto mb-4 w-1/3" />
+                    <h1 className="text-center text-2xl font-semibold">PIONEER KUMARASWAMY COLLEGE</h1>
+                    <p className="text-center text-gray-500">Affiliated to Manonmaniam Sundaranar University, Tirunelveli</p>
+                    <p className="text-center text-gray-500">Reaccredited with B<sup>++</sup> grade by NAAC</p>
+                    <p className="mb-6 text-center text-gray-500">Vetturnimadam, Nagercoil - 3.</p>
+                    <Formik
+                        initialValues={{ email: '', password: '' }}
+                        validationSchema={LoginSchema}
+                        onSubmit={handleLogin}
+                    >
+                        {({ errors, touched, setFieldValue, isSubmitting }) => (
+                            <Form>
+                                <div className="mb-4">
+                                    <label htmlFor="email" className="block text-gray-700">Email Address</label>
                                     <Field
-                                        as={TextField}
-                                        margin="normal"
-                                        required
-                                        fullWidth
-                                        id="email"
-                                        label="Email Address"
+                                        type="email"
                                         name="email"
+                                        id="email"
+                                        className={`w-full p-2 border ${touched.email && errors.email ? 'border-red-500' : 'border-gray-300'} rounded`}
                                         autoComplete="email"
                                         autoFocus
-                                        error={touched.email && !!errors.email}
-                                        helperText={touched.email && errors.email}
-                                        InputProps={{
-                                            startAdornment: (
-                                                <InputAdornment position="start">
-                                                    <Email />
-                                                </InputAdornment>
-                                            ),
-                                        }}
                                     />
-                                    <Field
-                                        as={TextField}
-                                        margin="normal"
-                                        required
-                                        fullWidth
-                                        name="password"
-                                        label="Password"
-                                        type={showPassword ? 'text' : 'password'}
-                                        id="password"
-                                        autoComplete="current-password"
-                                        error={touched.password && !!errors.password}
-                                        helperText={touched.password && errors.password}
-                                        InputProps={{
-                                            startAdornment: (
-                                                <InputAdornment position="start">
-                                                    <Lock />
-                                                </InputAdornment>
-                                            ),
-                                            endAdornment: (
-                                                <InputAdornment position="end">
-                                                    <IconButton
-                                                        aria-label="toggle password visibility"
-                                                        onClick={() => setShowPassword(!showPassword)}
-                                                        edge="end"
-                                                    >
-                                                        {showPassword ? <VisibilityOff /> : <Visibility />}
-                                                    </IconButton>
-                                                </InputAdornment>
-                                            ),
-                                        }}
-                                    />
-                                    <FormControl fullWidth margin="normal">
-                                        <InputLabel id="demo-account-label">Demo Account</InputLabel>
-                                        <Select
-                                            labelId="demo-account-label"
-                                            id="demo-account"
-                                            value={selectedRole}
-                                            label="Demo Account"
-                                            onChange={(e) => {
-                                                const role = e.target.value;
-                                                setSelectedRole(role);
-                                                handleDemoLogin(role, setFieldValue);
-                                            }}
+                                    {touched.email && errors.email && <p className="text-sm text-red-500">{errors.email}</p>}
+                                </div>
+                                <div className="mb-4">
+                                    <label htmlFor="password" className="block text-gray-700">Password</label>
+                                    <div className="relative">
+                                        <Field
+                                            type={showPassword ? 'text' : 'password'}
+                                            name="password"
+                                            id="password"
+                                            className={`w-full p-2 border ${touched.password && errors.password ? 'border-red-500' : 'border-gray-300'} rounded`}
+                                            autoComplete="current-password"
+                                        />
+                                        <button
+                                            type="button"
+                                            className="absolute right-2 top-2 text-gray-500"
+                                            onClick={() => setShowPassword(!showPassword)}
                                         >
-                                            <MenuItem value="" disabled>Select a demo role</MenuItem>
-                                            {Object.keys(demoCredentials).map((role) => (
-                                                <MenuItem key={role} value={role}>{role}</MenuItem>
-                                            ))}
-                                        </Select>
-                                    </FormControl>
-                                    <Button
-                                        type="submit"
-                                        fullWidth
-                                        variant="contained"
-                                        sx={{
-                                            mt: 3,
-                                            mb: 2,
-                                            borderRadius: '30px',
-                                            backgroundColor: '#3f51b5',
-                                            '&:hover': {
-                                                backgroundColor: '#303f9f',
-                                            },
-                                            transition: 'all 0.3s ease-in-out',
+                                            {showPassword ? 'Hide' : 'Show'}
+                                        </button>
+                                    </div>
+                                    {touched.password && errors.password && <p className="text-sm text-red-500">{errors.password}</p>}
+                                </div>
+                                <div className="mb-4">
+                                    <label htmlFor="demo-account" className="block text-gray-700">Demo Account</label>
+                                    <Field
+                                        as="select"
+                                        name="demo-account"
+                                        id="demo-account"
+                                        value={selectedRole}
+                                        onChange={(e) => {
+                                            const role = e.target.value;
+                                            setSelectedRole(role);
+                                            handleDemoLogin(role, setFieldValue);
                                         }}
-                                        disabled={isSubmitting}
+                                        className="w-full rounded border border-gray-300 p-2"
                                     >
-                                        Login
-                                    </Button>
-                                </Form>
-                            )}
-                        </Formik>
-                    </Box>
-                </Box>
-            </Grid>
-        </Grid>
+                                        <option value="" disabled>Select a demo role</option>
+                                        {Object.keys(demoCredentials).map((role) => (
+                                            <option key={role} value={role}>{role}</option>
+                                        ))}
+                                    </Field>
+                                </div>
+                                <button
+                                    type="submit"
+                                    className="w-full rounded bg-blue-500 p-2 text-white transition duration-200 hover:bg-blue-700"
+                                    disabled={isSubmitting}
+                                >
+                                    Login
+                                </button>
+                            </Form>
+                        )}
+                    </Formik>
+                </div>
+            </div>
+        </div>
     );
 }
 

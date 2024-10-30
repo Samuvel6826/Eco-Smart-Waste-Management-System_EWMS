@@ -1,27 +1,30 @@
 import React from 'react';
-import { Box, Typography, LinearProgress } from '@mui/material';
 
 const InactivityTimer = ({ remainingTime }) => {
     const progress = (remainingTime / 10) * 100; // Assuming 10 seconds is the full duration
 
+    const getProgressColor = () => {
+        if (progress > 50) {
+            return 'bg-green-500'; // Success color
+        } else if (progress > 20) {
+            return 'bg-yellow-500'; // Warning color
+        } else {
+            return 'bg-red-500'; // Danger color
+        }
+    };
+
     return (
-        <Box sx={{ width: '100%', mt: 2 }}>
-            <Typography variant="body2" color="text.secondary" align="center">
+        <div className="mt-4 w-full">
+            <p className="text-center text-gray-600">
                 Inactivity Timer: {remainingTime} seconds
-            </Typography>
-            <LinearProgress
-                variant="determinate"
-                value={progress}
-                sx={{
-                    height: 10,
-                    borderRadius: 5,
-                    '& .MuiLinearProgress-bar': {
-                        borderRadius: 5,
-                        backgroundColor: progress > 50 ? '#4caf50' : progress > 20 ? '#ff9800' : '#f44336',
-                    },
-                }}
-            />
-        </Box>
+            </p>
+            <div className="mt-2 h-2.5 w-full rounded-full bg-gray-200">
+                <div
+                    className={`h-2.5 rounded-full ${getProgressColor()}`}
+                    style={{ width: `${progress}%` }}
+                ></div>
+            </div>
+        </div>
     );
 };
 

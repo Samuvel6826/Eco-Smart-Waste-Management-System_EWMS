@@ -1,121 +1,148 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { toast } from 'react-hot-toast';
+import dayjs from 'dayjs';
 
 class ErrorBoundary extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            hasError: false,
-            error: null,
-            errorInfo: null,
-            copied: false,
-            showDetails: false
+    state = {
+        hasError: false,
+        error: null,
+        errorInfo: null,
+        copied: false,
+        timestamp: null,
+    };
+
+    static getDerivedStateFromError(error) {
+        return {
+            hasError: true,
+            error,
+            timestamp: dayjs().format('DD/MM/YYYY, hh:mm:ss A'),
         };
     }
 
-    static getDerivedStateFromError(error) {
-        return { hasError: true, error };
-    }
-
     componentDidCatch(error, errorInfo) {
-        console.error('Error caught by error boundary:', error, errorInfo);
         this.setState({ error, errorInfo });
-
-        // Log error to an error tracking service (e.g., Sentry)
-        // logErrorToService(error, errorInfo);
+        // Consider adding error logging here (e.g., to an external monitoring service)
     }
 
-    handleReload = () => {
-        window.location.reload();
-    };
+    copyErrorDetails = async () => {
+        try {
+            const errorText = `
+Application Error Report
+-----------------------
+Timestamp: ${this.state.timestamp}
+Error: ${this.state.error?.toString()}
+Stack: ${this.state.errorInfo?.componentStack || 'No stack trace available'}
 
-    handleCopy = () => {
-        const errorDetails = `${this.state.error.toString()}\n${this.state.errorInfo.componentStack}`;
-        navigator.clipboard.writeText(errorDetails).then(() => {
+Please include this information when reporting the issue.
+            `.trim();
+
+            await navigator.clipboard.writeText(errorText);
             this.setState({ copied: true });
-            toast.success('Error details copied to clipboard');
             setTimeout(() => this.setState({ copied: false }), 2000);
-        });
-    };
-
-    toggleDetails = () => {
-        this.setState(prevState => ({ showDetails: !prevState.showDetails }));
+        } catch (err) {
+            console.error('Failed to copy error details:', err);
+        }
     };
 
     render() {
-        if (this.state.hasError) {
-            return (
-                <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 p-4 text-gray-800">
-                    <div className="w-full max-w-lg rounded-lg bg-white p-8 text-center shadow-2xl">
-                        <div className="mb-6">
+        if (!this.state.hasError) return this.props.children;
+
+        return (
+            <div className="min-h-screen w-full bg-gradient-to-b from-white to-gray-50">
+                {/* Top Bar */}
+                <header className="border-b border-red-100 bg-red-50 px-4 py-3">
+                    <div className="mx-auto flex max-w-6xl items-center justify-between">
+                        <div className="flex items-center gap-2 text-red-700">
+                            <span className="sr-only">Error Indicator</span>
                             <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="mx-auto h-20 w-20 text-red-500"
-                                fill="none"
+                                className="h-5 w-5"
                                 viewBox="0 0 24 24"
+                                fill="none"
                                 stroke="currentColor"
+                                strokeWidth="2"
+                                aria-hidden="true"
                             >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                                />
+                                <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                             </svg>
+                            <span className="font-medium">Error Status</span>
                         </div>
-                        <h1 className="mb-4 text-3xl font-bold text-gray-800">Oops! Something went wrong</h1>
-                        <p className="mb-6 text-gray-600">
-                            We apologize for the inconvenience. Our team has been notified and is working on a fix.
+                        <div className="text-sm text-red-600">{this.state.timestamp}</div>
+                    </div>
+                </header>
+
+                {/* Error Content */}
+                <main className="mx-auto max-w-6xl px-4 py-6">
+                    {/* Error Message Section */}
+                    <div className="text-center">
+                        <h1 className="mb-4 text-3xl font-bold text-gray-900">An Unexpected Error Occurred</h1>
+                        <p className="mx-auto mb-6 max-w-2xl text-lg text-gray-600">
+                            You can try refreshing or returning to the dashboard. The issue has been noted for further review.
                         </p>
-                        {this.state.showDetails && (
-                            <div className="mb-6">
-                                <div className="rounded-md bg-gray-100 p-4 text-left">
-                                    <h3 className="mb-2 font-semibold">Technical Details</h3>
-                                    <pre className="max-h-40 overflow-auto whitespace-pre-wrap text-left text-sm text-gray-700">
-                                        {this.state.error && this.state.error.toString()}
-                                        <br />
-                                        {this.state.errorInfo ? this.state.errorInfo.componentStack : 'No additional details'}
-                                    </pre>
-                                </div>
-                            </div>
-                        )}
 
-                        <div className="mb-6 flex justify-center space-x-4">
+                        {/* Actions */}
+                        <div className="flex flex-wrap justify-center gap-4">
                             <button
-                                onClick={this.toggleDetails}
-                                className="rounded-md bg-gray-200 px-4 py-2 text-gray-700 shadow-md transition hover:bg-gray-300"
+                                onClick={() => window.location.reload()}
+                                className="inline-flex items-center rounded-lg bg-blue-600 px-6 py-3 text-white shadow-sm hover:bg-blue-700 focus:outline-none"
+                                aria-label="Refresh the page"
                             >
-                                {this.state.showDetails ? 'Hide Details' : 'Show Details'}
+                                <span className="mr-2 rotate-90">↻</span> Refresh Page
                             </button>
                             <button
-                                onClick={this.handleCopy}
-                                className="rounded-md bg-gray-200 px-4 py-2 text-gray-700 shadow-md transition hover:bg-gray-300"
+                                onClick={() => (window.location.href = '/dashboard')}
+                                className="inline-flex items-center rounded-lg border border-gray-200 bg-white px-6 py-3 text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none"
+                                aria-label="Return to the dashboard"
                             >
-                                {this.state.copied ? 'Copied!' : 'Copy Error Details'}
+                                <span className="mr-2">←</span> Return to Dashboard
                             </button>
-                        </div>
-
-                        <div className="flex justify-center space-x-4">
-                            <button
-                                onClick={this.handleReload}
-                                className="rounded-md bg-blue-500 px-6 py-2 text-white shadow-md transition hover:bg-blue-600"
-                            >
-                                Reload Page
-                            </button>
-                            <a
-                                href="/dashboard"
-                                className="rounded-md bg-gray-200 px-6 py-2 text-gray-700 shadow-md transition hover:bg-gray-300"
-                            >
-                                Go to Dashboard
-                            </a>
                         </div>
                     </div>
-                </div>
-            );
-        }
 
-        return this.props.children;
+                    {/* Technical Details Section */}
+                    <section className="mt-6 rounded-lg border border-gray-200 bg-white shadow-sm">
+                        <header className="flex items-center justify-between border-b border-gray-200 bg-gray-50 px-6 py-4">
+                            <h2 className="text-lg font-semibold text-gray-900">Technical Details</h2>
+                            <button
+                                onClick={this.copyErrorDetails}
+                                className="inline-flex items-center rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 focus:outline-none"
+                                aria-label="Copy error details to clipboard"
+                            >
+                                {this.state.copied ? (
+                                    <span className="flex items-center gap-2 text-green-600">
+                                        ✓ Copied to Clipboard
+                                    </span>
+                                ) : (
+                                    <span className="flex items-center gap-2">
+                                        📋 Copy Error Details
+                                    </span>
+                                )}
+                            </button>
+                        </header>
+
+                        {/* Error Message and Stack Trace */}
+                        <div className="divide-y divide-gray-200">
+                            <div className="px-6 py-4">
+                                <h3 className="mb-1 text-sm font-medium text-gray-500">Error Message</h3>
+                                <div className="font-mono rounded-lg border border-gray-100 bg-gray-50 p-3 text-sm text-red-800">
+                                    {this.state.error?.toString() || 'Unknown Error'}
+                                </div>
+                            </div>
+                            <div className="px-6 py-4">
+                                <h3 className="mb-1 text-sm font-medium text-gray-500">Stack Trace</h3>
+                                <pre className="font-mono max-h-96 overflow-auto whitespace-pre-wrap rounded-lg border border-gray-100 bg-gray-50 p-3 text-sm text-red-800">
+                                    {this.state.errorInfo?.componentStack || 'No stack trace available'}
+                                </pre>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* Support Information */}
+                    <footer className="mt-8 text-center text-gray-600">
+                        <p>Need assistance? Reach us at <a href="mailto:support@example.com" className="text-blue-600">support@example.com</a></p>
+                    </footer>
+                </main>
+            </div>
+        );
     }
 }
 

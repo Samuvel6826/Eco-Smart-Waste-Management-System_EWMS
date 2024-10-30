@@ -5,44 +5,16 @@ import Bin from './Bin';
 import { useBinsContext } from '../../contexts/BinsContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useUsersContext } from '../../contexts/UsersContext';
-import {
-    Button,
-    Typography,
-    Box,
-    Grid,
-    CircularProgress,
-    AppBar,
-    Toolbar,
-    Container,
-    Paper,
-    Chip,
-    IconButton,
-    Tooltip,
-    useTheme,
-    useMediaQuery,
-    Select,
-    MenuItem,
-    FormControl,
-    InputLabel,
-    Fade,
-    Slide,
-} from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
-import WarningIcon from '@mui/icons-material/Warning';
-import DashboardIcon from '@mui/icons-material/Dashboard';
-import ViewListIcon from '@mui/icons-material/ViewList';
-import RefreshIcon from '@mui/icons-material/Refresh';
+import { GoPlus } from "react-icons/go";
+import { FaLocationDot } from "react-icons/fa6";
+import { IoWarning } from "react-icons/io5";
 
 const SupervisorBins = () => {
-    const theme = useTheme();
-    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
     const { user } = useAuth();
     const { bins, loading, error, fetchBinsByLocation } = useBinsContext();
     const { fetchAssignedBinLocations } = useUsersContext();
     const [selectedLocation, setSelectedLocation] = useState('');
     const [assignedLocations, setAssignedLocations] = useState([]);
-    const [view, setView] = useState('grid');
 
     const fetchSupervisorData = useCallback(async () => {
         if (!user || !user.employeeId) {
@@ -52,11 +24,13 @@ const SupervisorBins = () => {
         try {
             const locations = await fetchAssignedBinLocations(user.employeeId);
             setAssignedLocations(locations);
+
             if (locations.length > 0) {
                 const storedLocation = localStorage.getItem('selectedUserLocation');
                 const validLocation = storedLocation && locations.includes(storedLocation)
                     ? storedLocation
                     : locations[0];
+
                 setSelectedLocation(validLocation);
                 localStorage.setItem('selectedUserLocation', validLocation);
                 await fetchBinsByLocation(validLocation);
@@ -94,148 +68,129 @@ const SupervisorBins = () => {
     }, [binsForSelectedLocation]);
 
     const renderLoading = () => (
-        <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
-            <CircularProgress color="primary" />
-        </Box>
+        <div className="flex min-h-[50vh] items-center justify-center">
+            <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
+        </div>
     );
 
     const renderError = () => (
-        <Slide direction="up" in={!!error}>
-            <Paper elevation={3} sx={{ p: 3, mt: 3, backgroundColor: '#FFF4F4' }}>
-                <Typography variant="h6" color="error" align="center">
-                    {error || 'An error occurred. Please try again.'}
-                </Typography>
-            </Paper>
-        </Slide>
+        <div className="mt-4 rounded-lg bg-red-50 p-4 shadow-sm">
+            <div className="flex items-center">
+                <div className="flex-shrink-0">
+                    <IoWarning className="h-6 w-6 text-red-500" />
+                </div>
+                <div className="ml-3">
+                    <h3 className="text-sm font-medium text-red-800">
+                        {error || 'An error occurred. Please try again.'}
+                    </h3>
+                </div>
+            </div>
+        </div>
     );
 
     const renderLocationDropdown = () => (
-        <FormControl fullWidth sx={{ mb: 3 }}>
-            <InputLabel id="location-select-label">Location</InputLabel>
-            <Select
-                labelId="location-select-label"
-                id="location-select"
-                value={selectedLocation}
-                label="Location"
-                onChange={(event) => handleLocationChange(event.target.value)}
-                MenuProps={{
-                    PaperProps: {
-                        style: {
-                            maxHeight: 48 * 7 + 8,
-                            width: 250,
-                        },
-                    },
-                }}
-            >
-                {assignedLocations.map((location) => (
-                    <MenuItem key={location} value={location}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', justifyContent: 'space-between' }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                <LocationOnIcon sx={{ mr: 1 }} />
-                                <Typography noWrap>{location}</Typography>
-                            </Box>
-                            <Chip
-                                size="small"
-                                label={Object.keys(bins[location] || {}).length}
-                                sx={{ ml: 1 }}
-                                color="primary"
-                            />
-                        </Box>
-                    </MenuItem>
-                ))}
-            </Select>
-        </FormControl>
+        <div className="relative">
+            <label htmlFor="location-select" className="mb-2 block text-sm font-medium text-gray-700">
+                Select Location
+            </label>
+            <div className="relative">
+                <select
+                    id="location-select"
+                    value={selectedLocation}
+                    onChange={(event) => handleLocationChange(event.target.value)}
+                    className="block w-full appearance-none rounded-lg border border-gray-300 bg-white px-4 py-2.5 pr-8 text-gray-700 shadow-sm transition duration-150 ease-in-out focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+                >
+                    {assignedLocations.map((location) => (
+                        <option key={location} value={location}>
+                            {location} ({Object.keys(bins[location] || {}).length} bins)
+                        </option>
+                    ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                    <FaLocationDot className="h-4 w-4" />
+                </div>
+            </div>
+        </div>
     );
 
     const renderBinGrid = () => (
-        <Grid container spacing={3} sx={{ display: 'flex', alignItems: 'center', justifyContent: "center" }}>
+        <div className="flex h-full w-full flex-wrap items-center justify-center gap-4">
             {Object.entries(binsForSelectedLocation).length > 0 ? (
                 Object.entries(binsForSelectedLocation).map(([binId, binData]) => (
-                    <Fade in key={binId} timeout={500}>
-                        <Grid item xs={12} sm={6} md={4} lg={3}>
-                            <Bin
-                                locationId={selectedLocation}
-                                binId={binId}
-                                binData={binData}
-                            />
-                        </Grid>
-                    </Fade>
+                    <div key={binId} className="h-full">
+                        <Bin
+                            locationId={selectedLocation}
+                            binId={binId}
+                            binData={binData}
+                        />
+                    </div>
                 ))
             ) : (
-                <Grid item xs={12}>
-                    <Typography color="error" align="center">No bins found for this location.</Typography>
-                </Grid>
+                <div className="col-span-full">
+                    <div className="rounded-lg bg-gray-50 p-8 text-center">
+                        <h2 className="text-lg font-medium text-gray-500">No bins found for this location</h2>
+                    </div>
+                </div>
             )}
-        </Grid>
-    );
-
-    const renderBinList = () => (
-        <Paper elevation={3}>
-            {Object.entries(binsForSelectedLocation).length > 0 ? (
-                Object.entries(binsForSelectedLocation).map(([binId, binData]) => (
-                    <Fade in key={binId} timeout={500}>
-                        <Box key={binId} sx={{ p: 2, borderBottom: '1px solid #e0e0e0' }}>
-                            <Bin
-                                locationId={selectedLocation}
-                                binId={binId}
-                                binData={binData}
-                                listView
-                            />
-                        </Box>
-                    </Fade>
-                ))
-            ) : (
-                <Typography color="error" align="center" sx={{ p: 3 }}>No bins found for this location.</Typography>
-            )}
-        </Paper>
+        </div>
     );
 
     return (
-        <Box sx={{ flexGrow: 1, bgcolor: '#F5F5F5', minHeight: '100vh' }}>
-            <AppBar position="static" color="default" elevation={0} sx={{ borderBottom: '1px solid rgba(0, 0, 0, 0.12)', mb: 3 }}>
-                <Toolbar sx={{ justifyContent: 'space-between', gap: 2, py: 2 }}>
-                    <Typography variant="h5" color="primary" sx={{ flexShrink: 0, fontWeight: 'bold' }}>
-                        Supervisor Bins Management
-                    </Typography>
+        <div className="min-h-screen bg-gray-50">
+            <div className="bg-white shadow">
+                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                    <div className="py-6">
+                        <div className="flex items-center justify-between">
+                            <h1 className="text-2xl font-bold text-gray-900">Supervisor Bins Management</h1>
 
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        {attentionNeededCount > 0 && (
-                            <Chip
-                                icon={<WarningIcon />}
-                                label={`${attentionNeededCount} bin${attentionNeededCount > 1 ? 's' : ''} need${attentionNeededCount > 1 ? '' : 's'} attention`}
-                                color="warning"
-                                variant="outlined"
-                            />
-                        )}
+                            <div className="flex items-center space-x-4">
+                                {attentionNeededCount > 0 && (
+                                    <div className="flex items-center rounded-full bg-amber-100 px-4 py-1.5 text-sm font-medium text-amber-800">
+                                        <IoWarning className="mr-1.5 h-4 w-4" />
+                                        {attentionNeededCount} bin{attentionNeededCount > 1 ? 's' : ''} need{attentionNeededCount === 1 ? 's' : ''} attention
+                                    </div>
+                                )}
 
-                        <Tooltip title="Toggle view">
-                            <IconButton onClick={() => setView(view === 'grid' ? 'list' : 'grid')} color="primary">
-                                {view === 'grid' ? <ViewListIcon /> : <DashboardIcon />}
-                            </IconButton>
-                        </Tooltip>
-                    </Box>
-                </Toolbar>
-            </AppBar>
+                                <Link
+                                    to={`/supervisor/create-bin/${encodeURIComponent(selectedLocation)}`}
+                                    className={`inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 ${!selectedLocation ? 'cursor-not-allowed opacity-50' : ''
+                                        }`}
+                                    disabled={!selectedLocation}
+                                >
+                                    <GoPlus className="mr-1.5 h-4 w-4" />
+                                    Create New Bin
+                                </Link>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-            <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                {renderLocationDropdown()}
+            <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+                <div className="mb-8">
+                    {renderLocationDropdown()}
+                </div>
 
                 {loading ? renderLoading() :
                     error ? renderError() :
                         selectedLocation ? (
-                            <>
-                                <Box sx={{ mb: 3, textAlign: "center" }}>
-                                    <Typography variant="h6" gutterBottom>
+                            <div className="space-y-6">
+                                <div className="text-center">
+                                    <h2 className="text-xl font-semibold text-gray-900">
                                         Bins in {selectedLocation}
-                                    </Typography>
-                                </Box>
-                                {view === 'grid' ? renderBinGrid() : renderBinList()}
-                            </>
+                                    </h2>
+                                </div>
+                                {renderBinGrid()}
+                            </div>
                         ) : (
-                            <Typography color="primary" align="center">Please select a location to view bins.</Typography>
+                            <div className="rounded-lg bg-white p-8 text-center shadow">
+                                <h2 className="text-lg font-medium text-gray-500">
+                                    Please select a location to view bins
+                                </h2>
+                            </div>
                         )}
-            </Container>
-        </Box>
+            </main>
+        </div>
     );
 };
 

@@ -1,215 +1,306 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBinsContext } from '../../contexts/BinsContext';
 import { useAuth } from '../../contexts/AuthContext';
-import { toast } from 'react-hot-toast';
 import {
-    Card, CardContent, CardActions, Typography, Button, Dialog, DialogActions,
-    DialogContent, DialogContentText, DialogTitle, LinearProgress, Chip, Box,
-    IconButton, Collapse, Grid, Divider, Avatar
-} from '@mui/material';
+    Card,
+    CardBody,
+    Typography,
+    Button,
+    Chip,
+    Dialog,
+    DialogHeader,
+    DialogBody,
+    DialogFooter,
+    IconButton,
+    Tooltip,
+} from "@material-tailwind/react";
 import {
-    Delete as DeleteIcon, Edit as EditIcon, LocationOn as LocationIcon,
-    Warning as WarningIcon, ExpandMore as ExpandMoreIcon,
-    ExpandLess as ExpandLessIcon, Delete as TrashIcon, CheckCircle as CheckCircleIcon,
-    PowerSettingsNew as PowerIcon
-} from '@mui/icons-material';
+    Cog6ToothIcon,
+    TrashIcon,
+    MapPinIcon,
+    ExclamationTriangleIcon,
+    SignalIcon,
+    ArchiveBoxIcon,
+    Battery100Icon,
+    BeakerIcon,
+    ArrowPathIcon
+} from '@heroicons/react/24/solid';
 
 const Bin = ({ locationId, binId, binData }) => {
     const [showModal, setShowModal] = useState(false);
-    const [expanded, setExpanded] = useState(false);
     const navigate = useNavigate();
     const { deleteBin } = useBinsContext();
     const { user } = useAuth();
 
     const {
-        binLocation = 'N/A',
-        id = 'N/A',
-        geoLocation = {},
-        distance = 0,
-        binType = 'N/A',
-        binLidStatus = 'N/A',
-        microProcessorStatus = 'N/A',
-        sensorStatus = 'N/A',
+        binLocation = 'Canteen',
+        id = 'Bin-1',
+        binType = 'TYPE C',
+        binLidStatus = 'OPEN',
+        microProcessorStatus = 'ON',
+        sensorStatus = 'ON',
         filledBinPercentage = 0,
-        maxBinCapacity = 'N/A',
-        binActiveStatus = 'N/A'
+        maxBinCapacity = '100',
+        binActiveStatus = 'ACTIVE',
+        lastEmptied = '2024-10-24T15:30:00',
+        temperature = '24°C',
+        humidity = '65%',
+        batteryLevel = '85'
     } = binData;
-
-    const handleDelete = () => setShowModal(true);
-    const handleCloseModal = () => setShowModal(false);
-    const handleExpand = () => setExpanded(!expanded);
-
-    const confirmDelete = async () => {
-        try {
-            await deleteBin(locationId, binId);
-            toast.success('Bin deleted successfully');
-        } catch (error) {
-            console.error('Error deleting bin:', error);
-            toast.error('Error deleting bin. Please try again.');
-        } finally {
-            setShowModal(false);
-        }
-    };
 
     const getStatusColor = (status) => {
         switch (status.toLowerCase()) {
             case 'active':
             case 'on':
             case 'closed':
-                return 'success';
+                return 'green';
             case 'inactive':
             case 'off':
             case 'open':
-                return 'error';
+                return 'red';
             default:
-                return 'default';
+                return 'gray';
         }
     };
 
-    const getFilledColor = (percentage) => {
-        if (percentage > 80) return 'error';
-        if (percentage > 50) return 'warning';
-        return 'success';
+    const getFillLevelColor = (percentage) => {
+        if (percentage >= 80) return 'red';
+        if (percentage >= 50) return 'yellow';
+        return 'green';
     };
 
-    const needsAttention = filledBinPercentage > 80 || binLidStatus.toLowerCase() === 'open' ||
-        microProcessorStatus.toLowerCase() === 'off' || sensorStatus.toLowerCase() === 'off' ||
-        binActiveStatus.toLowerCase() === 'inactive';
+    const getFillLevelGradient = (percentage) => {
+        if (percentage >= 80) return 'from-red-200 to-red-500';
+        if (percentage >= 50) return 'from-yellow-200 to-yellow-500';
+        return 'from-green-200 to-green-500';
+    };
 
-    // Memoize the permissions check to avoid unnecessary re-renders
-    const permissions = useMemo(() => ({
-        canEdit: user?.role === 'Admin' || user?.role === 'Manager',
-        canDelete: user?.role === 'Admin' || user?.role === 'Manager'
-    }), [user?.role]);
+    const formatLastEmptied = (dateString) => {
+        const date = new Date(dateString);
+        return date.toLocaleString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
+
+    const needsAttention = filledBinPercentage > 80 ||
+        binLidStatus.toLowerCase() === 'open' ||
+        microProcessorStatus.toLowerCase() === 'off' ||
+        sensorStatus.toLowerCase() === 'off';
+
+    const getMaintenanceStatus = () => {
+        if (needsAttention) return 'Attention Required';
+        if (filledBinPercentage >= 50) return 'Monitor';
+        return 'Operational';
+    };
 
     return (
         <>
-            <Card sx={{ mb: 2, position: 'relative', overflow: 'visible', boxShadow: 3 }}>
-                {needsAttention && (
-                    <WarningIcon color="warning" sx={{ position: 'absolute', top: -10, right: -10 }} />
-                )}
-                <CardContent>
-                    <Grid container spacing={2} alignItems="center">
-                        <Grid item>
-                            <Avatar sx={{ bgcolor: theme => theme.palette[getStatusColor(binActiveStatus)].main }}>
-                                <PowerIcon />
-                            </Avatar>
-                        </Grid>
-                        <Grid item xs>
-                            <Typography variant="h6">{id}</Typography>
-                            <Typography variant="body2" color="text.secondary">
-                                <LocationIcon sx={{ verticalAlign: 'middle', mr: 1 }} />
-                                {binLocation}
+            <Card className="w-[380px] bg-white transition-all duration-300 hover:shadow-lg">
+                {/* Status Banner */}
+                <div
+                    className={`px-4 py-2 transition-colors duration-300 ${needsAttention
+                        ? 'bg-gradient-to-r from-red-50 to-red-100'
+                        : 'bg-gradient-to-r from-green-50 to-green-100'
+                        }`}
+                >
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <div className={`h-2.5 w-2.5 rounded-full ${needsAttention ? 'animate-pulse bg-red-500' : 'bg-green-500'}`} />
+                            <Typography className={`font-medium ${needsAttention ? 'text-red-700' : 'text-green-700'}`}>
+                                {getMaintenanceStatus()}
                             </Typography>
-                        </Grid>
-                        <Grid item>
-                            <Chip label={`Type: ${binType}`} color="primary" />
-                        </Grid>
-                    </Grid>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Tooltip content="Battery Level">
+                                <div className="flex items-center gap-1">
+                                    <Battery100Icon className="h-4 w-4 text-gray-600" />
+                                    <span className="text-sm font-medium text-gray-600">{batteryLevel}%</span>
+                                </div>
+                            </Tooltip>
+                        </div>
+                    </div>
+                </div>
 
-                    <Box sx={{ mt: 2, mb: 1 }}>
-                        <Typography variant="body2" gutterBottom>Fill Level:</Typography>
-                        <LinearProgress
-                            variant="determinate"
-                            value={filledBinPercentage}
-                            sx={{ height: 10, borderRadius: 5 }}
-                            color={getFilledColor(filledBinPercentage)}
-                        />
-                        <Typography variant="body2" align="right">{filledBinPercentage}% full</Typography>
-                    </Box>
-
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
+                <CardBody className="p-4">
+                    {/* Header */}
+                    <div className="mb-6 flex items-start justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="flex-shrink-0 rounded-xl bg-blue-50 p-2.5">
+                                <ArchiveBoxIcon className="h-6 w-6 text-blue-500" />
+                            </div>
+                            <div>
+                                <Typography variant="h5" className="font-bold">
+                                    {id}
+                                </Typography>
+                                <Typography variant="small" className="flex items-center gap-1 text-gray-600">
+                                    <MapPinIcon className="h-3.5 w-3.5" />
+                                    {binLocation}
+                                </Typography>
+                            </div>
+                        </div>
                         <Chip
-                            icon={<PowerIcon />}
-                            label={`Status: ${binActiveStatus}`}
+                            size="sm"
+                            variant="gradient"
                             color={getStatusColor(binActiveStatus)}
-                            size="small"
+                            value={binActiveStatus}
+                            className="font-medium"
                         />
-                        <Chip
-                            icon={binLidStatus.toLowerCase() === 'closed' ? <CheckCircleIcon /> : <WarningIcon />}
-                            label={`Lid: ${binLidStatus}`}
-                            size="small"
-                            color={getStatusColor(binLidStatus)}
-                        />
-                    </Box>
+                    </div>
 
-                    <Collapse in={expanded} timeout="auto" unmountOnExit>
-                        <Divider sx={{ my: 2 }} />
-                        <Grid container spacing={2}>
-                            <Grid item xs={6}>
-                                <Typography variant="body2">Max Capacity: {maxBinCapacity} cm</Typography>
-                                <Typography variant="body2">Distance: {distance} cm</Typography>
-                            </Grid>
-                            <Grid item xs={6}>
-                                <Typography variant="body2">Lat: {geoLocation.latitude || 'N/A'}</Typography>
-                                <Typography variant="body2">Lon: {geoLocation.longitude || 'N/A'}</Typography>
-                            </Grid>
-                        </Grid>
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
-                            <Chip
-                                icon={microProcessorStatus.toLowerCase() === 'on' ? <CheckCircleIcon /> : <WarningIcon />}
-                                label={`Processor: ${microProcessorStatus}`}
-                                size="small"
-                                color={getStatusColor(microProcessorStatus)}
-                            />
-                            <Chip
-                                icon={sensorStatus.toLowerCase() === 'on' ? <CheckCircleIcon /> : <WarningIcon />}
-                                label={`Sensor: ${sensorStatus}`}
-                                size="small"
-                                color={getStatusColor(sensorStatus)}
-                            />
-                        </Box>
-                    </Collapse>
-                </CardContent>
+                    {/* Capacity Section */}
+                    <div className="mb-6 overflow-hidden rounded-xl bg-gray-50 p-4">
+                        <div className="mb-3 flex items-center justify-between">
+                            <Typography className="font-semibold text-gray-700">
+                                Fill Level
+                            </Typography>
+                            <Typography variant="small" className="text-gray-600">
+                                {maxBinCapacity} cm max
+                            </Typography>
+                        </div>
+                        <div className="relative mb-2">
+                            <div className="h-8 w-full overflow-hidden rounded-lg bg-gray-200">
+                                <div
+                                    className={`h-full bg-gradient-to-r ${getFillLevelGradient(filledBinPercentage)} transition-all duration-500`}
+                                    style={{ width: `${filledBinPercentage}%` }}
+                                >
+                                    <Typography
+                                        variant="small"
+                                        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 font-bold text-white"
+                                    >
+                                        {filledBinPercentage}%
+                                    </Typography>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-                <CardActions sx={{ justifyContent: 'space-between' }}>
-                    <Box>
-                        {permissions.canEdit && (
-                            <Button
-                                variant="outlined"
-                                startIcon={<EditIcon />}
-                                onClick={() => navigate(`/users/edit-bin/${locationId}/${binId}`)}
-                                size="small"
-                            >
-                                Edit
-                            </Button>
-                        )}
-                        {permissions.canDelete && (
-                            <IconButton
-                                color="error"
-                                onClick={handleDelete}
-                                size="small"
-                            >
-                                <DeleteIcon />
-                            </IconButton>
-                        )}
-                    </Box>
+                    {/* Quick Stats */}
+                    <div className="mb-6 grid grid-cols-3 gap-3">
+                        <Tooltip content="Temperature">
+                            <div className="flex flex-col items-center rounded-lg bg-gray-50 p-3 transition-colors hover:bg-gray-100">
+                                <BeakerIcon className="mb-1 h-5 w-5 text-blue-500" />
+                                <Typography className="text-sm font-semibold">{`${temperature}°C`}</Typography>
+                            </div>
+                        </Tooltip>
+                        <Tooltip content="Humidity">
+                            <div className="flex flex-col items-center rounded-lg bg-gray-50 p-3 transition-colors hover:bg-gray-100">
+                                <SignalIcon className="mb-1 h-5 w-5 text-blue-500" />
+                                <Typography className="text-sm font-semibold">{`${humidity}%`}</Typography>
+                            </div>
+                        </Tooltip>
+                        <Tooltip content="Last Emptied">
+                            <div className="flex flex-col items-center rounded-lg bg-gray-50 p-3 transition-colors hover:bg-gray-100">
+                                <ArrowPathIcon className="mb-1 h-5 w-5 text-blue-500" />
+                                <Typography className="text-sm font-semibold">
+                                    {formatLastEmptied(lastEmptied).split(',')[0]}
+                                </Typography>
+                            </div>
+                        </Tooltip>
+                    </div>
 
-                    <Button
-                        onClick={handleExpand}
-                        endIcon={expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                        size="small"
-                    >
-                        {expanded ? 'Less' : 'More'}
-                    </Button>
-                </CardActions>
+                    {/* System Status */}
+                    <div className="mb-4">
+                        <div className="flex flex-wrap gap-2">
+                            <Tooltip content="Lid Status">
+                                <Chip
+                                    size="sm"
+                                    variant="gradient"
+                                    color={getStatusColor(binLidStatus)}
+                                    value={`Lid ${binLidStatus}`}
+                                    className="font-medium"
+                                />
+                            </Tooltip>
+                            <Tooltip content="Sensor Status">
+                                <Chip
+                                    size="sm"
+                                    variant="gradient"
+                                    color={getStatusColor(sensorStatus)}
+                                    value={`Sensor ${sensorStatus}`}
+                                    className="font-medium"
+                                />
+                            </Tooltip>
+                            <Tooltip content="Type">
+                                <Chip
+                                    size="sm"
+                                    variant="outlined"
+                                    value={`Type ${binType}`}
+                                    className="font-medium"
+                                />
+                            </Tooltip>
+                        </div>
+                    </div>
+
+                    {/* Actions */}
+
+                    <div className="flex items-center gap-2">
+                        <IconButton
+                            variant="text"
+                            color="blue-gray"
+                            size="sm"
+                            onClick={() => navigate(`/users/edit-bin/${locationId}/${binId}`)}
+                            className="rounded-lg hover:bg-gray-100"
+                        >
+                            <Tooltip content="Settings">
+                                <Cog6ToothIcon className="h-4 w-4" />
+                            </Tooltip>
+                        </IconButton>
+                        <IconButton
+                            variant="text"
+                            color="red"
+                            size="sm"
+                            onClick={() => setShowModal(true)}
+                            className="rounded-lg hover:bg-red-50"
+                        >
+                            <Tooltip content="Delete">
+                                <TrashIcon className="h-4 w-4" />
+                            </Tooltip>
+                        </IconButton>
+                    </div>
+
+                </CardBody>
             </Card>
 
+            {/* Delete Dialog */}
             <Dialog
                 open={showModal}
-                onClose={handleCloseModal}
+                handler={() => setShowModal(false)}
+                className="rounded-xl"
             >
-                <DialogTitle>Confirm Deletion</DialogTitle>
-                <DialogContent>
-                    <DialogContentText>
-                        Are you sure you want to delete this bin? This action cannot be undone.
-                    </DialogContentText>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleCloseModal} color="primary">Cancel</Button>
-                    <Button onClick={confirmDelete} color="error" autoFocus>Delete</Button>
-                </DialogActions>
+                <DialogHeader className="flex items-center gap-2">
+                    <ExclamationTriangleIcon className="h-6 w-6 text-red-500" />
+                    <Typography variant="h6">Delete Bin</Typography>
+                </DialogHeader>
+                <DialogBody>
+                    <Typography className="text-gray-700">
+                        Are you sure you want to delete bin <span className="font-medium">{id}</span>?
+                        This action cannot be undone.
+                    </Typography>
+                </DialogBody>
+                <DialogFooter className="space-x-2">
+                    <Button
+                        variant="text"
+                        color="blue-gray"
+                        onClick={() => setShowModal(false)}
+                        className="font-medium"
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        variant="gradient"
+                        color="red"
+                        onClick={async () => {
+                            await deleteBin(locationId, binId);
+                            setShowModal(false);
+                        }}
+                        className="font-medium"
+                    >
+                        Delete Bin
+                    </Button>
+                </DialogFooter>
             </Dialog>
         </>
     );

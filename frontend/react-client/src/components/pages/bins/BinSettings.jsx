@@ -10,20 +10,18 @@ const capitalizeWords = (str) => {
     return str ? str.replace(/\b\w/g, l => l.toUpperCase()) : '';
 };
 
-const CreateBin = () => {
-    const { createBin, fetchBins, bins } = useBinsContext();
+const BinSettings = () => {
+    const { editBin, fetchBins, bins } = useBinsContext();
     const [isLoading, setIsLoading] = useState(false);
-    const [generatedBinId, setGeneratedBinId] = useState('');
+    const [initialLoadDone, setInitialLoadDone] = useState(false);
     const navigate = useNavigate();
-    const { locationId } = useParams();
+    const { locationId, binId } = useParams();
     const [showLocationDropdown, setShowLocationDropdown] = useState(false);
     const [filteredLocations, setFilteredLocations] = useState([]);
-    const [totalBinsCount, setTotalBinsCount] = useState(0);
     const [locations, setLocations] = useState([]);
 
     const binTypes = ['Plastic', 'Paper', 'Glass', 'Metal', 'Organic', 'E-waste'];
 
-    // Initialize locations from bins object
     useEffect(() => {
         const initializeLocations = async () => {
             try {
@@ -33,10 +31,8 @@ const CreateBin = () => {
                     const capitalizedLocs = locationsList.map(capitalizeWords);
                     setLocations(capitalizedLocs);
                     setFilteredLocations(capitalizedLocs);
-                    console.log('Initialized locations:', capitalizedLocs);
                 }
             } catch (error) {
-                console.error('Error fetching bins:', error);
                 toast.error('Error loading locations. Please try again.');
             }
         };
@@ -49,25 +45,12 @@ const CreateBin = () => {
         const actualLocation = capitalizeWords(selectedLocation);
         const existingBinsForLocation = bins[actualLocation] || {};
         const existingBinsCount = Object.keys(existingBinsForLocation).length;
-
-        const newBinId = `Bin-${existingBinsCount + 1}`;
-        setGeneratedBinId(newBinId);
-        setTotalBinsCount(existingBinsCount);
+        const suggestedBinId = `Bin-${existingBinsCount + 1}`;
 
         formik.setFieldValue('binLocation', actualLocation);
-        formik.setFieldValue('binId', newBinId);
+        formik.setFieldValue('binId', suggestedBinId);
         setShowLocationDropdown(false);
     };
-
-    useEffect(() => {
-        if (locationId && bins) {
-            const decodedLocationId = capitalizeWords(decodeURIComponent(locationId));
-            const existingBinsForLocation = bins[decodedLocationId] || {};
-            const existingBinsCount = Object.keys(existingBinsForLocation).length;
-            setTotalBinsCount(existingBinsCount);
-            handleLocationChange(decodedLocationId);
-        }
-    }, [locationId, bins]);
 
     const validationSchema = Yup.object().shape({
         binId: Yup.string().required('Bin ID is required'),
@@ -77,11 +60,12 @@ const CreateBin = () => {
 
     const formik = useFormik({
         initialValues: {
-            binId: '',
+            binId: binId || '',
             binLocation: locationId ? capitalizeWords(decodeURIComponent(locationId)) : '',
             binType: '',
         },
         validationSchema,
+        enableReinitialize: true,
         onSubmit: async (values) => {
             try {
                 setIsLoading(true);
@@ -94,18 +78,41 @@ const CreateBin = () => {
                         longitude: "longitude",
                     },
                 };
-                await createBin(binData);
-                toast.success('Bin created successfully!');
-                setTotalBinsCount(totalBinsCount + 1);
+                await editBin(locationId, binId, binData);
+                toast.success('Bin updated successfully!');
                 navigate('/users/bins');
             } catch (error) {
-                console.error('Error creating bin:', error);
-                toast.error(error.response?.data?.message || 'Error creating bin. Please try again.');
+                toast.error('Error updating bin. Please try again.');
             } finally {
                 setIsLoading(false);
             }
         },
     });
+
+    useEffect(() => {
+        const loadBinData = async () => {
+            try {
+                if (bins && locationId && binId) {
+                    const binData = bins[locationId]?.[binId];
+                    if (binData) {
+                        formik.setValues({
+                            binId: binId || '',
+                            binLocation: binData.binLocation || '',
+                            binType: binData.binType || '',
+                        });
+                    } else {
+                        toast.error('No data found for this bin');
+                    }
+                }
+            } catch (error) {
+                toast.error('Error fetching bin data. Please try again.');
+            } finally {
+                setInitialLoadDone(true);
+            }
+        };
+
+        loadBinData();
+    }, [locationId, binId, bins]);
 
     const handleLocationInputClick = () => {
         setShowLocationDropdown(!showLocationDropdown);
@@ -140,10 +147,18 @@ const CreateBin = () => {
         };
     }, []);
 
+    if (!initialLoadDone) {
+        return (
+            <div className="flex min-h-screen items-center justify-center">
+                <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
+            </div>
+        );
+    }
+
     return (
-        <div className="container mx-auto max-w-2xl">
-            <div className="mt-8 rounded-lg bg-white p-6 shadow-lg">
-                <h1 className="mb-6 text-center text-3xl font-bold">Create New Bin</h1>
+        <div className="container mx-auto max-w-2xl p-4">
+            <div className="mt-8 rounded-lg bg-gray-100 p-8 shadow-md">
+                <h1 className="mb-6 text-center text-3xl font-bold text-gray-800">Bin Set</h1>
 
                 <form onSubmit={formik.handleSubmit} className="space-y-6">
                     <div className="relative">
@@ -151,7 +166,7 @@ const CreateBin = () => {
                             type="text"
                             id="binId"
                             name="binId"
-                            className={`w-full rounded-lg border px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500 
+                            className={`w-full rounded-lg border px-4 py-2 focus:ring-2 focus:ring-blue-500 
                                 ${formik.touched.binId && formik.errors.binId ? 'border-red-500' : 'border-gray-300'}`}
                             placeholder="Bin ID"
                             value={formik.values.binId}
@@ -164,33 +179,25 @@ const CreateBin = () => {
                     </div>
 
                     <div className="location-dropdown-container relative">
-                        <div className="relative">
-                            <input
-                                type="text"
-                                id="binLocation"
-                                name="binLocation"
-                                className={`w-full rounded-lg border px-4 py-2 outline-none cursor-pointer focus:ring-2 focus:ring-blue-500
-                                    ${formik.touched.binLocation && formik.errors.binLocation ? 'border-red-500' : 'border-gray-300'}`}
-                                placeholder="Select Bin Location"
-                                value={formik.values.binLocation}
-                                onChange={handleLocationFilter}
-                                onClick={handleLocationInputClick}
-                                autoComplete="off"
-                            />
-                            <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
-                                <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                                </svg>
-                            </div>
-                        </div>
-
+                        <input
+                            type="text"
+                            id="binLocation"
+                            name="binLocation"
+                            className={`w-full rounded-lg border px-4 py-2 focus:ring-2 focus:ring-blue-500 
+                                ${formik.touched.binLocation && formik.errors.binLocation ? 'border-red-500' : 'border-gray-300'}`}
+                            placeholder="Select Bin Location"
+                            value={formik.values.binLocation}
+                            onChange={handleLocationFilter}
+                            onClick={handleLocationInputClick}
+                            autoComplete="off"
+                        />
                         {showLocationDropdown && (
-                            <div className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-gray-300 bg-white shadow-lg">
-                                {filteredLocations && filteredLocations.length > 0 ? (
+                            <div className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-lg border bg-white shadow-md">
+                                {filteredLocations.length > 0 ? (
                                     filteredLocations.map((location, index) => (
                                         <div
                                             key={index}
-                                            className="cursor-pointer px-4 py-2 hover:bg-gray-100"
+                                            className="cursor-pointer px-4 py-2 hover:bg-blue-100"
                                             onClick={() => handleLocationChange(location)}
                                         >
                                             {location}
@@ -201,17 +208,13 @@ const CreateBin = () => {
                                 )}
                             </div>
                         )}
-
-                        {formik.touched.binLocation && formik.errors.binLocation && (
-                            <p className="mt-1 text-sm text-red-500">{formik.errors.binLocation}</p>
-                        )}
                     </div>
 
                     <div className="relative">
                         <select
                             id="binType"
                             name="binType"
-                            className={`w-full rounded-lg border px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500
+                            className={`w-full rounded-lg border px-4 py-2 focus:ring-2 focus:ring-blue-500 
                                 ${formik.touched.binType && formik.errors.binType ? 'border-red-500' : 'border-gray-300'}`}
                             value={formik.values.binType}
                             onChange={formik.handleChange}
@@ -219,9 +222,7 @@ const CreateBin = () => {
                         >
                             <option value="">Select Bin Type</option>
                             {binTypes.map((type) => (
-                                <option key={type} value={type}>
-                                    {type}
-                                </option>
+                                <option key={type} value={type}>{type}</option>
                             ))}
                         </select>
                         {formik.touched.binType && formik.errors.binType && (
@@ -232,17 +233,15 @@ const CreateBin = () => {
                     <button
                         type="submit"
                         disabled={isLoading || !formik.isValid}
-                        className={`w-full rounded-lg px-4 py-3 font-medium text-white
-                            ${isLoading || !formik.isValid
-                                ? 'cursor-not-allowed bg-blue-300'
-                                : 'bg-blue-600 transition-colors hover:bg-blue-700'}`}
+                        className={`w-full rounded-lg px-4 py-3 font-medium text-white transition 
+                            ${isLoading || !formik.isValid ? 'bg-blue-300 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
                     >
                         {isLoading ? (
                             <div className="flex items-center justify-center">
                                 <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-white"></div>
                             </div>
                         ) : (
-                            'Create Bin'
+                            'Update Bin'
                         )}
                     </button>
                 </form>
@@ -251,4 +250,4 @@ const CreateBin = () => {
     );
 };
 
-export default CreateBin;
+export default BinSettings;

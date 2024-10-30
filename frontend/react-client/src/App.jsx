@@ -22,13 +22,13 @@ const ErrorFallback = lazy(() => import('./components/pages/errorHandlers/ErrorF
 const NotAuthorized = lazy(() => import('./components/pages/errorHandlers/NotAuthorized'));
 const Navbar = lazy(() => import('./components/common/Navbar'));
 const Dashboard = lazy(() => import('./components/pages/users/dashboard/Dashboard'));
-const CreateUser = lazy(() => import('./components/pages/users/CreateUser'));
-const UserProfile = lazy(() => import('./components/pages/users/UserProfile'));
+const CreateUser = lazy(() => import('./components/pages/users/createUser/CreateUser'));
+const UserProfile = lazy(() => import('./components/pages/users/userProfile/UserProfile'));
 const IotAutomationControl = lazy(() => import('./components/pages/iotRemote/IotAutomationControl'));
 const Bins = lazy(() => import('./components/pages/bins/Bins'));
 const SupervisorBins = lazy(() => import('./components/pages/bins/SupervisorBins'));
 const CreateBin = lazy(() => import('./components/pages/bins/CreateBin'));
-const EditBin = lazy(() => import('./components/pages/bins/EditBin'));
+const BinSettings = lazy(() => import('./components/pages/bins/BinSettings'));
 
 function AppLayout() {
   useEffect(() => {
@@ -67,7 +67,7 @@ function AppLayout() {
         } />
         <Route path='/users/edit-bin/:locationId/:binId' element={
           <ProtectedRoute requiredRoles={['Admin', 'Manager']}>
-            <EditBin />
+            <BinSettings />
           </ProtectedRoute>
         } />
         <Route path='/users/create-bin/:locationId' element={
