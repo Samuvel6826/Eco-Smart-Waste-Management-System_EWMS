@@ -1,31 +1,27 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-    Box,
-    Typography,
     Button,
-    Paper,
-    Container,
+    Typography,
+    Card,
     Collapse,
-    TextField,
+    Input,
     Snackbar,
-    Alert,
-    useTheme,
-    useMediaQuery
-} from '@mui/material';
-import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
-import WarningAmberIcon from '@mui/icons-material/WarningAmber';
-import HomeIcon from '@mui/icons-material/Home';
-import ContactSupportIcon from '@mui/icons-material/ContactSupport';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+    Alert
+} from '@material-tailwind/react';
+import {
+    LockClosedIcon,
+    ExclamationIcon,
+    HomeIcon,
+    ChevronDownIcon,
+    InformationCircleIcon
+} from '@heroicons/react/outline';
 
 const NotAuthorized = () => {
     const [expanded, setExpanded] = useState(false);
     const [email, setEmail] = useState('');
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const navigate = useNavigate();
-    const theme = useTheme();
-    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
     const handleExpand = () => {
         setExpanded(!expanded);
@@ -37,88 +33,88 @@ const NotAuthorized = () => {
 
     const handleSubmit = (event) => {
         event.preventDefault();
-        // Here you would typically send the email to your backend
+        // Replace this with your backend request
         console.log('Support request sent for:', email);
         setSnackbarOpen(true);
         setEmail('');
         setExpanded(false);
     };
 
-    const handleSnackbarClose = (event, reason) => {
-        if (reason === 'clickaway') return;
+    const handleSnackbarClose = () => {
         setSnackbarOpen(false);
     };
 
     return (
-        <Container maxWidth="sm">
-            <Paper elevation={3} sx={{ mt: 8, p: 4, textAlign: 'center' }}>
-                <LockOutlinedIcon sx={{ fontSize: 64, color: 'error.main' }} />
-                <Typography variant="h4" component="h1" gutterBottom sx={{ mt: 2, fontWeight: 'bold' }}>
+        <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-6 text-center">
+            <Card className="w-full max-w-md p-8 text-center shadow-lg">
+                <LockClosedIcon className="mx-auto h-16 w-16 text-red-500" />
+                <Typography variant="h4" className="mt-4 font-bold">
                     Access Denied
                 </Typography>
-                <WarningAmberIcon sx={{ fontSize: 24, color: 'warning.main' }} />
-                <Typography variant="body1" sx={{ mt: 2, mb: 4 }}>
+                <ExclamationIcon className="mx-auto my-2 h-6 w-6 text-yellow-500" />
+                <Typography variant="body1" className="mb-6 mt-4 text-gray-600">
                     You do not have permission to view this page. If you believe this is an error, please contact the administrator.
                 </Typography>
-                <Box sx={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'center', gap: 2 }}>
+                <div className="mt-4 flex flex-col justify-center gap-4 sm:flex-row">
                     <Button
-                        component={Link}
-                        to="/login"
-                        variant="contained"
-                        color="primary"
-                        startIcon={<HomeIcon />}
+                        color="blue"
+                        onClick={() => navigate('/login')}
+                        startIcon={<HomeIcon className="h-5 w-5" />}
                     >
                         Go to Home
                     </Button>
                     <Button
+                        color="gray"
                         variant="outlined"
-                        color="secondary"
-                        startIcon={<ContactSupportIcon />}
+                        startIcon={<InformationCircleIcon className="h-5 w-5" />}
+                        endIcon={
+                            <ChevronDownIcon
+                                className={`h-5 w-5 transition-transform ${expanded ? 'rotate-180' : 'rotate-0'}`}
+                            />
+                        }
                         onClick={handleExpand}
-                        endIcon={<ExpandMoreIcon sx={{ transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }} />}
                     >
                         Request Access
                     </Button>
-                </Box>
-                <Collapse in={expanded}>
-                    <Paper elevation={0} variant="outlined" sx={{ mt: 4, p: 2, bgcolor: 'background.paper' }}>
-                        <Typography variant="h6" gutterBottom>
+                </div>
+                <Collapse open={expanded}>
+                    <div className="mt-4 rounded-md bg-gray-100 p-4 text-left">
+                        <Typography variant="h6" className="font-semibold">
                             Request Access
                         </Typography>
                         <form onSubmit={handleSubmit}>
-                            <TextField
-                                fullWidth
+                            <Input
                                 label="Your Email"
-                                variant="outlined"
-                                value={email}
-                                onChange={handleEmailChange}
                                 type="email"
                                 required
-                                sx={{ mb: 2 }}
+                                value={email}
+                                onChange={handleEmailChange}
+                                color="blue"
+                                size="lg"
+                                className="mb-4"
                             />
-                            <Button
-                                type="submit"
-                                variant="contained"
-                                color="primary"
-                                fullWidth
-                            >
+                            <Button type="submit" color="blue" className="w-full">
                                 Submit Request
                             </Button>
                         </form>
-                    </Paper>
+                    </div>
                 </Collapse>
-            </Paper>
+            </Card>
             <Snackbar
                 open={snackbarOpen}
                 autoHideDuration={6000}
                 onClose={handleSnackbarClose}
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
             >
-                <Alert onClose={handleSnackbarClose} severity="success" sx={{ width: '100%' }}>
+                <Alert
+                    color="green"
+                    onClose={handleSnackbarClose}
+                    className="w-full text-center"
+                >
                     Access request submitted successfully!
                 </Alert>
             </Snackbar>
-        </Container>
+        </div>
     );
 }
 
