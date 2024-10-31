@@ -38,6 +38,35 @@ const RoleIcon = ({ role }) => {
     }
 };
 
+const ActionButtons = ({ navigate, setOpenAssignDialog }) => (
+    <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:gap-3">
+        <Tooltip content="Add New User">
+            <Button
+                size="sm"
+                className="relative z-10 flex items-center justify-center gap-2"
+                color="blue"
+                onClick={() => navigate('/create-user')}
+                fullWidth
+            >
+                <UserPlusIcon className="h-4 w-4" />
+                <span className="sm:inline">New User</span>
+            </Button>
+        </Tooltip>
+        <Tooltip content="Assign Bin Locations">
+            <Button
+                size="sm"
+                className="relative z-10 flex items-center justify-center gap-2"
+                color="green"
+                onClick={() => setOpenAssignDialog(true)}
+                fullWidth
+            >
+                <Square3Stack3DIcon className="h-4 w-4" />
+                <span className="sm:inline">Assign Bins</span>
+            </Button>
+        </Tooltip>
+    </div>
+);
+
 export const UsersListHeader = ({
     filteredUsers,
     searchTerm,
@@ -55,12 +84,12 @@ export const UsersListHeader = ({
                 shadow={false}
                 className="rounded-none bg-transparent px-0 pt-0"
             >
-                <div className="flex items-center justify-between">
-                    <div>
-                        <Typography variant="h4" color="blue-gray">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex flex-col gap-2">
+                        <Typography variant="h4" color="blue-gray" className="text-center sm:text-left">
                             Users Management
                         </Typography>
-                        <div className="mt-2 flex items-center gap-2">
+                        <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
                             <Chip
                                 size="sm"
                                 variant="ghost"
@@ -79,35 +108,15 @@ export const UsersListHeader = ({
                         </div>
                     </div>
 
-                    <div className="flex gap-3">
-                        <Tooltip content="Add New User">
-                            <Button
-                                size="sm"
-                                className="relative z-10 flex items-center gap-2"
-                                color="blue"
-                                onClick={() => navigate('/create-user')}
-                            >
-                                <UserPlusIcon className="h-4 w-4" />
-                                New User
-                            </Button>
-                        </Tooltip>
-                        <Tooltip content="Assign Bin Locations">
-                            <Button
-                                size="sm"
-                                className="relative z-10 flex items-center gap-2"
-                                color="green"
-                                onClick={() => setOpenAssignDialog(true)}
-                            >
-                                <Square3Stack3DIcon className="h-4 w-4" />
-                                Assign Bins
-                            </Button>
-                        </Tooltip>
-                    </div>
+                    <ActionButtons
+                        navigate={navigate}
+                        setOpenAssignDialog={setOpenAssignDialog}
+                    />
                 </div>
             </CardHeader>
 
             <CardBody className="px-0 pb-0 pt-4">
-                <div className="flex items-center gap-4">
+                <div className="flex flex-col gap-4 sm:flex-row">
                     <div className="relative flex-1">
                         <Input
                             type="text"
@@ -134,7 +143,7 @@ export const UsersListHeader = ({
                         />
                     </div>
 
-                    <div className="w-1/2">
+                    <div className="w-full sm:w-1/2">
                         <Select
                             value={selectedRole}
                             onChange={setSelectedRole}

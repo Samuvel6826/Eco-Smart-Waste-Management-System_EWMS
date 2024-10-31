@@ -160,14 +160,15 @@ function Dashboard() {
 
     return (
         <div className="min-h-screen bg-blue-gray-50/50">
-            <div className="border-b border-gray-200 bg-white px-20 py-4 shadow-sm">
-                <div className="mb-8">
-                    <Typography variant="h5" color="blue-gray" className="mb-4">
+            {/* Responsive header section */}
+            <div className="border-b border-gray-200 bg-white px-4 py-4 shadow-sm sm:px-6 lg:px-20">
+                <div className="mb-4 sm:mb-8">
+                    <Typography variant="h5" color="blue-gray" className="mb-4 text-center sm:text-left">
                         Users Statistics
                     </Typography>
 
-
-                    <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
+                    {/* Responsive grid for stats cards */}
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
                         {Object.entries(rolesOrder).map(([role]) => (
                             <UserStatsCard
                                 key={role}
@@ -179,9 +180,11 @@ function Dashboard() {
                 </div>
             </div>
 
-            <div className="container mx-auto px-4 py-8">
-                <Card className="w-full overflow-hidden rounded-xl bg-white shadow-lg">
-                    <div className="px-6">
+            {/* Responsive main content section */}
+            <div className="container mx-auto px-2 py-4 sm:px-4 sm:py-8">
+                <Card className="w-full rounded-xl bg-white shadow-lg">
+                    {/* Header section with responsive padding */}
+                    <div className="px-2 sm:px-6">
                         <UsersListHeader
                             filteredUsers={filteredUsers}
                             searchTerm={state.searchTerm}
@@ -194,43 +197,50 @@ function Dashboard() {
                         />
                     </div>
 
-                    <div className="p-6">
-                        <UsersListBody
-                            userLoading={userLoading}
-                            paginatedUsers={paginatedUsers}
-                            page={state.page}
-                            rowsPerPage={state.rowsPerPage}
-                            getRoleColor={getRoleColor}
-                            handleChangePassword={(userId) => handleAction('handleChangePassword', {
-                                changePasswordUserId: userId,
-                                changePasswordDialog: true
-                            })}
-                            handleDeleteUser={(userId) => handleAction('handleDeleteUser', {
-                                deleteUserId: userId,
-                                showConfirmation: true
-                            })}
-                            navigate={navigate}
-                            setSearchTerm={(term) => handleAction('setSearchTerm', { searchTerm: term })}
-                            setSelectedRole={(role) => handleAction('setSelectedRole', { selectedRole: role })}
-                        />
+                    {/* Table section with responsive padding and scroll */}
+                    <div className="p-2 sm:p-6">
+                        <div className="min-w-full">
+                            <UsersListBody
+                                userLoading={userLoading}
+                                paginatedUsers={paginatedUsers}
+                                page={state.page}
+                                rowsPerPage={state.rowsPerPage}
+                                getRoleColor={getRoleColor}
+                                handleChangePassword={(userId) => handleAction('handleChangePassword', {
+                                    changePasswordUserId: userId,
+                                    changePasswordDialog: true
+                                })}
+                                handleDeleteUser={(userId) => handleAction('handleDeleteUser', {
+                                    deleteUserId: userId,
+                                    showConfirmation: true
+                                })}
+                                navigate={navigate}
+                                setSearchTerm={(term) => handleAction('setSearchTerm', { searchTerm: term })}
+                                setSelectedRole={(role) => handleAction('setSelectedRole', { selectedRole: role })}
+                            />
+                        </div>
                     </div>
 
+                    {/* Footer section with responsive layout */}
                     <div className="border-t border-gray-200">
-                        <UsersListFooter
-                            page={state.page}
-                            totalPages={totalPages}
-                            rowsPerPage={state.rowsPerPage}
-                            handleChangeRowsPerPage={(value) => handleAction('handleChangeRowsPerPage', {
-                                rowsPerPage: parseInt(value, 10),
-                                page: 0
-                            })}
-                            handleChangePage={(newPage) => handleAction('handleChangePage', { page: newPage })}
-                            filteredUsers={filteredUsers}
-                        />
+                        <div className="px-2 sm:px-4">
+                            <UsersListFooter
+                                page={state.page}
+                                totalPages={totalPages}
+                                rowsPerPage={state.rowsPerPage}
+                                handleChangeRowsPerPage={(value) => handleAction('handleChangeRowsPerPage', {
+                                    rowsPerPage: parseInt(value, 10),
+                                    page: 0
+                                })}
+                                handleChangePage={(newPage) => handleAction('handleChangePage', { page: newPage })}
+                                filteredUsers={filteredUsers}
+                            />
+                        </div>
                     </div>
                 </Card>
             </div>
 
+            {/* Dialogs remain the same */}
             <ChangePasswordDialog
                 open={state.changePasswordDialog}
                 onClose={() => handleAction('closeChangePasswordDialog', {
