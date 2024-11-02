@@ -98,9 +98,17 @@ function App() {
                 <Suspense fallback={<PreLoader />}>
                   <Toaster
                     position="top-right"
+                    containerStyle={{
+                      position: 'fixed',
+                      zIndex: 10000,
+                    }}
                     toastOptions={{
                       duration: 3000,
-                      style: { background: '#333', color: '#fff', maxWidth: '500px' }
+                      style: {
+                        background: '#333',
+                        color: '#fff',
+                        maxWidth: '500px',
+                      },
                     }}
                   />
                   <Routes>

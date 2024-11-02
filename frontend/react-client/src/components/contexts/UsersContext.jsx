@@ -43,6 +43,7 @@ export const UsersProvider = ({ children }) => {
         }
     }, [logout]);
 
+    // Modified to match '/api/user/list'
     const fetchUsers = useCallback(async () => {
         setLoading(true);
         try {
@@ -55,10 +56,13 @@ export const UsersProvider = ({ children }) => {
         }
     }, [axiosInstance, handleError]);
 
+    // Modified to match '/api/user/get'
     const getUserByEmployeeId = useCallback(async (employeeId) => {
         setLoading(true);
         try {
-            const res = await axiosInstance.get('/api/user/get/', { params: { employeeId } });
+            const res = await axiosInstance.get('/api/user/get', {
+                params: { employeeId }
+            });
             return res.data.data;
         } catch (err) {
             handleError(err);
@@ -68,12 +72,13 @@ export const UsersProvider = ({ children }) => {
         }
     }, [axiosInstance, handleError]);
 
+    // Modified to match '/api/user/create'
     const createUser = useCallback(async (userData) => {
         setLoading(true);
         try {
             const res = await axiosInstance.post('/api/user/create', userData);
-            toast.success('User created successfully');
-            return res.data.data;
+            toast.success(res.data.message);
+            return res.data;
         } catch (err) {
             handleError(err);
             throw err;
@@ -82,14 +87,16 @@ export const UsersProvider = ({ children }) => {
         }
     }, [axiosInstance, handleError]);
 
+    // Modified to match '/api/user/edit'
     const editUser = useCallback(async (employeeId, userData) => {
         setLoading(true);
         try {
-            const res = await axiosInstance.put('/api/user/edit/', userData, { params: { employeeId } });
-            toast.success('User updated successfully');
+            const res = await axiosInstance.put('/api/user/edit', userData, {
+                params: { employeeId }
+            });
+            toast.success(res.data.message);
             return res.data.data;
         } catch (err) {
-            console.error('Error in editUser:', err);
             handleError(err);
             throw err;
         } finally {
@@ -97,11 +104,14 @@ export const UsersProvider = ({ children }) => {
         }
     }, [axiosInstance, handleError]);
 
+    // Modified to match '/api/user/delete'
     const deleteUser = useCallback(async (employeeId) => {
         setLoading(true);
         try {
-            await axiosInstance.delete('/api/user/delete/', { params: { employeeId } });
-            toast.success('User deleted successfully');
+            const res = await axiosInstance.delete('/api/user/delete', {
+                params: { employeeId }
+            });
+            toast.success(res.data.message);
         } catch (err) {
             handleError(err);
             throw err;
@@ -110,14 +120,15 @@ export const UsersProvider = ({ children }) => {
         }
     }, [axiosInstance, handleError]);
 
-    const assignBinsToUser = useCallback(async (employeeId, binIds, supervisorId) => {
+    // Modified to match '/api/user/assign-binlocations'
+    const assignBinsToUser = useCallback(async (supervisorId, assignedBinLocations) => {
         setLoading(true);
         try {
-            const res = await axiosInstance.post('/api/user/assign-binlocations/',
-                { bins: binIds, supervisorId },
-                { params: { employeeId } }
-            );
-            toast.success('Bins assigned successfully');
+            const res = await axiosInstance.post('/api/user/assign-binlocations', {
+                supervisorId,
+                assignedBinLocations
+            });
+            toast.success(res.data.message);
             return res.data.data;
         } catch (err) {
             handleError(err);
@@ -127,14 +138,14 @@ export const UsersProvider = ({ children }) => {
         }
     }, [axiosInstance, handleError]);
 
-    // Inside UsersProvider
+    // Modified to match '/api/user/employee/assigned-bin-locations'
     const fetchAssignedBinLocations = useCallback(async (employeeId) => {
         setLoading(true);
         try {
-            const res = await axiosInstance.get('/api/user/employee/assigned-bin-locations/', {
+            const res = await axiosInstance.get('/api/user/employee/assigned-bin-locations', {
                 params: { employeeId },
             });
-            return res.data.assignedBinLocations; // Returns the assigned bin locations
+            return res.data.assignedBinLocations;
         } catch (err) {
             handleError(err);
             throw err;
@@ -143,14 +154,14 @@ export const UsersProvider = ({ children }) => {
         }
     }, [axiosInstance, handleError]);
 
+    // Modified to match '/api/user/change-password'
     const changePassword = useCallback(async (employeeId, password, confirmPassword) => {
         setLoading(true);
         try {
-            const res = await axiosInstance.put('/api/user/change-password/',
-                { password, confirmPassword },
-                { params: { employeeId } }
+            const res = await axiosInstance.put('/api/user/change-password',
+                { employeeId, password, confirmPassword }
             );
-            toast.success('Password changed successfully');
+            toast.success(res.data.message);
             return res.data;
         } catch (err) {
             handleError(err);
@@ -171,7 +182,7 @@ export const UsersProvider = ({ children }) => {
         deleteUser,
         assignBinsToUser,
         fetchAssignedBinLocations,
-        changePassword // Add this line
+        changePassword
     }), [users, loading, error, fetchUsers, getUserByEmployeeId, createUser, editUser, deleteUser, assignBinsToUser, fetchAssignedBinLocations, changePassword]);
 
     return <UsersContext.Provider value={value}>{children}</UsersContext.Provider>;

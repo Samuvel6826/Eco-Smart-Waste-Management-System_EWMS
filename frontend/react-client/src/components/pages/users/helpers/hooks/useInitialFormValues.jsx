@@ -1,4 +1,7 @@
-// src/components/users/create/hooks/useInitialFormValues.js
+// src/components/pages/users/hooks/useInitialFormValues.jsx
+
+import { getFormattedDateNTime } from '../../../../authentication/authUtils';
+
 export const useInitialFormValues = (generateEmployeeId, user) => {
     return {
         employeeId: generateEmployeeId(),
@@ -8,7 +11,6 @@ export const useInitialFormValues = (generateEmployeeId, user) => {
         password: '',
         role: '',
         phoneNumber: '',
-        profilePic: '',
         userDescription: '',
         dateOfBirth: '',
         age: '',
@@ -20,8 +22,10 @@ export const useInitialFormValues = (generateEmployeeId, user) => {
             streetAddress: '',
             pinCode: ''
         },
+        profilePic: '',
         newProfilePic: undefined,
         previewUrl: '',
+        createdAt: getFormattedDateNTime(),
         createdBy: `${user?.role || 'Unknown'} ${user?.firstName || ''} ${user?.lastName || ''} ${user?.employeeId || 'Unknown'}`
     };
 };

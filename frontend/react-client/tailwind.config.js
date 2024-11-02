@@ -66,8 +66,21 @@ module.exports = withMT({
         'sans': ['Open Sans', 'sans-serif'], // Sans-serif font
         'poppins': ['Poppins', 'sans-serif'], // Poppins font
         'aldrich': ['Aldrich', 'sans-serif'] // Aldrich font
+      },
+
+      backdropBlur: {
+        none: 'none'
       }
     },
   },
-  plugins: [],
+  plugins: [ // Add this plugin to ensure no backdrop filter
+    function ({ addUtilities }) {
+      addUtilities({
+        '.no-backdrop-filter': {
+          'backdrop-filter': 'none',
+          '-webkit-backdrop-filter': 'none'
+        }
+      })
+    }
+  ]
 });

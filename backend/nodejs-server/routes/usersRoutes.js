@@ -74,8 +74,7 @@ router.post('/assign-binlocations',
     auth.validate,
     auth.roleGuard('Admin', 'Manager', 'Supervisor'),
     (req, res, next) => {
-        logger.info(`Assigning bins to user with employeeId: ${req.query.employeeId}`);
-        UsersController.assignBinsByEmployeeId(req, res, next);
+        UsersController.assignBinsBySupervisorId(req, res, next);
     }
 );
 

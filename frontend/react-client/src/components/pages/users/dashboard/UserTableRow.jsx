@@ -2,15 +2,13 @@ import React from 'react';
 import {
     Typography,
     Chip,
-    Badge,
     IconButton,
     Tooltip
 } from "@material-tailwind/react";
-import {
-    Cog6ToothIcon,
-    ExclamationTriangleIcon,
-    UserCircleIcon
-} from "@heroicons/react/24/solid";
+
+import { RiLockPasswordFill } from "react-icons/ri";
+import { MdDelete } from "react-icons/md";
+import { ImProfile } from "react-icons/im";
 
 const UserTableRow = ({
     user,
@@ -144,7 +142,7 @@ const UserTableRow = ({
                             onClick={() => handleChangePassword(user.employeeId)}
                             className="transition-transform hover:scale-110"
                         >
-                            <Cog6ToothIcon className="h-4 w-4" />
+                            <RiLockPasswordFill className="h-6 w-6" />
                         </IconButton>
                     </Tooltip>
 
@@ -155,7 +153,7 @@ const UserTableRow = ({
                             onClick={() => handleDeleteUser(user.employeeId)}
                             className="transition-transform hover:scale-110"
                         >
-                            <ExclamationTriangleIcon className="h-4 w-4" />
+                            <MdDelete className="h-6 w-6" />
                         </IconButton>
                     </Tooltip>
 
@@ -166,7 +164,7 @@ const UserTableRow = ({
                             onClick={() => navigate(`/user-profile/${user.employeeId}`)}
                             className="transition-transform hover:scale-110"
                         >
-                            <UserCircleIcon className="h-4 w-4" />
+                            <ImProfile className="h-6 w-6" />
                         </IconButton>
                     </Tooltip>
                 </div>

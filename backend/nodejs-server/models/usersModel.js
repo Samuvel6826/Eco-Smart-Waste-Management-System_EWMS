@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const { getFormattedDate } = require('../utils/deviceMonitoring');
 const { hashPassword } = require('../common/Auth');
-const { number } = require('joi');
 
 // Validation function for email
 const emailValidator = {
@@ -69,7 +68,7 @@ const usersSchema = new mongoose.Schema({
   },
   age: {
     type: Number,
-    default: '',
+    default: null,
     trim: true
   },
   email: {
@@ -150,35 +149,58 @@ const usersSchema = new mongoose.Schema({
   },
   dateOfBirth: {
     type: String,
-    default: null
+    default: null,
+    trim: true
   },
   createdBy: {
     type: String,
+    default: 'Unknown',
     trim: true
   },
   createdAt: {
     type: String,
-    default: getFormattedDate // Use Date type instead of String
+    default: getFormattedDate, // Use Date type instead of String
+    trim: true
   },
   updatedBy: {
     type: String,
+    default: 'Yet not !',
     trim: true,
   },
   updatedAt: {
     type: String,
-    default: getFormattedDate // Use Date type instead of String
+    default: 'Yet not !', // Use Date type instead of String
+    trim: true
   },
-  lastLogin: {
+  lastLoginBy: {
     type: String,
-    default: null
+    default: 'Yet not !',
+    trim: true
+  },
+  lastLoginAt: {
+    type: String,
+    default: 'Yet not !', // Use Date type instead of String
+    trim: true
+  },
+  assignedBinsBy: {
+    type: String,
+    default: 'Yet not !',
+    trim: true
+  },
+  assignedBinsAt: {
+    type: String,
+    default: 'Yet not !', // Use Date type instead of String
+    trim: true
   },
   lastPasswordChangedBy: {
     type: String,
-    default: null
+    default: 'Yet not !',
+    trim: true
   },
   lastPasswordChangedAt: {
     type: String,
-    default: null
+    default: 'Yet not !', // Use Date type instead of String
+    trim: true
   }
 },
   {
@@ -198,12 +220,6 @@ usersSchema.pre('save', async function (next) {
       return next(error);
     }
   }
-  next();
-});
-
-// Middleware to update `updatedAt` timestamp
-usersSchema.pre('updateOne', function (next) {
-  this.set({ updatedAt: getFormattedDate() });
   next();
 });
 

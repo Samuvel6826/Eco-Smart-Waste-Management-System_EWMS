@@ -1,13 +1,9 @@
 // Check if the value is a non-empty string
 const isString = (value) => {
-    if (typeof value !== 'string') {
-        throw new TypeError("Expected a string");
+    if (typeof value !== 'string' || value.trim().length === 0) {
+        return undefined;  // Return undefined if value is not a string or is empty
     }
-    const trimmedValue = value.trim();
-    if (trimmedValue.length === 0) {
-        throw new Error("String cannot be empty");
-    }
-    return trimmedValue;
+    return value.trim();
 };
 
 // Check if the value is a boolean and returns true if it's true

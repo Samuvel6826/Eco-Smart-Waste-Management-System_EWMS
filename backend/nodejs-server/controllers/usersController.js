@@ -2,10 +2,14 @@ const sanitize = require('../common/Sanitize');
 const UsersModel = require('../models/usersModel');
 const auth = require('../common/Auth');
 const { logger } = require('../utils/logger');
-const { getFormattedDate } = require('../utils/deviceMonitoring'); // Import the helper function
+const { getFormattedDate } = require('../utils/deviceMonitoring');
 const { handleClientError, handleServerError } = require('../middlewares/errorHandlers');
 
-
+/**
+ * Fetch all users with pagination and sorting
+ * @route GET /api/user
+ * @access Private (Admin)
+ */
 const getAllUsers = async (req, res) => {
     try {
         const data = await UsersModel.find()
@@ -21,6 +25,11 @@ const getAllUsers = async (req, res) => {
     }
 };
 
+/**
+ * Fetch user by employeeId
+ * @route GET /api/user/employee
+ * @access Private
+ */
 const getUserByEmployeeId = async (req, res) => {
     try {
         const employeeId = sanitize.isString(req.query.employeeId);
@@ -40,8 +49,11 @@ const getUserByEmployeeId = async (req, res) => {
     }
 };
 
-
-// Controller for fetching assigned bin locations
+/**
+ * Fetch assigned bin locations for a user
+ * @route GET /api/user/bins
+ * @access Private
+ */
 const getAssignedBinLocations = async (req, res) => {
     try {
         const employeeId = sanitize.isString(req.query.employeeId);
@@ -61,24 +73,30 @@ const getAssignedBinLocations = async (req, res) => {
     }
 };
 
+/**
+ * Create a new user
+ * @route POST /api/users
+ * @access Private (Admin)
+ */
 const createUser = async (req, res) => {
     try {
         const {
             employeeId,
+            profilePic,
             firstName,
             lastName,
             email,
             password,
             role,
             phoneNumber,
-            profilePic,
             assignedBinLocations,
             userDescription,
             address,
             dateOfBirth,
             gender,
             age,
-            createdBy
+            createdBy,
+            createdAt
         } = req.body;
 
         // Validate required fields
@@ -111,25 +129,7 @@ const createUser = async (req, res) => {
         }
 
         // Create the user record in the database
-        const newUser = await UsersModel.create({
-            employeeId,
-            firstName,
-            lastName,
-            email,
-            password, // No hashing here, as it's handled in the schema
-            phoneNumber,
-            profilePic,
-            role,
-            assignedBinLocations,
-            userDescription,
-            address,
-            dateOfBirth,
-            gender,
-            age,
-            createdBy,
-            lastLogin: null, // Initialize lastLogin to null
-            lastPasswordChangedAt: null // Initialize lastPasswordChangedAt to null
-        });
+        const newUser = await UsersModel.create(req.body);
 
         return res.status(201).json({
             message: `User created successfully with Employee ID: ${newUser.employeeId}.`
@@ -147,7 +147,11 @@ const createUser = async (req, res) => {
     }
 };
 
-
+/**
+ * Update user by employeeId
+ * @route PUT /api/user
+ * @access Private
+ */
 const editUserByEmployeeId = async (req, res) => {
     try {
         const employeeId = req.query.employeeId; // Get employeeId from query params
@@ -165,26 +169,12 @@ const editUserByEmployeeId = async (req, res) => {
             gender,
             age,
             updatedBy, // Include updatedBy here
+            updatedAt, // Include updatedBy here
         } = req.body;
 
         const updatedUser = await UsersModel.findOneAndUpdate(
             { employeeId },
-            {
-                firstName,
-                lastName,
-                email,
-                role,
-                phoneNumber,
-                profilePic,
-                assignedBinLocations,
-                userDescription,
-                address,
-                dateOfBirth,
-                gender,
-                age,
-                updatedBy, // Include updatedBy here
-                updatedAt: getFormattedDate() // Update timestamp
-            },
+            (req.body),
             { new: true, runValidators: true }
         ).select('-password');
 
@@ -203,6 +193,11 @@ const editUserByEmployeeId = async (req, res) => {
 };
 
 
+/**
+ * Delete user by employeeId
+ * @route DELETE /api/user
+ * @access Private (Admin)
+ */
 const deleteUserByEmployeeId = async (req, res) => {
     try {
         const employeeId = sanitize.isString(req.query.employeeId);
@@ -213,13 +208,22 @@ const deleteUserByEmployeeId = async (req, res) => {
         }
 
         res.status(200).json({
-            message: `User deleted successfully with employeeId: ${employeeId}`
+            message: `User deleted successfully with employeeId: ${employeeId}`,
+            deletedUser: {
+                employeeId: deletedUser.employeeId,
+                email: deletedUser.email
+            }
         });
     } catch (error) {
         handleServerError(res, error);
     }
 };
 
+/**
+ * User login
+ * @route POST /api/user/login
+ * @access Public
+ */
 const loginUser = async (req, res) => {
     try {
         const email = sanitize.isString(req.body.email);
@@ -228,7 +232,6 @@ const loginUser = async (req, res) => {
         logger.info(`Login attempt for email: ${email}`);
 
         if (!email || !password) {
-            logger.warn('Login attempt with missing email or password');
             return handleClientError(res, 'Email and password are required');
         }
 
@@ -239,107 +242,175 @@ const loginUser = async (req, res) => {
             return handleClientError(res, 'Invalid email or password');
         }
 
-        logger.info(`User found`);
-
         const isValidPassword = await auth.comparePassword(password, user.password);
         if (!isValidPassword) {
             logger.warn(`Login attempt failed: Invalid password for email ${email}`);
             return handleClientError(res, 'Invalid email or password');
         }
 
-        // Update the user's lastLogin timestamp
-        await UsersModel.updateOne(
+        const lastLoginBy = `${user.role || 'Unknown'} ${user.firstName || ''} ${user.lastName || ''} ${user.employeeId || 'Unknown'}`.trim();
+
+        const lastLoginAt = req.body.lastLoginAt ? sanitize.isString(req.body.lastLoginAt) : getFormattedDate();
+
+        const updateResult = await UsersModel.updateOne(
             { email },
             {
-                lastLogin: getFormattedDate(), // Set to current date and time
-                updatedAt: getFormattedDate() // Update updatedAt field
+                $set: {
+                    lastLoginBy,
+                    lastLoginAt
+                }
             }
         );
 
+        if (updateResult.modifiedCount === 0) {
+            logger.warn(`Failed to update login fields for user ${email}`);
+        }
+
         const token = await auth.createToken({
-            email: user.email,
-            role: user.role,
+            employeeId: user.employeeId,
             firstName: user.firstName,
             lastName: user.lastName,
-            employeeId: user.employeeId
+            email: user.email,
+            role: user.role
         });
 
         logger.info(`Login successful for user: ${email}`);
+
         res.status(200).json({
             message: 'Login successful',
             token,
-            role: user.role,
-            employeeId: user.employeeId,
-            firstName: user.firstName,
-            lastName: user.lastName
+            user: {
+                employeeId: user.employeeId,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                email: user.email,
+                role: user.role,
+                lastLoginBy,
+                lastLoginAt
+            }
         });
     } catch (error) {
         logger.error('Login error:', error);
-        logger.error('Stack trace:', error.stack);
         handleServerError(res, error);
     }
 };
 
+/**
+ * Change user password
+ * @route PUT /api/user/password
+ * @access Private
+ */
 const changePassword = async (req, res) => {
     try {
-        const employeeId = sanitize.isString(req.query.employeeId);
-        const { password, confirmPassword } = req.body;
+        const employeeId = sanitize.isString(req.body.employeeId);
+        const password = sanitize.isString(req.body.password);
+        const confirmPassword = sanitize.isString(req.body.confirmPassword);
 
-        if (!password || !confirmPassword) {
-            return handleClientError(res, 'Password and confirm password are required');
-        }
-
-        if (password !== confirmPassword) {
-            return handleClientError(res, 'Passwords do not match');
-        }
-
+        // Find user by employeeId first
         const user = await UsersModel.findOne({ employeeId });
         if (!user) {
             return handleClientError(res, 'User not found with the provided employeeId');
         }
 
-        // Hash the new password
-        user.password = password; // Set plain password; hashing happens in the schema
-        user.lastPasswordChangedBy = getFormattedDate(); // Update lastPasswordChangedBy to current date
-        user.lastPasswordChangedAt = getFormattedDate(); // Update lastPasswordChangedAt to current date
-        await user.save(); // This will invoke the pre-save hook
+        // Use lastPasswordChangedAt and lastPasswordChangedBy from the frontend or provide defaults
+        const lastPasswordChangedAt = sanitize.isString(req.body.lastPasswordChangedAt) || getFormattedDate();
+        const lastPasswordChangedBy = sanitize.isString(req.body.lastPasswordChangedBy) ||
+            `${user.role || 'Unknown'} ${user.firstName || ''} ${user.lastName || ''} ${user.employeeId || 'Unknown'}`.trim();
 
+        // Check if password and confirmPassword are provided
+        if (!password || !confirmPassword) {
+            return handleClientError(res, 'Password and confirm password are required');
+        }
+
+        // Ensure password and confirmPassword match
+        if (password !== confirmPassword) {
+            return handleClientError(res, 'Passwords do not match');
+        }
+
+        // Set and hash the new password (hashing happens in the schema)
+        user.password = password;
+        user.lastPasswordChangedAt = lastPasswordChangedAt;
+        user.lastPasswordChangedBy = lastPasswordChangedBy;
+        user.updatedBy = lastPasswordChangedBy;
+        user.updatedAt = lastPasswordChangedAt;
+
+        await user.save(); // Invoke the pre-save hook to hash the password
+
+        // Log request details and respond with success message
+        logger.info(`Password changed successfully for employeeId: ${employeeId}`);
         res.status(200).json({
             message: `Password changed successfully for employeeId: ${employeeId}`
         });
     } catch (error) {
+        logger.error('Change password error:', error);
         handleServerError(res, error);
     }
 };
 
-const assignBinsByEmployeeId = async (req, res) => {
+/**
+ * Assign bins to supervisor
+ * @route PUT /api/user/bins/assign
+ * @access Private (Admin)
+ */
+const assignBinsBySupervisorId = async (req, res) => {
     try {
-        const { bins, supervisorId } = req.body;
-        const employeeId = sanitize.isString(req.query.employeeId);
-
-        if (!bins || !Array.isArray(bins)) {
-            return handleClientError(res, 'Invalid bins data');
+        // Retrieve and validate `supervisorId` from `req.body`
+        const supervisorId = req.body.supervisorId ? sanitize.isString(req.body.supervisorId) : null;
+        if (!supervisorId) {
+            return handleClientError(res, 'Supervisor ID is required');
         }
 
+        // Validate and assign `assignedBinLocations` from `req.body`
+        const assignedBinLocations = req.body.assignedBinLocations && Array.isArray(req.body.assignedBinLocations)
+            ? req.body.assignedBinLocations
+            : null;
+        if (!assignedBinLocations) {
+            return handleClientError(res, 'Invalid assigned bin locations data');
+        }
+
+        // Fetch the supervisor document to access user details
+        const supervisor = await UsersModel.findOne({ employeeId: supervisorId });
+        if (!supervisor) {
+            return handleClientError(res, `Supervisor not found with ID: ${supervisorId}`);
+        }
+
+        // Optional fields with defaults if not provided
+        const assignedBinsBy = req.body.assignedBinsBy
+            ? sanitize.isString(req.body.assignedBinsBy)
+            : `${supervisor.role || 'Unknown'} ${supervisor.firstName || ''} ${supervisor.lastName || ''} ${supervisor.employeeId || 'Unknown'}`.trim();
+
+        const assignedBinsAt = req.body.assignedBinsAt ? sanitize.isString(req.body.assignedBinsAt) : getFormattedDate();
+        const updatedBy = req.body.updatedBy ? sanitize.isString(req.body.updatedBy) : assignedBinsBy;
+        const updatedAt = req.body.updatedAt ? sanitize.isString(req.body.updatedAt) : assignedBinsAt;
+
+        // Prepare the update data with the provided or default values
+        const updateData = {
+            assignedBinLocations,
+            assignedBinsBy,
+            assignedBinsAt,
+            updatedBy,
+            updatedAt
+        };
+
+        // Update the user document with `supervisorId`
         const updatedUser = await UsersModel.findOneAndUpdate(
-            { employeeId },
-            {
-                assignedBinLocations: bins,
-                supervisorId,
-                updatedAt: getFormattedDate()
-            },
+            { employeeId: supervisorId },  // Find user by `employeeId` (acting as supervisor ID)
+            updateData,
             { new: true, runValidators: true }
         );
 
+        // Check if the user with the specified supervisor ID was found and updated
         if (!updatedUser) {
-            return handleClientError(res, `User not found with employeeId: ${employeeId}`);
+            return handleClientError(res, `Supervisor not found with ID: ${supervisorId}`);
         }
 
+        // Respond with a success message and updated user data
         res.status(200).json({
-            message: `Bins assigned successfully with employeeId: ${employeeId}`,
+            message: `Bins assigned successfully to supervisor ID: ${supervisorId}`,
             data: updatedUser
         });
     } catch (error) {
+        logger.error('Error assigning bins:', error);
         handleServerError(res, error);
     }
 };
@@ -353,5 +424,5 @@ module.exports = {
     deleteUserByEmployeeId,
     loginUser,
     changePassword,
-    assignBinsByEmployeeId
+    assignBinsBySupervisorId
 };

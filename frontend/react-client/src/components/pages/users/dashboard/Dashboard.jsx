@@ -1,18 +1,13 @@
-import React, { useEffect, useMemo, useState, useCallback, Suspense } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useUsersContext } from '../../../contexts/UsersContext';
 import {
     Typography,
-    Alert,
     Card,
-    Spinner,
-    Button
+    Spinner
 } from "@material-tailwind/react";
-import {
-    ExclamationTriangleIcon
-} from "@heroicons/react/24/solid";
 
 // Import components directly instead of lazy loading for now
 import { UserStatsCard } from './UserStatsCard';
@@ -131,29 +126,6 @@ function Dashboard() {
         setState(prev => ({ ...prev, ...payload }));
     }, []);
 
-    const submitChangePassword = async () => {
-        const { newPassword, confirmPassword } = state.passwordData;
-
-        if (newPassword !== confirmPassword) {
-            toast.error('Passwords do not match');
-            return;
-        }
-
-        handleAction('setIsChangingPassword', { isChangingPassword: true });
-        try {
-            await changePassword(state.changePasswordUserId, newPassword);
-            handleAction('closeChangePasswordDialog', {
-                changePasswordDialog: false,
-                passwordData: { newPassword: '', confirmPassword: '' }
-            });
-            toast.success('Password changed successfully');
-        } catch (error) {
-            toast.error('Failed to change password: ' + (error.message || 'Unknown error'));
-        } finally {
-            handleAction('setIsChangingPassword', { isChangingPassword: false });
-        }
-    };
-
     if (userLoading) {
         return <LoadingSpinner />;
     }
@@ -244,13 +216,10 @@ function Dashboard() {
             <ChangePasswordDialog
                 open={state.changePasswordDialog}
                 onClose={() => handleAction('closeChangePasswordDialog', {
-                    changePasswordDialog: false,
-                    passwordData: { newPassword: '', confirmPassword: '' }
+                    changePasswordDialog: false
                 })}
-                passwordData={state.passwordData}
-                setPasswordData={(data) => handleAction('setPasswordData', { passwordData: data })}
-                onSubmit={submitChangePassword}
-                isChangingPassword={state.isChangingPassword}
+                changePassword={changePassword}
+                userId={state.changePasswordUserId}
             />
 
             <DeleteConfirmationDialog

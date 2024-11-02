@@ -1,7 +1,7 @@
 // userProfile/AdditionalInfo.jsx
 const AdditionalInfo = ({ values }) => {
 
-    console.log(values);
+    console.table(values);
 
 
     return (
@@ -19,6 +19,20 @@ const AdditionalInfo = ({ values }) => {
                     <p className="text-sm text-gray-500">Created At</p>
                     <p className="text-sm font-medium text-gray-900">
                         {values?.createdAt}
+                    </p>
+                </div>
+
+                {/* lastLogin */}
+                <div className="rounded-md bg-gray-50 px-4 py-3">
+                    <p className="text-sm text-gray-500">Last Login By</p>
+                    <p className="text-sm font-medium text-gray-900">
+                        {values?.lastLoginBy}
+                    </p>
+                </div>
+                <div className="rounded-md bg-gray-50 px-4 py-3">
+                    <p className="text-sm text-gray-500">Last Login At</p>
+                    <p className="text-sm font-medium text-gray-900">
+                        {values?.lastLoginAt}
                     </p>
                 </div>
 
@@ -53,13 +67,6 @@ const AdditionalInfo = ({ values }) => {
                     </p>
                 </div>
 
-                {/* lastLogin */}
-                <div className="rounded-md bg-gray-50 px-4 py-3">
-                    <p className="text-sm text-gray-500">Last Login At</p>
-                    <p className="text-sm font-medium text-gray-900">
-                        {values?.lastLogin}
-                    </p>
-                </div>
             </div>
         </div>
     );

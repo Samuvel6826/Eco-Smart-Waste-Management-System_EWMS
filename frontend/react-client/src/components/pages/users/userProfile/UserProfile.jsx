@@ -48,13 +48,13 @@ const UserProfile = () => {
         age: '',
         newProfilePic: undefined,
         previewUrl: undefined,
-        // Add these fields to initialValues
         createdBy: '',
         createdAt: null,
         updatedBy: '',
         updatedAt: null,
-        lastLogin: null,            // New field
-        lastPasswordChangedBy: null,  // New field
+        lastLoginBy: '',            // New field
+        lastLoginAt: null,            // New field
+        lastPasswordChangedBy: '',  // New field
         lastPasswordChangedAt: null  // New field
     });
 
@@ -94,8 +94,9 @@ const UserProfile = () => {
                 createdAt: fetchedProfile.createdAt || null,
                 updatedBy: fetchedProfile.updatedBy || 'N/A',
                 updatedAt: fetchedProfile.updatedAt || null,
-                lastLogin: fetchedProfile.lastLogin || null,                 // New field
-                lastPasswordChangedBy: fetchedProfile.lastPasswordChangedBy || null, // New field
+                lastLoginBy: fetchedProfile.lastLoginBy || 'N/A',                 // New field
+                lastLoginAt: fetchedProfile.lastLoginAt || null,                 // New field
+                lastPasswordChangedBy: fetchedProfile.lastPasswordChangedBy || 'N/A', // New field
                 lastPasswordChangedAt: fetchedProfile.lastPasswordChangedAt || null, // New field
                 newProfilePic: undefined,
                 previewUrl: undefined

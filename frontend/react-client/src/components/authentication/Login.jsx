@@ -37,13 +37,18 @@ function Login() {
     const handleLogin = async (values, { setSubmitting }) => {
         try {
             setIsLoading(true);
-            const decodedUser = await login(values.email, values.password);
-            toast.success('Login successful!');
-            const route = roleRoutes[decodedUser.role] || '/users/bins';
-            navigate(route);
+            const result = await login(values.email, values.password);
+
+            if (result.success) {
+                toast.success('Login successful!');
+                const route = roleRoutes[result.userData.role] || '/users/bins';
+                navigate(route);
+            } else {
+                toast.error(result.error);
+            }
         } catch (error) {
             console.error("Login error: ", error);
-            toast.error(error.response?.data?.message || 'Login failed. Please try again.');
+            toast.error('Login failed. Please try again.');
         } finally {
             setIsLoading(false);
             setSubmitting(false);
@@ -65,7 +70,6 @@ function Login() {
                 backgroundImage: 'url(https://res.cloudinary.com/dgsucveh2/image/upload/v1706749935/photo_2024-02-01_06.41.54_nsfqx6.jpg)',
                 opacity: 0.9,
             }}>
-                {/* Optional content or message can be added here */}
             </div>
             <div className="flex w-full items-center justify-center md:w-1/2">
                 <div className="w-full max-w-sm rounded-lg bg-white p-8 shadow-lg">
