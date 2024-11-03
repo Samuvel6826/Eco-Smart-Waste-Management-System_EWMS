@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, forwardRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBinsContext } from '../../contexts/BinsContext';
 import { useAuth } from '../../contexts/AuthContext';
@@ -15,17 +15,62 @@ import {
     IconButton,
     Tooltip,
 } from "@material-tailwind/react";
-import {
-    Cog6ToothIcon,
-    TrashIcon,
-    MapPinIcon,
-    ExclamationTriangleIcon,
-    SignalIcon,
-    ArchiveBoxIcon,
-    Battery100Icon,
-    BeakerIcon,
-    ArrowPathIcon
-} from '@heroicons/react/24/solid';
+
+import { IoSettings } from "react-icons/io5";
+import { FaExclamationTriangle } from "react-icons/fa";
+import { MdDeleteForever } from "react-icons/md";
+import { FaBoxArchive } from "react-icons/fa6";
+import { BsBatteryFull } from "react-icons/bs";
+import { FaMapMarkerAlt } from "react-icons/fa";
+import { TiArrowSync } from "react-icons/ti";
+import { HiOutlineSignal } from "react-icons/hi2";
+import { HiBeaker } from "react-icons/hi2";
+
+// Create forwarded ref components for icons used in tooltips
+const SettingsIcon = forwardRef(({ className, ...props }, ref) => (
+    <div ref={ref} {...props}>
+        <IoSettings className={`h-5 w-5 ${className || ''}`} />
+    </div>
+));
+
+const DeleteIcon = forwardRef(({ className, ...props }, ref) => (
+    <div ref={ref} {...props}>
+        <MdDeleteForever className={`h-6 w-6 ${className || ''}`} />
+    </div>
+));
+
+const BeakerIcon = forwardRef(({ className, ...props }, ref) => (
+    <div ref={ref} {...props}>
+        <HiBeaker className={`mb-1 h-5 w-5 text-blue-500 ${className || ''}`} />
+    </div>
+));
+
+const SignalIcon = forwardRef(({ className, ...props }, ref) => (
+    <div ref={ref} {...props}>
+        <HiOutlineSignal className={`mb-1 h-5 w-5 text-blue-500 ${className || ''}`} />
+    </div>
+));
+
+const SyncIcon = forwardRef(({ className, ...props }, ref) => (
+    <div ref={ref} {...props}>
+        <TiArrowSync className={`mb-1 h-5 w-5 text-blue-500 ${className || ''}`} />
+    </div>
+));
+
+const BatteryIcon = forwardRef(({ batteryLevel, className, ...props }, ref) => (
+    <div ref={ref} {...props} className={`flex items-center gap-1 ${className || ''}`}>
+        <BsBatteryFull className="h-4 w-4 text-gray-600" />
+        <span className="text-sm font-medium text-gray-600">{batteryLevel}%</span>
+    </div>
+));
+
+// Set display names for the forwarded ref components
+SettingsIcon.displayName = 'SettingsIcon';
+DeleteIcon.displayName = 'DeleteIcon';
+BeakerIcon.displayName = 'BeakerIcon';
+SignalIcon.displayName = 'SignalIcon';
+SyncIcon.displayName = 'SyncIcon';
+BatteryIcon.displayName = 'BatteryIcon';
 
 const Bin = ({ locationId, binId, binData }) => {
     const [showModal, setShowModal] = useState(false);
@@ -116,10 +161,7 @@ const Bin = ({ locationId, binId, binData }) => {
                         </div>
                         <div className="flex items-center gap-2">
                             <Tooltip content="Battery Level">
-                                <div className="flex items-center gap-1">
-                                    <Battery100Icon className="h-4 w-4 text-gray-600" />
-                                    <span className="text-sm font-medium text-gray-600">{batteryLevel}%</span>
-                                </div>
+                                <BatteryIcon batteryLevel={batteryLevel} />
                             </Tooltip>
                         </div>
                     </div>
@@ -130,14 +172,14 @@ const Bin = ({ locationId, binId, binData }) => {
                     <div className="mb-6 flex items-start justify-between">
                         <div className="flex items-center gap-3">
                             <div className="flex-shrink-0 rounded-xl bg-blue-50 p-2.5">
-                                <ArchiveBoxIcon className="h-6 w-6 text-blue-500" />
+                                <FaBoxArchive className="h-6 w-6 text-blue-500" />
                             </div>
                             <div>
                                 <Typography variant="h5" className="font-bold">
                                     {id}
                                 </Typography>
                                 <Typography variant="small" className="flex items-center gap-1 text-gray-600">
-                                    <MapPinIcon className="h-3.5 w-3.5" />
+                                    <FaMapMarkerAlt className="h-3.5 w-3.5" />
                                     {binLocation}
                                 </Typography>
                             </div>
@@ -182,19 +224,19 @@ const Bin = ({ locationId, binId, binData }) => {
                     <div className="mb-6 grid grid-cols-3 gap-3">
                         <Tooltip content="Temperature">
                             <div className="flex flex-col items-center rounded-lg bg-gray-50 p-3 transition-colors hover:bg-gray-100">
-                                <BeakerIcon className="mb-1 h-5 w-5 text-blue-500" />
-                                <Typography className="text-sm font-semibold">{`${temperature}°C`}</Typography>
+                                <BeakerIcon />
+                                <Typography className="text-sm font-semibold">{temperature}</Typography>
                             </div>
                         </Tooltip>
                         <Tooltip content="Humidity">
                             <div className="flex flex-col items-center rounded-lg bg-gray-50 p-3 transition-colors hover:bg-gray-100">
-                                <SignalIcon className="mb-1 h-5 w-5 text-blue-500" />
-                                <Typography className="text-sm font-semibold">{`${humidity}%`}</Typography>
+                                <SignalIcon />
+                                <Typography className="text-sm font-semibold">{humidity}</Typography>
                             </div>
                         </Tooltip>
                         <Tooltip content="Last Emptied">
                             <div className="flex flex-col items-center rounded-lg bg-gray-50 p-3 transition-colors hover:bg-gray-100">
-                                <ArrowPathIcon className="mb-1 h-5 w-5 text-blue-500" />
+                                <SyncIcon />
                                 <Typography className="text-sm font-semibold">
                                     {formatLastEmptied(lastEmptied).split(',')[0]}
                                 </Typography>
@@ -235,7 +277,6 @@ const Bin = ({ locationId, binId, binData }) => {
                     </div>
 
                     {/* Actions */}
-
                     <div className="flex items-center gap-2">
                         <IconButton
                             variant="text"
@@ -245,7 +286,7 @@ const Bin = ({ locationId, binId, binData }) => {
                             className="rounded-lg hover:bg-gray-100"
                         >
                             <Tooltip content="Settings">
-                                <Cog6ToothIcon className="h-4 w-4" />
+                                <SettingsIcon />
                             </Tooltip>
                         </IconButton>
                         <IconButton
@@ -256,11 +297,10 @@ const Bin = ({ locationId, binId, binData }) => {
                             className="rounded-lg hover:bg-red-50"
                         >
                             <Tooltip content="Delete">
-                                <TrashIcon className="h-4 w-4" />
+                                <DeleteIcon />
                             </Tooltip>
                         </IconButton>
                     </div>
-
                 </CardBody>
             </Card>
 
@@ -271,7 +311,7 @@ const Bin = ({ locationId, binId, binData }) => {
                 className="rounded-xl"
             >
                 <DialogHeader className="flex items-center gap-2">
-                    <ExclamationTriangleIcon className="h-6 w-6 text-red-500" />
+                    <FaExclamationTriangle className="h-6 w-6 text-red-500" />
                     <Typography variant="h6">Delete Bin</Typography>
                 </DialogHeader>
                 <DialogBody>

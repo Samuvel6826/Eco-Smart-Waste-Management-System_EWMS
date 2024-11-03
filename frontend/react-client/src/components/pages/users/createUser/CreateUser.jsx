@@ -9,7 +9,6 @@ import { getAvatarUrl, FormField } from '../helpers/utils/userUtils';
 import AddressSection from '../helpers/sub/AddressSection';
 import PersonalInfoSection from '../helpers/sub/PersonalInfoSection';
 import { createUserValidationSchema } from '../helpers/validation/userValidation';
-import 'react-country-state-city/dist/react-country-state-city.css';
 import 'react-phone-input-2/lib/style.css';
 
 // Hooks imports

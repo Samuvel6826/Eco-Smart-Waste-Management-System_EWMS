@@ -12,18 +12,17 @@ import {
     Card,
     CardBody,
 } from "@material-tailwind/react";
-import {
-    Square3Stack3DIcon,
-    ChartBarIcon,
-    SignalIcon,
-    Bars3Icon,
-    PowerIcon,
-    UserCircleIcon,
-    ChevronDownIcon,
-    Cog6ToothIcon,
-    BellIcon,
-    XMarkIcon,
-} from "@heroicons/react/24/outline";
+
+import { MdDashboard } from "react-icons/md";
+import { IoTrashBinSharp } from "react-icons/io5";
+import { MdSettingsRemote } from "react-icons/md";
+import { RiMenuFill } from "react-icons/ri";
+import { GrPower } from "react-icons/gr";
+import { FaCircleUser } from "react-icons/fa6";
+import { IoIosArrowDown } from "react-icons/io";
+import { IoSettings } from "react-icons/io5";
+import { FaRegBell } from "react-icons/fa";
+import { AiOutlineClose } from "react-icons/ai";
 
 // Enhanced Profile Menu with better positioning and animations
 const ProfileMenu = ({ user, onClose }) => (
@@ -34,7 +33,7 @@ const ProfileMenu = ({ user, onClose }) => (
                 <div className="border-b border-blue-gray-50 bg-gradient-to-r from-blue-50 to-blue-100 p-4">
                     <div className="flex items-center gap-4">
                         <div className="rounded-full border-2 border-blue-500/20 bg-blue-500/10 p-1">
-                            <UserCircleIcon className="h-12 w-12 text-blue-600" />
+                            <FaCircleUser className="h-12 w-12 text-blue-600" />
                         </div>
                         <div className="flex-1">
                             <Typography variant="h6" color="blue-gray" className="font-bold">
@@ -57,7 +56,7 @@ const ProfileMenu = ({ user, onClose }) => (
                 <List className="p-0">
                     <Link to="/profile" onClick={onClose}>
                         <ListItem className="rounded-none transition-colors duration-200 hover:bg-blue-50">
-                            <UserCircleIcon className="h-5 w-5 text-blue-600" />
+                            <FaCircleUser className="h-5 w-5 text-blue-600" />
                             <Typography variant="small" className="ml-3 font-medium">
                                 My Profile
                             </Typography>
@@ -65,7 +64,7 @@ const ProfileMenu = ({ user, onClose }) => (
                     </Link>
                     <Link to="/settings" onClick={onClose}>
                         <ListItem className="rounded-none transition-colors duration-200 hover:bg-blue-50">
-                            <Cog6ToothIcon className="h-5 w-5 text-blue-600" />
+                            <IoSettings className="h-5 w-5 text-blue-600" />
                             <Typography variant="small" className="ml-3 font-medium">
                                 Settings
                             </Typography>
@@ -116,21 +115,21 @@ function NavbarComponent() {
     const menuItems = [
         {
             text: "Dashboard",
-            icon: <ChartBarIcon className="h-4 w-4" />,
+            icon: <MdDashboard className="h-4 w-4" />,
             link: "/dashboard",
             admin: true,
             manager: true,
         },
         {
             text: "Bins",
-            icon: <Square3Stack3DIcon className="h-4 w-4" />,
+            icon: <IoTrashBinSharp className="h-4 w-4" />,
             link: "/users/bins",
             admin: true,
             manager: true,
         },
         {
             text: "IoT Remote",
-            icon: <SignalIcon className="h-4 w-4" />,
+            icon: <MdSettingsRemote className="h-4 w-4" />,
             link: "/iot-remote",
             admin: true,
             manager: true,
@@ -170,7 +169,7 @@ function NavbarComponent() {
                         className="transition-colors hover:bg-white/10 lg:hidden"
                         onClick={() => setDrawerOpen(true)}
                     >
-                        <Bars3Icon className="h-5 w-5" />
+                        <RiMenuFill className="h-5 w-5" />
                     </IconButton>
 
                     <div className="flex items-center gap-3">
@@ -206,7 +205,7 @@ function NavbarComponent() {
                                 color="white"
                                 className="h-9 w-9 transition-colors hover:bg-white/10"
                             >
-                                <BellIcon className="h-5 w-5" />
+                                <FaRegBell className="h-5 w-5" />
                                 <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500">
                                     <span className="text-[10px] font-bold text-white">3</span>
                                 </span>
@@ -222,9 +221,9 @@ function NavbarComponent() {
                                 onClick={() => setProfileOpen(!profileOpen)}
                             >
                                 <div className="flex h-8 w-8 items-center justify-center rounded-full border border-white/30 bg-white/20 transition-all duration-200 hover:bg-white/30">
-                                    <UserCircleIcon className="h-5 w-5 text-white" />
+                                    <FaCircleUser className="h-5 w-5 text-white" />
                                 </div>
-                                <ChevronDownIcon
+                                <IoIosArrowDown
                                     className={`h-4 w-4 text-white transition-transform duration-200 ${profileOpen ? "rotate-180" : ""
                                         }`}
                                 />
@@ -246,7 +245,7 @@ function NavbarComponent() {
                             className="h-9 w-9 transition-colors hover:bg-red-500/20"
                             onClick={handleLogout}
                         >
-                            <PowerIcon className="h-5 w-5" />
+                            <GrPower className="h-5 w-5" />
                         </IconButton>
                     </div>
                 )}
@@ -268,7 +267,7 @@ function NavbarComponent() {
                         color="blue-gray"
                         onClick={() => setDrawerOpen(false)}
                     >
-                        <XMarkIcon className="h-5 w-5" />
+                        <AiOutlineClose className="h-5 w-5" />
                     </IconButton>
                 </div>
 
@@ -276,7 +275,7 @@ function NavbarComponent() {
                     <div className="mb-6 rounded-xl bg-gradient-to-r from-blue-50 to-blue-100 p-4 shadow-sm">
                         <div className="flex items-center gap-4">
                             <div className="rounded-full border-2 border-blue-500/20 bg-blue-500/10 p-1">
-                                <UserCircleIcon className="h-12 w-12 text-blue-600" />
+                                <FaCircleUser className="h-12 w-12 text-blue-600" />
                             </div>
                             <div>
                                 <Typography variant="h6" color="blue-gray" className="font-bold">
@@ -309,13 +308,13 @@ function NavbarComponent() {
                     {/* Enhanced Profile and Settings */}
                     <Link to="/profile" onClick={() => setDrawerOpen(false)}>
                         <ListItem className="transition-colors duration-200 hover:bg-blue-50">
-                            <UserCircleIcon className="h-5 w-5 text-blue-600" />
+                            <FaCircleUser className="h-5 w-5 text-blue-600" />
                             <span className="ml-3 text-sm font-medium text-blue-gray-700">My Profile</span>
                         </ListItem>
                     </Link>
                     <Link to="/settings" onClick={() => setDrawerOpen(false)}>
                         <ListItem className="transition-colors duration-200 hover:bg-blue-50">
-                            <Cog6ToothIcon className="h-5 w-5 text-blue-600" />
+                            <IoSettings className="h-5 w-5 text-blue-600" />
                             <span className="ml-3 text-sm font-medium text-blue-gray-700">Settings</span>
                         </ListItem>
                     </Link>
@@ -325,7 +324,7 @@ function NavbarComponent() {
                         className="text-red-500 transition-colors duration-200 hover:bg-red-50"
                         onClick={handleLogout}
                     >
-                        <PowerIcon className="h-5 w-5" />
+                        <GrPower className="h-5 w-5" />
                         <span className="ml-3 text-sm font-medium">Sign Out</span>
                     </ListItem>
                 </List>

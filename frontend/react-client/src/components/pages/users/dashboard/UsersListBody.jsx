@@ -5,7 +5,7 @@ import {
     Spinner,
     Card
 } from "@material-tailwind/react";
-import { MagnifyingGlassIcon } from "@heroicons/react/24/solid";
+import { MdPersonSearch } from "react-icons/md";
 
 import UserTableRow from './UserTableRow';
 
@@ -23,7 +23,7 @@ const LoadingState = () => (
 const EmptyState = ({ setSearchTerm, setSelectedRole }) => (
     <div className="flex flex-col items-center gap-3 rounded-lg border border-blue-gray-100 p-8">
         <div className="rounded-full bg-gray-100 p-3">
-            <MagnifyingGlassIcon className="h-6 w-6 text-gray-400" />
+            <MdPersonSearch className="h-6 w-6 text-gray-400" />
         </div>
         <Typography variant="h6" className="text-gray-700">
             No users found

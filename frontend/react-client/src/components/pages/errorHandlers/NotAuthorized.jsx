@@ -9,13 +9,13 @@ import {
     Snackbar,
     Alert
 } from '@material-tailwind/react';
-import {
-    LockClosedIcon,
-    ExclamationIcon,
-    HomeIcon,
-    ChevronDownIcon,
-    InformationCircleIcon
-} from '@heroicons/react/outline';
+
+import { FaUserLock } from "react-icons/fa6";
+import { FaExclamationTriangle } from "react-icons/fa";
+import { IoMdHome } from "react-icons/io";
+import { IoIosArrowDown } from "react-icons/io";
+import { FaInfoCircle } from "react-icons/fa";
+
 
 const NotAuthorized = () => {
     const [expanded, setExpanded] = useState(false);
@@ -47,11 +47,11 @@ const NotAuthorized = () => {
     return (
         <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-6 text-center">
             <Card className="w-full max-w-md p-8 text-center shadow-lg">
-                <LockClosedIcon className="mx-auto h-16 w-16 text-red-500" />
+                <FaUserLock className="mx-auto h-16 w-16 text-red-500" />
                 <Typography variant="h4" className="mt-4 font-bold">
                     Access Denied
                 </Typography>
-                <ExclamationIcon className="mx-auto my-2 h-6 w-6 text-yellow-500" />
+                <FaExclamationTriangle className="mx-auto my-2 h-6 w-6 text-yellow-500" />
                 <Typography variant="body1" className="mb-6 mt-4 text-gray-600">
                     You do not have permission to view this page. If you believe this is an error, please contact the administrator.
                 </Typography>
@@ -59,16 +59,16 @@ const NotAuthorized = () => {
                     <Button
                         color="blue"
                         onClick={() => navigate('/login')}
-                        startIcon={<HomeIcon className="h-5 w-5" />}
+                        startIcon={<IoMdHome className="h-5 w-5" />}
                     >
                         Go to Home
                     </Button>
                     <Button
                         color="gray"
                         variant="outlined"
-                        startIcon={<InformationCircleIcon className="h-5 w-5" />}
+                        startIcon={<FaInfoCircle className="h-5 w-5" />}
                         endIcon={
-                            <ChevronDownIcon
+                            <IoIosArrowDown
                                 className={`h-5 w-5 transition-transform ${expanded ? 'rotate-180' : 'rotate-0'}`}
                             />
                         }

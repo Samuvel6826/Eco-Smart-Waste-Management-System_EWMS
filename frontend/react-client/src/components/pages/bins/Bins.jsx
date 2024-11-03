@@ -4,10 +4,8 @@ import { toast } from 'react-hot-toast';
 import { useBinsContext } from '../../contexts/BinsContext';
 import Bin from './Bin';
 import { GoPlus } from "react-icons/go";
-import { FaLocationDot } from "react-icons/fa6";
-import { IoWarning } from "react-icons/io5";
-import { MdDashboard } from "react-icons/md";
-import { TfiMenuAlt } from "react-icons/tfi";
+import { FaMapMarkerAlt } from "react-icons/fa";
+import { FaExclamationTriangle } from "react-icons/fa";
 
 const Bins = () => {
   const { bins, loading, error, fetchBins } = useBinsContext();
@@ -66,7 +64,7 @@ const Bins = () => {
     <div className="mt-4 rounded-lg bg-red-50 p-4 shadow-sm">
       <div className="flex items-center">
         <div className="flex-shrink-0">
-          <IoWarning className="h-6 w-6 text-red-500" />
+          <FaExclamationTriangle className="h-6 w-6 text-red-500" />
         </div>
         <div className="ml-3">
           <h3 className="text-sm font-medium text-red-800">
@@ -96,7 +94,7 @@ const Bins = () => {
           ))}
         </select>
         <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-          <FaLocationDot className="h-4 w-4" />
+          <FaMapMarkerAlt className="h-4 w-4" />
         </div>
       </div>
     </div>
@@ -135,7 +133,7 @@ const Bins = () => {
               <div className="flex items-center space-x-4">
                 {attentionNeededCount > 0 && (
                   <div className="flex items-center rounded-full bg-amber-100 px-4 py-1.5 text-sm font-medium text-amber-800">
-                    <IoWarning className="mr-1.5 h-4 w-4" />
+                    <FaExclamationTriangle className="mr-1.5 h-4 w-4" />
                     {attentionNeededCount} bin{attentionNeededCount > 1 ? 's' : ''} need{attentionNeededCount === 1 ? 's' : ''} attention
                   </div>
                 )}

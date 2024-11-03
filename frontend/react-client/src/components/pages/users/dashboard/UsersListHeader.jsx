@@ -13,28 +13,28 @@ import {
     CardBody,
 } from "@material-tailwind/react";
 import {
-    UserPlusIcon,
-    Square3Stack3DIcon,
-    MagnifyingGlassIcon,
-    XCircleIcon,
-    UsersIcon,
-    UserIcon,
-    ShieldCheckIcon,
-    BuildingOffice2Icon,
-    DocumentTextIcon,
-    ClipboardDocumentCheckIcon,
-} from "@heroicons/react/24/solid";
+    FiUserPlus,
+    FiLayers,
+    FiSearch,
+    FiXCircle,
+    FiUsers,
+    FiUser,
+    FiShield,
+    FiBookmark,
+    FiClipboard,
+    FiHome
+} from 'react-icons/fi';
 
 const RoleIcon = ({ role }) => {
     switch (role) {
         case 'Admin':
-            return <ShieldCheckIcon className="h-4 w-4" />;
+            return <FiShield className="h-4 w-4" />;
         case 'Manager':
-            return <BuildingOffice2Icon className="h-4 w-4" />;
+            return <FiHome className="h-4 w-4" />;
         case 'Supervisor':
-            return <ClipboardDocumentCheckIcon className="h-4 w-4" />;
+            return <FiClipboard className="h-4 w-4" />;
         default:
-            return <UsersIcon className="h-4 w-4" />;
+            return <FiUsers className="h-4 w-4" />;
     }
 };
 
@@ -48,7 +48,7 @@ const ActionButtons = ({ navigate, setOpenAssignDialog }) => (
                 onClick={() => navigate('/create-user')}
                 fullWidth
             >
-                <UserPlusIcon className="h-4 w-4" />
+                <FiUserPlus className="h-4 w-4" />
                 <span className="sm:inline">New User</span>
             </Button>
         </Tooltip>
@@ -60,7 +60,7 @@ const ActionButtons = ({ navigate, setOpenAssignDialog }) => (
                 onClick={() => setOpenAssignDialog(true)}
                 fullWidth
             >
-                <Square3Stack3DIcon className="h-4 w-4" />
+                <FiLayers className="h-4 w-4" />
                 <span className="sm:inline">Assign Bins</span>
             </Button>
         </Tooltip>
@@ -134,10 +134,10 @@ export const UsersListHeader = ({
                                         className="!absolute right-1 top-1 rounded-full hover:bg-gray-50"
                                         onClick={() => setSearchTerm("")}
                                     >
-                                        <XCircleIcon className="h-5 w-5 text-gray-500 transition-colors hover:text-red-500" />
+                                        <FiXCircle className="h-5 w-5 text-gray-500 transition-colors hover:text-red-500" />
                                     </IconButton>
                                 ) : (
-                                    <MagnifyingGlassIcon className="h-5 w-5 text-gray-500" />
+                                    <FiSearch className="h-5 w-5 text-gray-500" />
                                 )
                             }
                         />

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { SpeedDial, SpeedDialHandler, SpeedDialContent, SpeedDialAction, IconButton, Typography } from "@material-tailwind/react";
 import { MdDashboard } from "react-icons/md";
 import { BsArrowUpCircleFill } from "react-icons/bs";
-import { ImBin2 } from "react-icons/im";
+import { IoTrashBinSharp } from "react-icons/io5";
 import { MdSettingsRemote } from "react-icons/md";
 import { Link, Events, scrollSpy } from 'react-scroll';
 
@@ -49,7 +49,7 @@ const ScrollToTopButton = () => {
     // Define the menu items with icons and navigation links
     const menuItems = [
         { id: 'dashboard', icon: <MdDashboard className="h-5 w-5" />, label: 'Dashboard', link: '/dashboard' },
-        { id: 'bins', icon: <ImBin2 className="h-5 w-5" />, label: 'Bins', link: '/users/bins' },
+        { id: 'bins', icon: <IoTrashBinSharp className="h-5 w-5" />, label: 'Bins', link: '/users/bins' },
         { id: 'iot-remote', icon: <MdSettingsRemote className="h-5 w-5" />, label: 'IoT Remote', link: '/iot-remote' },
     ];
 

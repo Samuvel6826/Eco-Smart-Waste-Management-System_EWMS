@@ -5,10 +5,11 @@ import {
     IconButton,
     Tooltip
 } from "@material-tailwind/react";
-
-import { RiLockPasswordFill } from "react-icons/ri";
-import { MdDelete } from "react-icons/md";
-import { ImProfile } from "react-icons/im";
+import {
+    FiKey,
+    FiTrash2,
+    FiUser
+} from "react-icons/fi";
 
 const UserTableRow = ({
     user,
@@ -36,14 +37,33 @@ const UserTableRow = ({
         last:border-r-0
     `;
 
+    // Format full name with proper capitalization
+    const fullName = `${user.firstName} ${user.lastName}`.split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ');
+
+    const ActionButton = ({ icon: Icon, label, color, onClick }) => (
+        <Tooltip content={label}>
+            <IconButton
+                variant="text"
+                color={color}
+                onClick={onClick}
+                className="transition-transform hover:scale-110 focus:scale-105"
+            >
+                <Icon className="h-5 w-5" />
+            </IconButton>
+        </Tooltip>
+    );
+
     return (
         <tr
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
-            className="group transition-shadow duration-300 hover:shadow-md"
+            className="group transition-all duration-300 hover:bg-blue-gray-50/30 hover:shadow-md"
             role="row"
         >
-            <td className={`${classes} font-medium`}>
+            {/* Index Column */}
+            <td className={`${classes} font-medium w-16`}>
                 <Typography
                     variant="small"
                     color="blue-gray"
@@ -53,38 +73,48 @@ const UserTableRow = ({
                 </Typography>
             </td>
 
+            {/* Employee ID Column */}
             <td className={classes}>
-                <Typography
-                    variant="small"
-                    color="blue-gray"
-                    className="font-normal transition-colors group-hover:text-blue-gray-900"
-                >
-                    {user.employeeId}
-                </Typography>
+                <div className="flex items-center justify-center gap-2">
+                    <Typography
+                        variant="small"
+                        color="blue-gray"
+                        className="font-medium transition-colors group-hover:text-blue-gray-900"
+                    >
+                        {user.employeeId}
+                    </Typography>
+                </div>
             </td>
 
+            {/* Name Column */}
             <td className={`${classes} min-w-[180px]`}>
-                <Typography
-                    variant="small"
-                    color="blue-gray"
-                    className="font-normal transition-colors group-hover:text-blue-gray-900"
-                >
-                    {`${user.firstName} ${user.lastName}`}
-                </Typography>
+                <div className="flex items-center justify-center gap-2">
+                    <Typography
+                        variant="small"
+                        color="blue-gray"
+                        className="font-normal transition-colors group-hover:text-blue-gray-900"
+                    >
+                        {fullName}
+                    </Typography>
+                </div>
             </td>
 
+            {/* Email Column */}
             <td className={`${classes} min-w-[220px]`}>
-                <Typography
-                    variant="small"
-                    color="blue-gray"
-                    className="font-normal transition-colors group-hover:text-blue-gray-900"
-                >
-                    {user.email}
-                </Typography>
+                <div className="flex items-center justify-center gap-2">
+                    <Typography
+                        variant="small"
+                        color="blue-gray"
+                        className="font-normal transition-colors group-hover:text-blue-gray-900"
+                    >
+                        {user.email.toLowerCase()}
+                    </Typography>
+                </div>
             </td>
 
+            {/* Role Column */}
             <td className={`${classes} min-w-[120px]`}>
-                <div className="flex flex-wrap justify-center gap-2">
+                <div className="flex justify-center">
                     {user.role && (
                         <Chip
                             value={user.role}
@@ -97,8 +127,9 @@ const UserTableRow = ({
                 </div>
             </td>
 
+            {/* Bin Locations Column */}
             <td className={`${classes} min-w-[200px]`}>
-                <div className="flex flex-wrap justify-center gap-2">
+                <div className="flex items-center justify-center gap-2">
                     {user.assignedBinLocations?.length > 0 ? (
                         <div className="flex flex-wrap justify-center gap-1">
                             {user.assignedBinLocations.slice(0, 2).map((location) => (
@@ -111,7 +142,15 @@ const UserTableRow = ({
                                 />
                             ))}
                             {user.assignedBinLocations.length > 2 && (
-                                <Tooltip content={user.assignedBinLocations.slice(2).join(', ')}>
+                                <Tooltip
+                                    content={
+                                        <div className="p-2">
+                                            <Typography variant="small" color="white">
+                                                {user.assignedBinLocations.slice(2).join(', ')}
+                                            </Typography>
+                                        </div>
+                                    }
+                                >
                                     <Chip
                                         value={`+${user.assignedBinLocations.length - 2}`}
                                         variant="ghost"
@@ -133,40 +172,29 @@ const UserTableRow = ({
                 </div>
             </td>
 
+            {/* Actions Column */}
             <td className={`${classes} min-w-[150px]`}>
                 <div className="flex items-center justify-center gap-2">
-                    <Tooltip content="Change Password">
-                        <IconButton
-                            variant="text"
-                            color="blue-gray"
-                            onClick={() => handleChangePassword(user.employeeId)}
-                            className="transition-transform hover:scale-110"
-                        >
-                            <RiLockPasswordFill className="h-6 w-6" />
-                        </IconButton>
-                    </Tooltip>
+                    <ActionButton
+                        icon={FiKey}
+                        label="Change Password"
+                        color="blue-gray"
+                        onClick={() => handleChangePassword(user.employeeId)}
+                    />
 
-                    <Tooltip content="Delete User">
-                        <IconButton
-                            variant="text"
-                            color="red"
-                            onClick={() => handleDeleteUser(user.employeeId)}
-                            className="transition-transform hover:scale-110"
-                        >
-                            <MdDelete className="h-6 w-6" />
-                        </IconButton>
-                    </Tooltip>
+                    <ActionButton
+                        icon={FiTrash2}
+                        label="Delete User"
+                        color="red"
+                        onClick={() => handleDeleteUser(user.employeeId)}
+                    />
 
-                    <Tooltip content="View Profile">
-                        <IconButton
-                            variant="text"
-                            color="blue-gray"
-                            onClick={() => navigate(`/user-profile/${user.employeeId}`)}
-                            className="transition-transform hover:scale-110"
-                        >
-                            <ImProfile className="h-6 w-6" />
-                        </IconButton>
-                    </Tooltip>
+                    <ActionButton
+                        icon={FiUser}
+                        label="View Profile"
+                        color="blue-gray"
+                        onClick={() => navigate(`/user-profile/${user.employeeId}`)}
+                    />
                 </div>
             </td>
         </tr>

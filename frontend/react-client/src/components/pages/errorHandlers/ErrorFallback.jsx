@@ -7,12 +7,11 @@ import {
     IconButton,
     Snackbar
 } from '@material-tailwind/react';
-import {
-    RefreshIcon,
-    HomeIcon,
-    ChevronDownIcon,
-    ClipboardIcon
-} from '@heroicons/react/outline';
+
+import { IoMdRefresh } from "react-icons/io";
+import { IoMdHome } from "react-icons/io";
+import { IoIosArrowDown } from "react-icons/io";
+import { FaClipboard } from "react-icons/fa";
 
 const ErrorFallback = ({ error }) => {
     const [expanded, setExpanded] = useState(false);
@@ -52,7 +51,7 @@ const ErrorFallback = ({ error }) => {
                         variant="filled"
                         className="flex-1"
                         onClick={() => navigate('/dashboard')}
-                        startIcon={<HomeIcon className="h-5 w-5" />}
+                        startIcon={<IoMdHome className="h-5 w-5" />}
                     >
                         Go to Homepage
                     </Button>
@@ -61,7 +60,7 @@ const ErrorFallback = ({ error }) => {
                         variant="outlined"
                         className="flex-1"
                         onClick={handleRefresh}
-                        startIcon={<RefreshIcon className="h-5 w-5" />}
+                        startIcon={<IoMdRefresh className="h-5 w-5" />}
                     >
                         Refresh Page
                     </Button>
@@ -70,7 +69,7 @@ const ErrorFallback = ({ error }) => {
                     <Button
                         onClick={handleExpand}
                         endIcon={
-                            <ChevronDownIcon
+                            <IoIosArrowDown
                                 className={`h-5 w-5 transition-transform ${expanded ? 'rotate-180' : 'rotate-0'}`}
                             />
                         }
@@ -85,7 +84,7 @@ const ErrorFallback = ({ error }) => {
                             </Typography>
                             <div className="mt-2 flex justify-end">
                                 <IconButton onClick={handleCopyError} size="small" aria-label="copy error details">
-                                    <ClipboardIcon className="h-5 w-5" />
+                                    <FaClipboard className="h-5 w-5" />
                                 </IconButton>
                             </div>
                         </div>
