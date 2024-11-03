@@ -27,9 +27,9 @@ export const UserStatsCard = ({
     const getRoleIcon = (role) => {
         switch (role.toLowerCase()) {
             case 'admin':
-                return <FiUser className="h-6 w-6" />;
+                return <FiUsers className="h-6 w-6" />;
             case 'manager':
-                return <FiBarChart2 className="h-6 w-6" />;
+                return <FiUsers className="h-6 w-6" />;
             default:
                 return <FiUsers className="h-6 w-6" />;
         }
@@ -39,8 +39,10 @@ export const UserStatsCard = ({
     const getColorScheme = (role) => {
         switch (role.toLowerCase()) {
             case 'admin':
-                return 'blue';
+                return 'red';
             case 'manager':
+                return 'blue';
+            case 'technician':
                 return 'green';
             default:
                 return 'indigo';

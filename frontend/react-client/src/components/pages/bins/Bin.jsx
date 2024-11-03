@@ -1,4 +1,5 @@
 import React, { useState, forwardRef } from 'react';
+import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
 import { useBinsContext } from '../../contexts/BinsContext';
 import { useAuth } from '../../contexts/AuthContext';
@@ -25,6 +26,8 @@ import { FaMapMarkerAlt } from "react-icons/fa";
 import { TiArrowSync } from "react-icons/ti";
 import { HiOutlineSignal } from "react-icons/hi2";
 import { HiBeaker } from "react-icons/hi2";
+
+import DynamicBatteryIcon from "./DynamicBatteryIcon"
 
 // Create forwarded ref components for icons used in tooltips
 const SettingsIcon = forwardRef(({ className, ...props }, ref) => (
@@ -57,20 +60,12 @@ const SyncIcon = forwardRef(({ className, ...props }, ref) => (
     </div>
 ));
 
-const BatteryIcon = forwardRef(({ batteryLevel, className, ...props }, ref) => (
-    <div ref={ref} {...props} className={`flex items-center gap-1 ${className || ''}`}>
-        <BsBatteryFull className="h-4 w-4 text-gray-600" />
-        <span className="text-sm font-medium text-gray-600">{batteryLevel}%</span>
-    </div>
-));
-
 // Set display names for the forwarded ref components
 SettingsIcon.displayName = 'SettingsIcon';
 DeleteIcon.displayName = 'DeleteIcon';
 BeakerIcon.displayName = 'BeakerIcon';
 SignalIcon.displayName = 'SignalIcon';
 SyncIcon.displayName = 'SyncIcon';
-BatteryIcon.displayName = 'BatteryIcon';
 
 const Bin = ({ locationId, binId, binData }) => {
     const [showModal, setShowModal] = useState(false);
@@ -79,19 +74,19 @@ const Bin = ({ locationId, binId, binData }) => {
     const { user } = useAuth();
 
     const {
-        binLocation = 'Canteen',
-        id = 'Bin-1',
-        binType = 'TYPE C',
-        binLidStatus = 'OPEN',
-        microProcessorStatus = 'ON',
-        sensorStatus = 'ON',
-        filledBinPercentage = 0,
-        maxBinCapacity = '100',
-        binActiveStatus = 'ACTIVE',
-        lastEmptied = '2024-10-24T15:30:00',
-        temperature = '24°C',
-        humidity = '65%',
-        batteryLevel = '85'
+        binLocation = '',
+        id = '',
+        binType = '',
+        binLidStatus = '',
+        microProcessorStatus = '',
+        sensorStatus = '',
+        filledBinPercentage = '',
+        maxBinCapacity = '',
+        binActiveStatus = '',
+        lastEmptied = '',
+        temperature = '',
+        humidity = '',
+        batteryLevel = ''
     } = binData;
 
     const getStatusColor = (status) => {
@@ -109,12 +104,6 @@ const Bin = ({ locationId, binId, binData }) => {
         }
     };
 
-    const getFillLevelColor = (percentage) => {
-        if (percentage >= 80) return 'red';
-        if (percentage >= 50) return 'yellow';
-        return 'green';
-    };
-
     const getFillLevelGradient = (percentage) => {
         if (percentage >= 80) return 'from-red-200 to-red-500';
         if (percentage >= 50) return 'from-yellow-200 to-yellow-500';
@@ -122,13 +111,7 @@ const Bin = ({ locationId, binId, binData }) => {
     };
 
     const formatLastEmptied = (dateString) => {
-        const date = new Date(dateString);
-        return date.toLocaleString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
+        return dayjs(dateString).format('MMM D');
     };
 
     const needsAttention = filledBinPercentage > 80 ||
@@ -161,7 +144,12 @@ const Bin = ({ locationId, binId, binData }) => {
                         </div>
                         <div className="flex items-center gap-2">
                             <Tooltip content="Battery Level">
-                                <BatteryIcon batteryLevel={batteryLevel} />
+                                <DynamicBatteryIcon
+                                    batteryLevel={batteryLevel} // Battery percentage (0-100)
+                                    isCharging={false} // Charging state
+                                    isFault={false} // Fault state
+                                    temperature={0} // Temperature in Celsius (optional)
+                                />
                             </Tooltip>
                         </div>
                     </div>
@@ -225,25 +213,28 @@ const Bin = ({ locationId, binId, binData }) => {
                         <Tooltip content="Temperature">
                             <div className="flex flex-col items-center rounded-lg bg-gray-50 p-3 transition-colors hover:bg-gray-100">
                                 <BeakerIcon />
-                                <Typography className="text-sm font-semibold">{temperature}</Typography>
+                                <Typography className="text-sm font-semibold">
+                                    {temperature}°C
+                                </Typography>
                             </div>
                         </Tooltip>
                         <Tooltip content="Humidity">
                             <div className="flex flex-col items-center rounded-lg bg-gray-50 p-3 transition-colors hover:bg-gray-100">
                                 <SignalIcon />
-                                <Typography className="text-sm font-semibold">{humidity}</Typography>
+                                <Typography className="text-sm font-semibold">
+                                    {humidity}%
+                                </Typography>
                             </div>
                         </Tooltip>
                         <Tooltip content="Last Emptied">
                             <div className="flex flex-col items-center rounded-lg bg-gray-50 p-3 transition-colors hover:bg-gray-100">
                                 <SyncIcon />
                                 <Typography className="text-sm font-semibold">
-                                    {formatLastEmptied(lastEmptied).split(',')[0]}
+                                    {formatLastEmptied(lastEmptied)}
                                 </Typography>
                             </div>
                         </Tooltip>
                     </div>
-
                     {/* System Status */}
                     <div className="mb-4">
                         <div className="flex flex-wrap gap-2">

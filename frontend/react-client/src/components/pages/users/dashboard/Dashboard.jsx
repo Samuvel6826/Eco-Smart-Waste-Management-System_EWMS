@@ -88,10 +88,10 @@ function Dashboard() {
     };
 
     const getRoleColor = (role) => ({
-        Admin: "blue",
-        Manager: "green",
-        Technician: "amber",
-        Supervisor: "purple"
+        Admin: "red",
+        Manager: "blue",
+        Technician: "green",
+        Supervisor: "indigo"
     }[role] || "gray");
 
     const filteredUsers = useMemo(() => {
