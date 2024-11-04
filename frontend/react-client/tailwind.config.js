@@ -33,10 +33,12 @@ module.exports = withMT({
     extend: {
       // Custom colors
       colors: {
-        "primary": "#66b2ff",     // Lighter Blue for accents and highlights
-        "secondary": "#003366",       // Deep Blue for a strong and professional foundation
-        "tertiary": "#0a192f",      // Very Dark Navy for backgrounds and contrast
-        "letter": "#eaeaea",        // Light Gray for text to ensure readability against dark backgrounds
+        "primary": "#ffffff",
+        "secondary": "#f6f6f9",
+        "tertiary": "#0a192f",
+        "letter": "#707070",
+        "letterDark": "#55b759",
+        "letterLight": "#9ddca9",
 
         // Enhanced colors
         "highlight": "#4caf50",     // Soft Green for important highlights and call-to-action

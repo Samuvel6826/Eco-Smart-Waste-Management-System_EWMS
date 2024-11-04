@@ -4,6 +4,7 @@ import { MdDashboard } from "react-icons/md";
 import { BsArrowUpCircleFill } from "react-icons/bs";
 import { IoTrashBinSharp } from "react-icons/io5";
 import { MdSettingsRemote } from "react-icons/md";
+import { FaPhoneAlt } from "react-icons/fa";
 import { Link, Events, scrollSpy } from 'react-scroll';
 
 const ScrollToTopButton = () => {
@@ -48,9 +49,34 @@ const ScrollToTopButton = () => {
 
     // Define the menu items with icons and navigation links
     const menuItems = [
-        { id: 'dashboard', icon: <MdDashboard className="h-5 w-5" />, label: 'Dashboard', link: '/dashboard' },
-        { id: 'bins', icon: <IoTrashBinSharp className="h-5 w-5" />, label: 'Bins', link: '/users/bins' },
-        { id: 'iot-remote', icon: <MdSettingsRemote className="h-5 w-5" />, label: 'IoT Remote', link: '/iot-remote' },
+        {
+            text: "Dashboard",
+            icon: <MdDashboard className="h-4 w-4" />,
+            link: "/dashboard",
+            admin: true,
+            manager: true,
+        },
+        {
+            text: "Bins",
+            icon: <IoTrashBinSharp className="h-4 w-4" />,
+            link: "/users/bins",
+            admin: true,
+            manager: true,
+        },
+        {
+            text: "IoT Remote",
+            icon: <MdSettingsRemote className="h-4 w-4" />,
+            link: "/iot-remote",
+            admin: true,
+            manager: true,
+        },
+        {
+            text: "Contact",
+            icon: <FaPhoneAlt className="h-4 w-4" />,
+            link: "/contact",
+            admin: true,
+            manager: true,
+        },
     ];
 
     return (
@@ -62,7 +88,7 @@ const ScrollToTopButton = () => {
                 <SpeedDialHandler>
                     <IconButton
                         size="lg"
-                        className="rounded-full bg-blue-500 shadow-lg hover:bg-blue-600"
+                        className="rounded-full bg-green-500 shadow-lg hover:bg-green-600"
                         onClick={topFunction}
                     >
                         <BsArrowUpCircleFill className="h-5 w-5" />

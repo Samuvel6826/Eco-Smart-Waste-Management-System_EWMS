@@ -21,13 +21,12 @@ import { IoSettings } from "react-icons/io5";
 import { FaExclamationTriangle } from "react-icons/fa";
 import { MdDeleteForever } from "react-icons/md";
 import { FaBoxArchive } from "react-icons/fa6";
-import { BsBatteryFull } from "react-icons/bs";
 import { FaMapMarkerAlt } from "react-icons/fa";
 import { TiArrowSync } from "react-icons/ti";
 import { HiOutlineSignal } from "react-icons/hi2";
 import { HiBeaker } from "react-icons/hi2";
 
-import DynamicBatteryIcon from "./DynamicBatteryIcon"
+import DynamicBatteryIcon from "./binSettings/DynamicBatteryIcon"
 
 // Create forwarded ref components for icons used in tooltips
 const SettingsIcon = forwardRef(({ className, ...props }, ref) => (

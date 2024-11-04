@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import { useBinsContext } from '../../contexts/BinsContext';
-import { Card, CardHeader, CardBody, Typography, Tabs, TabsHeader, TabsBody, Tab, TabPanel } from "@material-tailwind/react";
+import { useBinsContext } from '../../../contexts/BinsContext';
+import { Card, CardHeader, CardBody, Typography, Tabs, TabsHeader, TabsBody, Tab, TabPanel, Button } from "@material-tailwind/react";
 import { BinSettingsForm } from './BinSettingsForm';
 import { BinStatus } from './BinStatus';
 import { BinLocation } from './BinLocation';
@@ -21,25 +21,17 @@ const BinSettings = () => {
         const loadData = async () => {
             try {
                 setIsLoading(true);
-
-                // First, ensure bins are fetched
                 if (!bins || Object.keys(bins).length === 0) {
                     await fetchBins();
                 }
-
-                // Check if component is still mounted
                 if (!isMounted) return;
-
-                // Access the bin data after fetching
                 const binData = bins?.[locationId]?.[binId];
-
                 if (binData) {
                     setCurrentBinData(binData);
                 } else {
-                    // Only show error if we have bins data but can't find this specific bin
                     if (bins && Object.keys(bins).length > 0) {
                         toast.error('No data found for this bin');
-                        navigate('/users/bins'); // Optionally redirect back to bins list
+                        navigate('/users/bins');
                     }
                 }
             } catch (error) {
@@ -55,8 +47,6 @@ const BinSettings = () => {
         };
 
         loadData();
-
-        // Cleanup function
         return () => {
             isMounted = false;
         };
@@ -71,6 +61,7 @@ const BinSettings = () => {
                 lastUpdated: new Date().toLocaleString()
             });
             toast.success('Bin updated successfully!');
+            setIsEditing(false);
             navigate('/users/bins');
         } catch (error) {
             console.error('Error updating bin:', error);
@@ -88,19 +79,19 @@ const BinSettings = () => {
         );
     }
 
-    // If we have no data after loading, show an error state
     if (!currentBinData && !isLoading) {
         return (
             <div className="flex min-h-screen flex-col items-center justify-center gap-4">
                 <Typography variant="h5" color="blue-gray">
                     Bin Not Found
                 </Typography>
-                <button
+                <Button
                     onClick={() => navigate('/users/bins')}
-                    className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
+                    variant="filled"
+                    color="blue"
                 >
                     Return to Bins List
-                </button>
+                </Button>
             </div>
         );
     }
@@ -108,13 +99,7 @@ const BinSettings = () => {
     return (
         <div className="container mx-auto max-w-7xl p-4">
             <Card className="w-full">
-                <CardHeader color="blue" className="relative h-16">
-                    <div className="flex h-full items-center px-4">
-                        <Typography variant="h5" color="white">
-                            Bin Management System
-                        </Typography>
-                    </div>
-                </CardHeader>
+
                 <CardBody>
                     <Tabs value={activeTab}>
                         <TabsHeader>

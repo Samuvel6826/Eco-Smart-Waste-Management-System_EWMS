@@ -4,7 +4,7 @@ import './Contact.css';
 import Loader from '../../common/Loader';
 import * as Yup from 'yup';
 import { useFormik } from 'formik';
-import { Toaster, toast } from 'react-hot-toast';
+import { toast } from 'react-hot-toast';
 
 const Contact = () => {
     const [loading, setLoading] = useState(false);
@@ -92,15 +92,14 @@ const Contact = () => {
     };
 
     return (
-        <section id='contact' className='h-full w-full overflow-hidden bg-primary p-4 lg:p-10'>
-            <Toaster /> {/* Add Toaster component to handle notifications */}
-            <div id="contact-container" className="flex h-full flex-col justify-between gap-4">
-                <header id='contact-header' className='text-center text-secondary'>
+        <section id='contact' className='flex h-[90vh] w-full items-center justify-between bg-primary p-4 lg:p-10'>
+            <div id="contact-container" className="flex h-full w-full flex-col justify-between gap-4">
+                <header id='contact-header' className='bg-secondary p-4 text-center text-tertiary'>
                     <h1 id="contact-page-title" className='text-3xl font-bold'>Contact Me</h1>
                     <p id="contact-page-desc" className='text-xl'>Please fill out the form below to discuss any work opportunities.</p>
                 </header>
 
-                <main id='contact-wrapper' className='flex w-full flex-col gap-3' >
+                <main id='contact-wrapper' className='flex h-full w-full flex-col gap-3' >
                     <form id="contact-form" ref={formRef} onSubmit={formikQuery.handleSubmit} data-aos="fade-right">
                         <div id='nameContainer'>
                             <input
@@ -182,14 +181,15 @@ const Contact = () => {
                             />
                         </div>
 
-                        <button className='flex items-center justify-center bg-secondary p-2 text-center text-lg text-letter' type='submit' value='Send' id="submitBtn" disabled={loading}>
+                        <button className='flex items-center justify-center bg-tertiary p-2 text-center text-lg text-letterDark' type='submit' value='Send' id="submitBtn" disabled={loading}>
                             {loading ? <Loader /> : "Submit"}
                         </button>
                     </form>
 
-                    <div id='map-container' data-aos="fade-left">
+                    <div id='map-container' className='bg-tertiary' data-aos="fade-left">
                         <iframe
-                            src="https://www.google.com/maps/embed?pb=!1m13!1m8!1m3!1d7898.414636338594!2d77.246475!3d8.181859!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zOMKwMTAnNTQuNyJOIDc3wrAxNCc0Ny4zIkU!5e0!3m2!1sen!2sin!4v1715710048191!5m2!1sen!2sin"
+                            className='p-2'
+                            src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d1974.5713043044839!2d77.411112!3d8.188386!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3b04f0cf9a74de45%3A0x2b90de40f130de11!2sPioneer%20Kumaraswamy%20College!5e0!3m2!1sen!2sin!4v1730740814148!5m2!1sen!2sin"
                             width="100%"
                             height="100%"
                             style={{ border: 0 }}

@@ -28,7 +28,8 @@ const IotAutomationControl = lazy(() => import('./components/pages/iotRemote/Iot
 const Bins = lazy(() => import('./components/pages/bins/Bins'));
 const SupervisorBins = lazy(() => import('./components/pages/bins/SupervisorBins'));
 const CreateBin = lazy(() => import('./components/pages/bins/CreateBin'));
-const BinSettings = lazy(() => import('./components/pages/bins/BinSettings'));
+const BinSettings = lazy(() => import('./components/pages/bins/binSettings/BinSettings'));
+const Contact = lazy(() => import('./components/pages/contact/Contact'));
 
 function AppLayout() {
   useEffect(() => {
@@ -78,6 +79,11 @@ function AppLayout() {
         <Route path='/iot-remote' element={
           <ProtectedRoute>
             <IotAutomationControl />
+          </ProtectedRoute>
+        } />
+        <Route path='/contact' element={
+          <ProtectedRoute>
+            <Contact />
           </ProtectedRoute>
         } />
         <Route path='*' element={<Navigate to='/dashboard' />} />

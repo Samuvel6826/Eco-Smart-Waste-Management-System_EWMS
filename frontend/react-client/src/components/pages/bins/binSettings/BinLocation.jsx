@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { FaMapMarkerAlt, FaCompass, FaSearchLocation } from 'react-icons/fa';
 import { Typography, Button, Card, CardBody, Alert } from "@material-tailwind/react";
 
@@ -9,17 +9,11 @@ export const BinLocation = ({ binData }) => {
 
     const hasValidCoordinates = binData?.geoLocation?.latitude && binData?.geoLocation?.longitude;
 
-    // Generate the Google Maps URL based on coordinates
     const getGoogleMapsEmbedUrl = () => {
         if (!hasValidCoordinates) return '';
         const { latitude, longitude } = binData.geoLocation;
         return `https://www.google.com/maps/embed?pb=!1m13!1m8!1m3!1d7898.414636338594!2d${longitude}!3d${latitude}!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zOMKwMTAnNTQuNyJOIDc3wrAxNCc0Ny4zIkU!5e0!3m2!1sen!2sin!4v1715710048191!5m2!1sen!2sin`;
     };
-
-    useEffect(() => {
-        // Reset error state when binData changes
-        setMapError(null);
-    }, [binData]);
 
     const handleMapLoad = () => {
         setIsMapLoading(false);
@@ -147,9 +141,11 @@ export const BinLocation = ({ binData }) => {
             {/* Additional Information Footer */}
             <div className="rounded-lg bg-blue-50 p-4">
                 <Typography variant="small" className="text-blue-900">
-                    💡 Tip: Click on the map ( View Larger Map ) to open in Google Maps for directions and more details.
+                    💡 Tip: Click on the map to open in Google Maps for directions and more details.
                 </Typography>
             </div>
         </div>
     );
 };
+
+export default BinLocation;

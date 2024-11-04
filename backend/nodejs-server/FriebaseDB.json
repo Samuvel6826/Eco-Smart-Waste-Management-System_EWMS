@@ -1,24 +1,36 @@
 {
     "Automation": {
+        "FANs": {
+            "FAN-1": {
+                "lastUpdated": "24/10/2024, 14:01:54",
+                "location": "Canteen",
+                "state": 0
+            },
+            "FAN-2": {
+                "lastUpdated": "24/10/2024, 14:01:54",
+                "location": "Lab",
+                "state": 0
+            }
+        },
         "LEDs": {
             "LED-1": {
-                "lastUpdated": "01/10/2024, 18:26:09",
-                "location": "Main Hall",
-                "state": 1
+                "lastUpdated": "24/10/2024, 14:01:54",
+                "location": "Canteen",
+                "state": 0
             },
             "LED-2": {
-                "lastUpdated": "01/10/2024, 18:26:09",
-                "location": "Corridor",
-                "state": 1
+                "lastUpdated": "24/10/2024, 14:01:54",
+                "location": "Lab",
+                "state": 0
             },
             "LED-3": {
-                "lastUpdated": "01/10/2024, 18:26:09",
-                "location": "Gym Area",
-                "state": 1
+                "lastUpdated": "24/10/2024, 14:01:54",
+                "location": "Library",
+                "state": 0
             },
             "LED-4": {
-                "lastUpdated": "",
-                "location": "Library",
+                "lastUpdated": "24/10/2024, 14:01:54",
+                "location": "Gym",
                 "state": 0
             }
         }
@@ -26,23 +38,113 @@
     "Trash-Bins": {
         "Canteen": {
             "Bin-1": {
-                "binLidStatus": "CLOSED",
+                "id": "Bin-1",
                 "binLocation": "Canteen",
-                "binStatus": "Active",
-                "binType": "Plastic",
-                "createdAt": "05/10/2024, 01:14:07 PM",
-                "distance": 35,
-                "filledBinPercentage": 50,
+                "binType": "Glass",
                 "geoLocation": {
-                    "latitude": "13.0878",
-                    "longitude": "80.2785"
+                    "latitude": "28.7041",
+                    "longitude": "77.1025"
                 },
-                "id": 1,
-                "lastMaintenance": "",
-                "lastUpdated": "05/10/2024, 01:15:05 PM",
-                "maxBinCapacity": 50,
                 "microProcessorStatus": "OFF",
-                "sensorStatus": "OFF"
+                "sensorStatus": "OFF",
+                "binLidStatus": "OPEN",
+                "binActiveStatus": "Active",
+                "distance": 20,
+                "filledBinPercentage": 100,
+                "maxBinCapacity": 100,
+                "lastMaintenance": "25/10/2024, 05:18:36 PM",
+                "lastEmptied": "25/10/2024, 05:18:36 PM",
+                "temperature": "20",
+                "humidity": "50",
+                "batteryLevel": "100"
+            },
+            "Bin-2": {
+                "id": "Bin-2",
+                "binLocation": "Canteen",
+                "binType": "E-waste",
+                "geoLocation": {
+                    "latitude": "latitude",
+                    "longitude": "longitude"
+                },
+                "microProcessorStatus": "OFF",
+                "sensorStatus": "OFF",
+                "binLidStatus": "CLOSED",
+                "binActiveStatus": "inActive",
+                "distance": 0,
+                "filledBinPercentage": 10,
+                "maxBinCapacity": 0,
+                "lastMaintenance": "",
+                "lastEmptied": "",
+                "temperature": "0",
+                "humidity": "0",
+                "batteryLevel": "0"
+            }
+        },
+        "Gym": {
+            "Bin-1": {
+                "id": "Bin-1",
+                "binLocation": "Gym",
+                "binType": "Metal",
+                "geoLocation": {
+                    "latitude": "latitude",
+                    "longitude": "longitude"
+                },
+                "microProcessorStatus": "OFF",
+                "sensorStatus": "OFF",
+                "binLidStatus": "CLOSED",
+                "binActiveStatus": "inActive",
+                "distance": 0,
+                "filledBinPercentage": 0,
+                "maxBinCapacity": 0,
+                "lastMaintenance": "",
+                "lastEmptied": "",
+                "temperature": "0",
+                "humidity": "0",
+                "batteryLevel": "0"
+            },
+            "Bin-2": {
+                "id": "Bin-2",
+                "binLocation": "Gym",
+                "binType": "Plastic",
+                "geoLocation": {
+                    "latitude": "latitude",
+                    "longitude": "longitude"
+                },
+                "microProcessorStatus": "OFF",
+                "sensorStatus": "OFF",
+                "binLidStatus": "CLOSED",
+                "binActiveStatus": "inActive",
+                "distance": 0,
+                "filledBinPercentage": 0,
+                "maxBinCapacity": 0,
+                "lastMaintenance": "",
+                "lastEmptied": "",
+                "temperature": "0",
+                "humidity": "0",
+                "batteryLevel": "0"
+            }
+        },
+        "Lab": {
+            "Bin-1": {
+                "id": "Bin-1",
+                "binLocation": "Lab",
+                "binType": "Paper",
+                "geoLocation": {
+                    "latitude": "latitude",
+                    "longitude": "longitude"
+                },
+                "microProcessorStatus": "OFF",
+                "sensorStatus": "OFF",
+                "binLidStatus": "CLOSED",
+                "binActiveStatus": "inActive",
+                "distance": 0,
+                "filledBinPercentage": 0,
+                "maxBinCapacity": 0,
+                "lastMaintenance": "",
+                "lastEmptied": "",
+                "temperature": "0",
+                "humidity": "0",
+                "batteryLevel": "0"
             }
         }
     }
