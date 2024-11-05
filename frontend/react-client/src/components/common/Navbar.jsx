@@ -167,7 +167,7 @@ function NavbarComponent() {
     };
 
     return (
-        <Navbar className="sticky top-0 z-[100] max-w-full rounded-none bg-gradient-to-r from-green-600 to-green-800 px-4 py-2 shadow-md">
+        <Navbar className="sticky top-0 z-[100] max-w-full rounded-none bg-gradient-to-r from-green-700 to-green-500 px-4 py-2 shadow-md">
             <div className="flex h-14 items-center justify-between">
                 {/* Enhanced Logo Section */}
                 <div className="flex items-center gap-4">

@@ -75,223 +75,272 @@ export const BinSettingsForm = ({ initialData, onSubmit, isLoading }) => {
         }
     };
 
+    // Custom input wrapper component to ensure labels are always visible
+    const InputWithLabel = ({ label, children }) => (
+        <div className="relative">
+            <Typography
+                variant="small"
+                className="mb-2 block font-medium text-blue-gray-600"
+            >
+                {label}
+            </Typography>
+            {children}
+        </div>
+    );
+
     return (
         <div className="space-y-6">
-
             <form onSubmit={formik.handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                    <div>
+                    <InputWithLabel label="Bin ID">
                         <Input
                             type="text"
-                            label="Bin ID"
                             name="id"
                             value={formik.values.id}
                             onChange={formik.handleChange}
                             error={formik.touched.id && Boolean(formik.errors.id)}
                             disabled={!isEditing}
+                            className="!border-t-blue-gray-200 focus:!border-t-gray-900"
+                            labelProps={{
+                                className: "hidden"
+                            }}
                         />
-                        {formik.touched.id && formik.errors.id && (
-                            <Typography color="red" className="mt-1 text-sm">
-                                {formik.errors.id}
-                            </Typography>
-                        )}
-                    </div>
+                    </InputWithLabel>
 
-                    <div>
+                    <InputWithLabel label="Bin Location">
                         <Input
                             type="text"
-                            label="Bin Location"
                             name="binLocation"
                             value={formik.values.binLocation}
                             onChange={formik.handleChange}
                             error={formik.touched.binLocation && Boolean(formik.errors.binLocation)}
                             disabled={!isEditing}
+                            className="!border-t-blue-gray-200 focus:!border-t-gray-900"
+                            labelProps={{
+                                className: "hidden"
+                            }}
                         />
-                        {formik.touched.binLocation && formik.errors.binLocation && (
-                            <Typography color="red" className="mt-1 text-sm">
-                                {formik.errors.binLocation}
-                            </Typography>
-                        )}
-                    </div>
+                    </InputWithLabel>
 
-                    <div>
+                    <InputWithLabel label="Bin Type">
                         <Select
-                            label="Bin Type"
                             value={formik.values.binType}
                             onChange={(value) => formik.setFieldValue('binType', value)}
                             error={formik.touched.binType && Boolean(formik.errors.binType)}
                             disabled={!isEditing}
+                            labelProps={{
+                                className: "hidden"
+                            }}
                         >
                             {binTypes.map((type) => (
                                 <Option key={type} value={type}>{type}</Option>
                             ))}
                         </Select>
-                    </div>
+                    </InputWithLabel>
 
-                    <div>
+                    {/* Continue the same pattern for other fields */}
+                    <InputWithLabel label="Maximum Capacity (L)">
                         <Input
                             type="number"
-                            label="Maximum Capacity (L)"
                             name="maxBinCapacity"
                             value={formik.values.maxBinCapacity}
                             onChange={formik.handleChange}
                             error={formik.touched.maxBinCapacity && Boolean(formik.errors.maxBinCapacity)}
                             disabled={!isEditing}
+                            className="!border-t-blue-gray-200 focus:!border-t-gray-900"
+                            labelProps={{
+                                className: "hidden"
+                            }}
                         />
-                    </div>
+                    </InputWithLabel>
 
-                    <div>
+                    <InputWithLabel label="Distance (m)">
                         <Input
                             type="number"
-                            label="Distance (m)"
                             name="distance"
                             value={formik.values.distance}
                             onChange={formik.handleChange}
                             error={formik.touched.distance && Boolean(formik.errors.distance)}
                             disabled={!isEditing}
+                            className="!border-t-blue-gray-200 focus:!border-t-gray-900"
+                            labelProps={{
+                                className: "hidden"
+                            }}
                         />
-                    </div>
+                    </InputWithLabel>
 
-                    <div>
+                    <InputWithLabel label="Microprocessor Status">
                         <Select
-                            label="Microprocessor Status"
                             value={formik.values.microProcessorStatus}
                             onChange={(value) => formik.setFieldValue('microProcessorStatus', value)}
                             disabled={!isEditing}
+                            labelProps={{
+                                className: "hidden"
+                            }}
                         >
                             {statusOptions.map((status) => (
                                 <Option key={status} value={status}>{status}</Option>
                             ))}
                         </Select>
-                    </div>
+                    </InputWithLabel>
 
-                    <div>
+                    <InputWithLabel label="Sensor Status">
                         <Select
-                            label="Sensor Status"
                             value={formik.values.sensorStatus}
                             onChange={(value) => formik.setFieldValue('sensorStatus', value)}
                             disabled={!isEditing}
+                            labelProps={{
+                                className: "hidden"
+                            }}
                         >
                             {statusOptions.map((status) => (
                                 <Option key={status} value={status}>{status}</Option>
                             ))}
                         </Select>
-                    </div>
+                    </InputWithLabel>
 
-                    <div>
+                    <InputWithLabel label="Lid Status">
                         <Select
-                            label="Lid Status"
                             value={formik.values.binLidStatus}
                             onChange={(value) => formik.setFieldValue('binLidStatus', value)}
                             disabled={!isEditing}
+                            labelProps={{
+                                className: "hidden"
+                            }}
                         >
                             {lidStatuses.map((status) => (
                                 <Option key={status} value={status}>{status}</Option>
                             ))}
                         </Select>
-                    </div>
+                    </InputWithLabel>
 
-                    <div>
+                    <InputWithLabel label="Active Status">
                         <Select
-                            label="Active Status"
                             value={formik.values.binActiveStatus}
                             onChange={(value) => formik.setFieldValue('binActiveStatus', value)}
                             disabled={!isEditing}
+                            labelProps={{
+                                className: "hidden"
+                            }}
                         >
                             {activeStatuses.map((status) => (
                                 <Option key={status} value={status}>{status}</Option>
                             ))}
                         </Select>
-                    </div>
+                    </InputWithLabel>
 
-                    <div>
+                    <InputWithLabel label="Latitude">
                         <Input
                             type="text"
-                            label="Latitude"
                             name="geoLocation.latitude"
                             value={formik.values.geoLocation.latitude}
                             onChange={formik.handleChange}
                             disabled={!isEditing}
+                            className="!border-t-blue-gray-200 focus:!border-t-gray-900"
+                            labelProps={{
+                                className: "hidden"
+                            }}
                         />
-                    </div>
+                    </InputWithLabel>
 
-                    <div>
+                    <InputWithLabel label="Longitude">
                         <Input
                             type="text"
-                            label="Longitude"
                             name="geoLocation.longitude"
                             value={formik.values.geoLocation.longitude}
                             onChange={formik.handleChange}
                             disabled={!isEditing}
+                            className="!border-t-blue-gray-200 focus:!border-t-gray-900"
+                            labelProps={{
+                                className: "hidden"
+                            }}
                         />
-                    </div>
+                    </InputWithLabel>
 
-                    <div>
+                    <InputWithLabel label="Temperature">
                         <Input
                             type="text"
-                            label="Temperature"
                             name="temperature"
                             value={formik.values.temperature}
                             onChange={formik.handleChange}
                             disabled={!isEditing}
+                            className="!border-t-blue-gray-200 focus:!border-t-gray-900"
+                            labelProps={{
+                                className: "hidden"
+                            }}
                         />
-                    </div>
+                    </InputWithLabel>
 
-                    <div>
+                    <InputWithLabel label="Humidity">
                         <Input
                             type="text"
-                            label="Humidity"
                             name="humidity"
                             value={formik.values.humidity}
                             onChange={formik.handleChange}
                             disabled={!isEditing}
+                            className="!border-t-blue-gray-200 focus:!border-t-gray-900"
+                            labelProps={{
+                                className: "hidden"
+                            }}
                         />
-                    </div>
+                    </InputWithLabel>
 
-                    <div>
+                    <InputWithLabel label="Battery Level">
                         <Input
                             type="text"
-                            label="Battery Level"
                             name="batteryLevel"
                             value={formik.values.batteryLevel}
                             onChange={formik.handleChange}
                             disabled={!isEditing}
+                            className="!border-t-blue-gray-200 focus:!border-t-gray-900"
+                            labelProps={{
+                                className: "hidden"
+                            }}
                         />
-                    </div>
+                    </InputWithLabel>
 
-                    <div>
+                    <InputWithLabel label="Last Maintenance">
                         <Input
                             type="text"
-                            label="Last Maintenance"
                             name="lastMaintenance"
                             value={formik.values.lastMaintenance}
                             onChange={formik.handleChange}
                             disabled={!isEditing}
+                            className="!border-t-blue-gray-200 focus:!border-t-gray-900"
+                            labelProps={{
+                                className: "hidden"
+                            }}
                         />
-                    </div>
+                    </InputWithLabel>
 
-                    <div>
+                    <InputWithLabel label="Last Emptied">
                         <Input
                             type="text"
-                            label="Last Emptied"
                             name="lastEmptied"
                             value={formik.values.lastEmptied}
                             onChange={formik.handleChange}
                             disabled={!isEditing}
+                            className="!border-t-blue-gray-200 focus:!border-t-gray-900"
+                            labelProps={{
+                                className: "hidden"
+                            }}
                         />
-                    </div>
+                    </InputWithLabel>
 
-                    <div>
+                    <InputWithLabel label="Filled Percentage">
                         <Input
                             type="number"
-                            label="Filled Percentage"
                             name="filledBinPercentage"
                             value={formik.values.filledBinPercentage}
                             onChange={formik.handleChange}
                             disabled={!isEditing}
                             error={formik.touched.filledBinPercentage && Boolean(formik.errors.filledBinPercentage)}
+                            className="!border-t-blue-gray-200 focus:!border-t-gray-900"
+                            labelProps={{
+                                className: "hidden"
+                            }}
                         />
-                    </div>
+                    </InputWithLabel>
                 </div>
 
                 {isEditing && (

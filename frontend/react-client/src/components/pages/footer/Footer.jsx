@@ -40,16 +40,16 @@ const Footer = () => {
 
 
     return (
-        <section id='footer' className='h-full w-full bg-tertiary p-4 text-letter lg:px-10 lg:pt-10'>
+        <section id='footer' className='h-full w-full bg-letterLight p-4 text-tertiary lg:px-10 lg:pt-10'>
             <div id="footer-container" className="flex h-full w-full flex-col items-center justify-center gap-4 text-center">
                 <div id="footer-top" className='flex h-full w-full flex-col gap-4'>
                     {/* Footer navigation menu */}
                     <div id='foot-menu-container' className='max-lg:hidden'>
                         <h3 id='headings'>MENU</h3>
                         <div className="btns-container-menu">
-                            <a href="#hero">Home</a>
-                            <a href="#about">About</a>
-                            <a href="#skills">Skills</a>
+                            <a href="/dashboard">Dashboard</a>
+                            <a href="/users/bins">Bins</a>
+                            <a href="/iot-remote">IoT Remote</a>
                             <a href="#projects">Projects</a>
                             <a href="#portfolio">Portfolio</a>
                             <a href="#contact">Contact</a>
@@ -131,7 +131,7 @@ const Footer = () => {
                             ))}
                         </div>
 
-                        <a href="home" id="logo" className="mt-2 font-aldrich text-4xl font-bold tracking-widest transition-transform duration-300 hover:scale-110"
+                        <a href="https://samtocode24.web.app" target='blank' id="logo" className="mt-2 font-aldrich text-4xl font-bold tracking-widest transition-transform duration-300 hover:scale-110"
                             style={{ background: "linear-gradient(90deg, #ff4b5c, #0072ff)", WebkitBackgroundClip: "text", color: "transparent", textShadow: "2px 2px 4px rgba(0, 0, 0, 0.1)" }}>
                             SamToCode24
                         </a>

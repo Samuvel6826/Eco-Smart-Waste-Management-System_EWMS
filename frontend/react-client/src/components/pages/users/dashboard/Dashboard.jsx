@@ -5,9 +5,10 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { useUsersContext } from '../../../contexts/UsersContext';
 import {
     Typography,
-    Card,
-    Spinner
+    Card
 } from "@material-tailwind/react";
+
+import PreLoader from '../../../common/preloader/PreLoader';
 
 // Import components directly instead of lazy loading for now
 import { UserStatsCard } from './UserStatsCard';
@@ -17,12 +18,6 @@ import { UsersListFooter } from './UsersListFooter';
 import { ChangePasswordDialog } from './ChangePasswordDialog';
 import { DeleteConfirmationDialog } from './DeleteConfirmationDialog';
 import { AssignBinsDialog } from './AssignBinsDialog';
-
-const LoadingSpinner = () => (
-    <div className="flex items-center justify-center p-4">
-        <Spinner className="h-8 w-8" />
-    </div>
-);
 
 function Dashboard() {
     const { user, logout } = useAuth();
@@ -127,7 +122,7 @@ function Dashboard() {
     }, []);
 
     if (userLoading) {
-        return <LoadingSpinner />;
+        return <PreLoader />;
     }
 
     return (

@@ -30,6 +30,7 @@ const SupervisorBins = lazy(() => import('./components/pages/bins/SupervisorBins
 const CreateBin = lazy(() => import('./components/pages/bins/CreateBin'));
 const BinSettings = lazy(() => import('./components/pages/bins/binSettings/BinSettings'));
 const Contact = lazy(() => import('./components/pages/contact/Contact'));
+const Footer = lazy(() => import('./components/pages/footer/Footer'));
 
 function AppLayout() {
   useEffect(() => {
@@ -123,6 +124,7 @@ function App() {
                     <Route path="/not-authorized" element={<NotAuthorized />} />
                     <Route path="/*" element={<AppLayout />} />
                   </Routes>
+                  <Footer />
                 </Suspense>
               </main>
             </ErrorBoundary>
