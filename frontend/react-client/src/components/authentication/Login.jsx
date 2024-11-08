@@ -4,6 +4,7 @@ import * as Yup from 'yup';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
+import { useNotification } from '../contexts/NotificationContext';
 import PreLoader from '../common/preloader/PreLoader';
 import pkcLogo from "../../assets/pkc-logo.jpeg";
 
@@ -19,6 +20,7 @@ function Login() {
     const [showPassword, setShowPassword] = useState(false);
     const navigate = useNavigate();
     const { login } = useAuth();
+    const { registerDeviceToken, notificationToken } = useNotification();
 
     const demoCredentials = {
         Admin: { email: 'samuvel6826@gmail.com', password: '1' },
@@ -41,6 +43,16 @@ function Login() {
 
             if (result.success) {
                 toast.success('Login successful!');
+
+                // Construct the payload for registering the device token
+                const payload = {
+                    title: 'EWMS Push Notification',
+                    body: 'Login successful!',
+                };
+
+                // Register the device token with the server
+                await registerDeviceToken(payload);
+
                 const route = roleRoutes[result.userData.role] || '/users/bins';
                 navigate(route);
             } else {

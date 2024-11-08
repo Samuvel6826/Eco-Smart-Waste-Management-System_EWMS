@@ -46,11 +46,15 @@ export const NotificationProvider = ({ children }) => {
         }
     }, [logout]);
 
-    const registerDeviceToken = useCallback(async () => {
-        if (!notificationToken) return;
+    const registerDeviceToken = useCallback(async (payload) => {
+        if (!notificationToken || !payload.title || !payload.body) return;
 
         try {
-            await axiosInstance.post('/api/user/notification-send', { deviceToken: notificationToken });
+            await axiosInstance.post('/api/user/notification-send', {
+                deviceToken: notificationToken,
+                title: payload.title,
+                body: payload.body,
+            });
         } catch (error) {
             console.error('Error registering device token:', error.response?.data || error.message);
             throw error;

@@ -201,12 +201,6 @@ const usersSchema = new mongoose.Schema({
     type: String,
     default: 'Yet not !!', // Use Date type instead of String
     trim: true
-  },
-  notificationToken: {
-    type: String
-  },
-  tokenUpdatedAt: {
-    type: String
   }
 },
   {
