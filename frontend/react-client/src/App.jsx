@@ -14,6 +14,7 @@ import ScrollToTopButton from './components/common/ScrollTopBtn';
 // Context Providers
 import { AuthProvider } from "./components/contexts/AuthContext";
 import { NotificationProvider } from './components/contexts/NotificationContext';
+import { ResendEmailProvider } from './components/contexts/ResendEmailContext';
 import { BinsProvider } from './components/contexts/BinsContext';
 import { UsersProvider } from './components/contexts/UsersContext';
 
@@ -39,32 +40,34 @@ const RootLayout = () => {
   return (
     <AuthProvider>
       <NotificationProvider>
-        <UsersProvider>
-          <BinsProvider>
-            <ErrorBoundary>
-              <main id='App'>
-                <Toaster
-                  position="top-right"
-                  containerStyle={{
-                    position: 'fixed',
-                    zIndex: 10000,
-                  }}
-                  toastOptions={{
-                    duration: 3000,
-                    style: {
-                      background: '#333',
-                      color: '#fff',
-                      maxWidth: '500px',
-                    },
-                  }}
-                />
-                <Suspense fallback={<PreLoader />}>
-                  <Outlet />
-                </Suspense>
-              </main>
-            </ErrorBoundary>
-          </BinsProvider>
-        </UsersProvider>
+        <ResendEmailProvider>
+          <UsersProvider>
+            <BinsProvider>
+              <ErrorBoundary>
+                <main id='App'>
+                  <Toaster
+                    position="top-right"
+                    containerStyle={{
+                      position: 'fixed',
+                      zIndex: 10000,
+                    }}
+                    toastOptions={{
+                      duration: 3000,
+                      style: {
+                        background: '#333',
+                        color: '#fff',
+                        maxWidth: '500px',
+                      },
+                    }}
+                  />
+                  <Suspense fallback={<PreLoader />}>
+                    <Outlet />
+                  </Suspense>
+                </main>
+              </ErrorBoundary>
+            </BinsProvider>
+          </UsersProvider>
+        </ResendEmailProvider>
       </NotificationProvider>
     </AuthProvider>
   );

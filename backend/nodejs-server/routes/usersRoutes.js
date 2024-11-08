@@ -1,6 +1,7 @@
 const express = require('express');
 const UsersController = require('../controllers/usersController');
 const NotificationController = require('../controllers/notificationController');
+const { sendEmail } = require('../controllers/resendEmailController');
 const router = express.Router();
 const auth = require('../common/Auth');
 const { logger } = require('../utils/logger');
@@ -101,6 +102,9 @@ router.post('/notification-send',
     auth.validate,
     NotificationController.sendFirebaseNotification
 );
+
+// Make sure to use express.json() middleware in your main app
+router.post('/send-email', sendEmail); // Properly handle async route
 
 // Apply error handling middleware
 router.use(errorHandlerMiddleware);

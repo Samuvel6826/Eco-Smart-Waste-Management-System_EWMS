@@ -55,7 +55,7 @@ export const NotificationProvider = ({ children }) => {
                 title: payload.title,
                 body: payload.body,
             });
-            console.log("Device Notification Token:", payload);
+            // console.log("Device Notification Token:", payload);
         } catch (error) {
             console.error('Error registering device token:', error.response?.data || error.message);
             throw error;

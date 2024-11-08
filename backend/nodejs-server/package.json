@@ -28,6 +28,7 @@
     "pug": "3.0.2",
     "punycode": "^2.3.1",
     "punycode.js": "^2.3.1",
+    "resend": "^4.0.1-alpha.0",
     "winston": "^3.15.0"
   },
   "devDependencies": {

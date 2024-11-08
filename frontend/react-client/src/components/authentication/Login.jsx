@@ -4,6 +4,7 @@ import * as Yup from 'yup';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
+import { useResendEmail } from '../contexts/ResendEmailContext';
 import { useNotification } from '../contexts/NotificationContext';
 import PreLoader from '../common/preloader/PreLoader';
 import pkcLogo from "../../assets/pkc-logo.jpeg";
@@ -20,7 +21,8 @@ function Login() {
     const [showPassword, setShowPassword] = useState(false);
     const navigate = useNavigate();
     const { login } = useAuth();
-    const { registerDeviceToken, notificationToken } = useNotification();
+    const { registerDeviceToken } = useNotification();
+    const { sendEmail } = useResendEmail();
 
     const demoCredentials = {
         Admin: { email: 'samuvel6826@gmail.com', password: '1' },
@@ -43,6 +45,14 @@ function Login() {
 
             if (result.success) {
                 toast.success('Login successful!');
+
+                // Send the email notification
+                await sendEmail(
+                    'onboarding@resend.dev',
+                    values.email,
+                    'Login Successful',
+                    '<p>Congratulations! You have successfully logged in to the EWMS application.</p>'
+                );
 
                 // Construct the payload for registering the device token
                 const payload = {
