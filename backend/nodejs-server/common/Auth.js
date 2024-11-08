@@ -31,7 +31,7 @@ const createToken = (payload) => {
             { expiresIn: process.env.JWT_EXPIRE }
         );
     } catch (error) {
-        logger.error("Error creating token:", error);
+        logger.error("Error creating Authorization token:", error);
         throw new Error("Token creation failed");
     }
 };
@@ -40,8 +40,8 @@ const decodeToken = (token) => {
     try {
         return jwt.verify(token, process.env.JWT_SECRET);
     } catch (error) {
-        logger.error("Error decoding token:", error);
-        throw new Error("Invalid or expired token");
+        logger.error("Error decoding Authorization token:", error);
+        throw new Error("Invalid or expired Authorization token");
     }
 };
 
@@ -59,14 +59,14 @@ const validate = (req, res, next) => {
         const currentTime = Math.floor(Date.now() / 1000);
         if (currentTime >= payload.exp) {
             logger.warn("Token has expired");
-            return res.status(401).json({ message: "Token has expired" });
+            return res.status(401).json({ message: "Authorization token has expired" });
         }
 
         req.user = payload;
         next();
     } catch (error) {
         logger.error("Token validation error:", error);
-        return res.status(401).json({ message: "Invalid or expired token" });
+        return res.status(401).json({ message: "Invalid or expired Authorization token" });
     }
 };
 
@@ -91,7 +91,7 @@ const roleGuard = (...allowedRoles) => {
             return res.status(403).json({ message: `Access restricted to ${allowedRoles.join(', ')} roles only` });
         } catch (error) {
             logger.error("Role guard error:", error);
-            return res.status(401).json({ message: "Invalid or expired token" });
+            return res.status(401).json({ message: "Invalid or expired Authorization token" });
         }
     };
 };
