@@ -19,16 +19,16 @@ const messaging = getMessaging(firebaseApp);
 const database = getDatabase(firebaseApp);
 const storage = getStorage(firebaseApp);
 
-// if ('serviceWorker' in navigator) {
-//     navigator.serviceWorker
-//         .register('/firebase-messaging-sw.js')
-//         .then((registration) => {
-//             console.log('Service Worker registered:', registration);
-//         })
-//         .catch((err) => {
-//             console.error('Service Worker registration failed:', err);
-//         });
-// }
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker
+        .register('/firebase-messaging-sw.js')
+        .then((registration) => {
+            console.log('Service Worker registered:', registration);
+        })
+        .catch((err) => {
+            console.error('Service Worker registration failed:', err);
+        });
+}
 
 export const requestNotificationPermissionToken = async () => {
     try {
