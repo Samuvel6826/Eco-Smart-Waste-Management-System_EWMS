@@ -1,25 +1,32 @@
 const admin = require('firebase-admin');
+const { logger } = require('../utils/logger');
+
+let firebaseApp = null;
 
 const initializeFirebase = () => {
-    if (!admin.apps.length) {
-        let serviceAccount;
+    if (!firebaseApp) {
         try {
-            serviceAccount = process.env.RENDER === 'true'
-                ? require('/etc/secrets/serviceAccountKey.json')
-                : process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+            let serviceAccount;
 
-            admin.initializeApp({
+            if (process.env.RENDER === 'true') {
+                serviceAccount = require('/etc/secrets/serviceAccountKey.json');
+            } else {
+                serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+            }
+
+            firebaseApp = admin.initializeApp({
                 credential: admin.credential.cert(serviceAccount),
                 databaseURL: process.env.FIREBASE_DATABASE_URL,
             });
 
-            console.log("Connected to Firebase Realtime Database successfully");
+            logger.info('Firebase initialized successfully');
         } catch (error) {
-            console.error("Error initializing Firebase:", error);
-            process.exit(1);
+            logger.error('Error initializing Firebase:', error);
+            throw error;
         }
     }
-    return admin;
+
+    return firebaseApp;
 };
 
 module.exports = initializeFirebase;

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { SpeedDial, SpeedDialHandler, SpeedDialContent, SpeedDialAction, IconButton, Typography } from "@material-tailwind/react";
+import { SpeedDial, SpeedDialHandler, SpeedDialContent, SpeedDialAction, IconButton } from "@material-tailwind/react";
 import { MdDashboard } from "react-icons/md";
 import { BsArrowUpCircleFill } from "react-icons/bs";
 import { IoTrashBinSharp } from "react-icons/io5";
@@ -11,7 +11,6 @@ const ScrollToTopButton = () => {
     const [activeMenu, setActiveMenu] = useState(null);
     const [isVisible, setIsVisible] = useState(false);
 
-    // Show/Hide scroll-to-top button based on scroll position
     useEffect(() => {
         const scrollFunction = () => {
             if (document.body.scrollTop > 50 || document.documentElement.scrollTop > 50) {
@@ -27,7 +26,6 @@ const ScrollToTopButton = () => {
         };
     }, []);
 
-    // Handle active menu based on scroll event
     useEffect(() => {
         Events.scrollEvent.register('end', (to) => {
             setActiveMenu(to);
@@ -39,7 +37,6 @@ const ScrollToTopButton = () => {
         };
     }, []);
 
-    // Scroll to the top of the page
     const topFunction = () => {
         window.scrollTo({
             top: 0,
@@ -47,9 +44,9 @@ const ScrollToTopButton = () => {
         });
     };
 
-    // Define the menu items with icons and navigation links
     const menuItems = [
         {
+            id: 'dashboard',
             text: "Dashboard",
             icon: <MdDashboard className="h-4 w-4" />,
             link: "/dashboard",
@@ -57,6 +54,7 @@ const ScrollToTopButton = () => {
             manager: true,
         },
         {
+            id: 'bins',
             text: "Bins",
             icon: <IoTrashBinSharp className="h-4 w-4" />,
             link: "/users/bins",
@@ -64,6 +62,7 @@ const ScrollToTopButton = () => {
             manager: true,
         },
         {
+            id: 'iot',
             text: "IoT Remote",
             icon: <MdSettingsRemote className="h-4 w-4" />,
             link: "/iot-remote",
@@ -71,6 +70,7 @@ const ScrollToTopButton = () => {
             manager: true,
         },
         {
+            id: 'contact',
             text: "Contact",
             icon: <FaPhoneAlt className="h-4 w-4" />,
             link: "/contact",
@@ -105,7 +105,7 @@ const ScrollToTopButton = () => {
                                 to={item.link}
                                 spy={true}
                                 smooth={true}
-                                offset={item.offset}
+                                offset={-70}  // Added default offset
                                 duration={500}
                                 className={`flex flex-col items-center gap-1 ${activeMenu === item.id ? 'text-blue-500' : 'text-gray-700'
                                     }`}
@@ -114,11 +114,15 @@ const ScrollToTopButton = () => {
                                 <div className="rounded-full p-2 hover:bg-blue-100">
                                     {item.icon}
                                 </div>
+                                <span className="text-xs">{item.text}</span>
                             </Link>
                         </SpeedDialAction>
                     ))}
 
-                    <SpeedDialAction className="relative h-16 w-16 bg-white hover:bg-blue-50">
+                    <SpeedDialAction
+                        key="scroll-top"
+                        className="relative h-16 w-16 bg-white hover:bg-blue-50"
+                    >
                         <div
                             className="flex flex-col items-center gap-1 text-gray-700"
                             onClick={topFunction}
@@ -126,6 +130,7 @@ const ScrollToTopButton = () => {
                             <div className="rounded-full p-2 hover:bg-blue-100">
                                 <BsArrowUpCircleFill className="h-5 w-5" />
                             </div>
+                            <span className="text-xs">Top</span>
                         </div>
                     </SpeedDialAction>
                 </SpeedDialContent>

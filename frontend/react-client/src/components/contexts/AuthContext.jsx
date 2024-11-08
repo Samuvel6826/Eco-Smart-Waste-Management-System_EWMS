@@ -2,9 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import {
     getFormattedDateNTime,
-    getUserFromSession,
     isLoggedIn,
-    getAuthToken,
     validateToken,
     setAuthToken,
     isTokenExpired
@@ -18,17 +16,20 @@ export const AuthProvider = ({ children }) => {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        const initializeAuth = async () => {
-            const validatedUser = validateToken();
-            if (validatedUser) {
-                setUser(validatedUser);
-                const token = getAuthToken();
-                setAuthToken(token);
+        const initializeAuth = () => {
+            // Load user from localStorage or sessionStorage
+            const savedUser = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user'));
+
+            if (savedUser && !isTokenExpired(savedUser.token)) {
+                setUser(savedUser);
+                setAuthToken(savedUser.token); // Set axios headers
             } else {
-                await logout();
+                // Clear any invalid data from storage
+                logout();
             }
             setLoading(false);
         };
+
         initializeAuth();
     }, []);
 
@@ -54,41 +55,32 @@ export const AuthProvider = ({ children }) => {
                 throw new Error('Invalid response from server');
             }
 
-            // Update the user data with the formatted lastLoginBy
-            const userData = {
-                ...responseData
-            };
+            const userData = { ...responseData, token };
 
-            console.table(userData)
-
-            // Set auth token (this will handle both sessionStorage and axios headers)
+            // Save user data in localStorage (or use sessionStorage)
+            localStorage.setItem('user', JSON.stringify(userData));
             setAuthToken(token);
-            // Store user data in session storage
-            sessionStorage.setItem('user', JSON.stringify(userData));
-            // Update the user state
             setUser(userData);
 
-            return {
-                success: true,
-                userData,
-                token
-            };
+            return { success: true, userData, token };
         } catch (error) {
             console.error('Login failed:', error);
             const errorMessage = error.response?.data?.message || 'Login failed. Please try again.';
             setError(errorMessage);
-            return {
-                success: false,
-                error: errorMessage
-            };
+            return { success: false, error: errorMessage };
         }
     };
 
-    const logout = async () => {
+    const logout = () => {
         setAuthToken(null);
+        localStorage.removeItem('user'); // Also remove from sessionStorage if needed
         sessionStorage.removeItem('user');
         setUser(null);
         setError(null);
+    };
+
+    const getAuthToken = () => {
+        return user?.token || null;
     };
 
     return (
@@ -96,9 +88,9 @@ export const AuthProvider = ({ children }) => {
             user,
             loading,
             error,
-            setUser,
             login,
             logout,
+            getAuthToken,
             isAuthenticated: isLoggedIn(),
             userRole: user?.role
         }}>

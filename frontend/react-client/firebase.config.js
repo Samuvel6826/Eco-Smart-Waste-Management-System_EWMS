@@ -1,9 +1,9 @@
+import { toast } from 'react-hot-toast';
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getDatabase, ref as databaseRef, onValue, off, set, child, get, update } from "firebase/database";
+import { getMessaging, getToken, onMessage } from 'firebase/messaging';
+import { getDatabase, ref as databaseRef, onValue, child, off, get, set } from "firebase/database";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
 
-// Firebase configuration object using environment variables
 const firebaseConfig = {
     apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
     authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
@@ -14,28 +14,78 @@ const firebaseConfig = {
     databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL,
 };
 
-// Initialize Firebase
 const firebaseApp = initializeApp(firebaseConfig);
+const messaging = getMessaging(firebaseApp);
+const database = getDatabase(firebaseApp);
+const storage = getStorage(firebaseApp);
 
-// Initialize Firebase services
-const auth = getAuth(firebaseApp);          // Authentication service
-const database = getDatabase(firebaseApp);  // Realtime Database service
-const storage = getStorage(firebaseApp);    // Storage service
+// if ('serviceWorker' in navigator) {
+//     navigator.serviceWorker
+//         .register('/firebase-messaging-sw.js')
+//         .then((registration) => {
+//             console.log('Service Worker registered:', registration);
+//         })
+//         .catch((err) => {
+//             console.error('Service Worker registration failed:', err);
+//         });
+// }
 
-// Export Firebase services and commonly used functions
+export const requestNotificationPermissionToken = async () => {
+    try {
+        const currentPermission = await Notification.permission;
+        // console.log('Current permission:', currentPermission);
+
+        if (currentPermission === 'granted') {
+            const token = await getToken(messaging, {
+                vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY
+            });
+            return token;
+        } else if (currentPermission === 'default') {
+            const permission = await Notification.requestPermission();
+            if (permission === 'granted') {
+                const token = await getToken(messaging, {
+                    vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY
+                });
+                return token;
+            } else {
+                throw new Error('Notification permission denied');
+            }
+        } else {
+            throw new Error('Notification permission denied');
+        }
+    } catch (error) {
+        console.error('Notification permission error:', error);
+        throw error;
+    }
+};
+
+export const onMessageListener = () => {
+    onMessage(messaging, (payload) => {
+        if (Notification.permission === 'granted') {
+            navigator.serviceWorker.getRegistration().then((reg) => {
+                if (reg) {
+                    reg.showNotification(payload.notification.title, {
+                        body: payload.notification.body,
+                        icon: payload.notification.icon,
+                    });
+                }
+            });
+        }
+    });
+};
+
 export {
     firebaseApp,
-    auth,
+    messaging,
     database,
     storage,
     databaseRef,
     storageRef,
     onValue,
-    off,
-    set,
     child,
     get,
-    update,
+    set,
+    off,
     uploadBytes,
     getDownloadURL
 };

@@ -1,5 +1,6 @@
 const express = require('express');
 const UsersController = require('../controllers/usersController');
+const NotificationController = require('../controllers/notificationController');
 const router = express.Router();
 const auth = require('../common/Auth');
 const { logger } = require('../utils/logger');
@@ -94,6 +95,11 @@ router.put('/change-password',
         logger.info(`Changing password for user with employeeId: ${req.query.employeeId}`);
         UsersController.changePassword(req, res, next);
     }
+);
+
+router.post('/notification-send',
+    auth.validate,
+    NotificationController.sendFirebaseNotification
 );
 
 // Apply error handling middleware

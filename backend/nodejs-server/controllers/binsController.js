@@ -30,6 +30,7 @@ const findActualLocation = async (location) => {
 
 const createBin = async (req, res) => {
     try {
+        // Validate input using Joi schema
         const { error, value } = binMetaDataSchema.validate(req.body);
         if (error) {
             return handleClientError(res, 'Invalid data format or missing required fields');
@@ -38,26 +39,31 @@ const createBin = async (req, res) => {
         const { id, binLocation } = value;
         customLogger.info(`Attempting to create new bin with ID: ${id} at location: ${binLocation}`);
 
+        // Reference the location in Firebase
         const binRef = sensorDataRef.child(`${binLocation}/${id}`);
         const existingBin = await binRef.once('value');
 
+        // Check if bin already exists
         if (existingBin.exists()) {
             return handleDuplicateError(res, `Bin with ID ${id} already exists at location ${binLocation}`);
         }
 
+        // Data to save with default values and timestamps
         const dataToSave = {
             ...value,
             lastUpdated: getFormattedDate(),
             createdAt: getFormattedDate(),
             lastEmptied: "",
-            temperature: "0",
-            humidity: "0",
-            batteryLevel: "0"
+            temperature: value.temperature || "0",
+            humidity: value.humidity || "0",
+            batteryLevel: value.batteryLevel || "0"
         };
 
+        // Save data to Firebase
         await binRef.set(dataToSave);
         customLogger.info('New bin metadata saved to Firebase:', dataToSave);
 
+        // Respond with success
         res.status(201).json({
             status: 'success',
             message: 'Bin created successfully',
