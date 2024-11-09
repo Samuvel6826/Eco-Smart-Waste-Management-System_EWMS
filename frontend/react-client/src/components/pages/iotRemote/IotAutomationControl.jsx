@@ -4,8 +4,8 @@ import { FaCircleInfo } from "react-icons/fa6";
 import LightControls from './LightControls';
 import VoiceVisualizer from './VoiceVisualizer';
 import InactivityTimer from './InactivityTimer';
-import { useDeviceStatesHook } from './useDeviceStatesHook';
-import { useVoiceRecognitionHook } from './useVoiceRecognitionHook';
+import { useDeviceStatesHook } from './hooks/useDeviceStatesHook';
+import { useVoiceRecognitionHook } from './hooks/useVoiceRecognitionHook';
 import { toast } from 'react-hot-toast';
 
 const IotAutomationControl = () => {

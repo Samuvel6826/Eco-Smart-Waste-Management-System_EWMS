@@ -2,17 +2,17 @@ import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { toast } from 'react-hot-toast';
 import { Link } from 'react-router-dom';
 import Bin from './Bin';
-import { useBinsContext } from '../../contexts/BinsContext';
-import { useAuth } from '../../contexts/AuthContext';
-import { useUsersContext } from '../../contexts/UsersContext';
+import { useAuthHook } from '../../contexts/providers/hooks/useAuthHook';
+import { useUsersHook } from '../../contexts/providers/hooks/useUsersHook';
+import { useBinsHook } from '../../contexts/providers/hooks/useBinsHook';
 import { GoPlus } from "react-icons/go";
 import { FaMapMarkerAlt } from "react-icons/fa";
 import { FaExclamationTriangle } from "react-icons/fa";
 
 const SupervisorBins = () => {
-    const { user } = useAuth();
-    const { bins, loading, error, fetchBinsByLocation } = useBinsContext();
-    const { fetchAssignedBinLocations } = useUsersContext();
+    const { user } = useAuthHook();
+    const { bins, loading, error, fetchBinsByLocation } = useBinsHook();
+    const { fetchAssignedBinLocations } = useUsersHook();
     const [selectedLocation, setSelectedLocation] = useState('');
     const [assignedLocations, setAssignedLocations] = useState([]);
 

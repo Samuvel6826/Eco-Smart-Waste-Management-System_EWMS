@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../../contexts/AuthContext';
-import { useUsersContext } from '../../../contexts/UsersContext';
+import { useAuthHook } from '../../../contexts/providers/hooks/useAuthHook';
+import { useUsersHook } from '../../../contexts/providers/hooks/useUsersHook';
 import {
     Typography,
     Card
@@ -20,7 +20,7 @@ import { DeleteConfirmationDialog } from './DeleteConfirmationDialog';
 import { AssignBinsDialog } from './AssignBinsDialog';
 
 function Dashboard() {
-    const { user, logout } = useAuth();
+    const { user, logout } = useAuthHook();
     const {
         users,
         loading: userLoading,
@@ -28,7 +28,7 @@ function Dashboard() {
         fetchUsers,
         deleteUser: deleteUserFromContext,
         changePassword
-    } = useUsersContext();
+    } = useUsersHook();
 
     const [state, setState] = useState({
         deleteUserId: null,

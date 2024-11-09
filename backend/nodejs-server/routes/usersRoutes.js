@@ -104,7 +104,7 @@ router.post('/notification-send',
 );
 
 // Make sure to use express.json() middleware in your main app
-router.post('/send-email', sendEmail); // Properly handle async route
+router.post('/send-email', auth.validate, sendEmail); // Properly handle async route
 
 // Apply error handling middleware
 router.use(errorHandlerMiddleware);

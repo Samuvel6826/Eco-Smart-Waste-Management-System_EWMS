@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuthHook } from "../contexts/providers/hooks/useAuthHook";
 import {
     Navbar,
     Typography,
@@ -99,7 +99,7 @@ const NavigationItems = ({ items, pathname, onNavigate }) => (
 );
 
 function NavbarComponent() {
-    const { user, logout } = useAuth();
+    const { user, logout } = useAuthHook();
     const [isAdmin, setIsAdmin] = useState(false);
     const [isManager, setIsManager] = useState(false);
     const [drawerOpen, setDrawerOpen] = useState(false);

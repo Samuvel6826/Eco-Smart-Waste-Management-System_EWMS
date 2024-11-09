@@ -7,7 +7,7 @@ const sendFirebaseNotification = async (req, res) => {
         const { title, body, deviceToken } = req.body;
 
         // Log the incoming request
-        logger.info(`sendFirebaseNotification called with title: ${title}, body: ${body}, deviceToken: ${deviceToken}`);
+        logger.info(`sendFirebaseNotification called with title: ${title}, body: ${body}`);
 
         // Basic validation
         if (!deviceToken || !title || !body) {

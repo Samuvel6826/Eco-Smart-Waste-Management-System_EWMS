@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Formik, Form } from 'formik';
 import { useNavigate } from 'react-router-dom';
-import { useUsersContext } from '../../../contexts/UsersContext';
-import { useAuth } from '../../../contexts/AuthContext';
+import { useAuthHook } from '../../../contexts/providers/hooks/useAuthHook';
+import { useUsersHook } from '../../../contexts/providers/hooks/useUsersHook';
 import { toast } from 'react-hot-toast';
 import { ROLE_OPTIONS, GENDER_OPTIONS } from '../helpers/constants/userConstants';
 import { getAvatarUrl, FormField } from '../helpers/utils/userUtils';
@@ -18,8 +18,8 @@ import { useInitialFormValues } from '../helpers/hooks/useInitialFormValues';
 
 const CreateUser = () => {
     const navigate = useNavigate();
-    const { createUser, users, fetchUsers, loading, error: contextError } = useUsersContext();
-    const { user } = useAuth();
+    const { createUser, users, fetchUsers, loading, error: contextError } = useUsersHook();
+    const { user } = useAuthHook();
     const [countryId, setCountryId] = useState(0);
     const [stateId, setStateId] = useState(0);
 

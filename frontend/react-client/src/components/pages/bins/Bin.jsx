@@ -1,8 +1,8 @@
 import React, { useState, forwardRef } from 'react';
 import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
-import { useBinsContext } from '../../contexts/BinsContext';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuthHook } from '../../contexts/providers/hooks/useAuthHook';
+import { useBinsHook } from '../../contexts/providers/hooks/useBinsHook';
 import {
     Card,
     CardBody,
@@ -69,8 +69,8 @@ SyncIcon.displayName = 'SyncIcon';
 const Bin = ({ locationId, binId, binData }) => {
     const [showModal, setShowModal] = useState(false);
     const navigate = useNavigate();
-    const { deleteBin } = useBinsContext();
-    const { user } = useAuth();
+    const { deleteBin } = useBinsHook();
+    const { user } = useAuthHook();
 
     const {
         binLocation = '',

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { useAuth } from '../../../contexts/AuthContext';
-import { useUsersContext } from '../../../contexts/UsersContext';
-import { useBinsContext } from '../../../contexts/BinsContext';
+import { useAuthHook } from '../../../contexts/providers/hooks/useAuthHook';
+import { useUsersHook } from '../../../contexts/providers/hooks/useUsersHook';
+import { useBinsHook } from '../../../contexts/providers/hooks/useBinsHook';
 import { toast } from 'react-hot-toast';
 import {
     Card,
@@ -18,9 +18,9 @@ import {
 } from "@material-tailwind/react";
 
 const AssignBinLocations = React.memo(({ open, onClose, onAssignSuccess }) => {
-    const { logout } = useAuth();
-    const { users, fetchUsers, assignBinsToUser } = useUsersContext();
-    const { bins, fetchBins } = useBinsContext();
+    const { logout } = useAuthHook();
+    const { users, fetchUsers, assignBinsToUser } = useUsersHook();
+    const { bins, fetchBins } = useBinsHook();
     const contentRef = useRef(null);
 
     const [state, setState] = useState({
@@ -118,7 +118,6 @@ const AssignBinLocations = React.memo(({ open, onClose, onAssignSuccess }) => {
         setState(prev => ({ ...prev, loadingAssign: true }));
         try {
             await assignBinsToUser(state.selectedSupervisor.employeeId, state.selectedBins);
-            toast.success('Bins assigned successfully!');
             onAssignSuccess();
             onClose();
         } catch (error) {

@@ -1,14 +1,14 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import { useBinsContext } from '../../contexts/BinsContext';
+import { useBinsHook } from '../../contexts/providers/hooks/useBinsHook';
 import Bin from './Bin';
 import { GoPlus } from "react-icons/go";
 import { FaMapMarkerAlt } from "react-icons/fa";
 import { FaExclamationTriangle } from "react-icons/fa";
 
 const Bins = () => {
-  const { bins, loading, error, fetchBins } = useBinsContext();
+  const { bins, loading, error, fetchBins } = useBinsHook();
   const [selectedLocation, setSelectedLocation] = useState('');
 
   const fetchBinsData = useCallback(async () => {

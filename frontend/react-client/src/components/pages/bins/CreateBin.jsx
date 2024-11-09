@@ -3,7 +3,7 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { toast } from 'react-hot-toast';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useBinsContext } from '../../contexts/BinsContext';
+import { useBinsHook } from '../../contexts/providers/hooks/useBinsHook';
 
 // Helper function to capitalize the first letter of each word
 const capitalizeWords = (str) => {
@@ -11,7 +11,7 @@ const capitalizeWords = (str) => {
 };
 
 const CreateBin = () => {
-    const { createBin, fetchBins, bins } = useBinsContext();
+    const { createBin, fetchBins, bins } = useBinsHook();
     const [isLoading, setIsLoading] = useState(false);
     const [generatedBinId, setGeneratedBinId] = useState('');
     const navigate = useNavigate();

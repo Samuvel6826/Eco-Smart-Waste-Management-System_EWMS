@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { database, databaseRef, child, get, set } from '../../../../firebase.config';
+import { database, databaseRef, child, get, set } from '../../../../../firebase.config';
 
 const useDeviceStatesHook = () => {
     const [deviceStates, setDeviceStates] = useState({});

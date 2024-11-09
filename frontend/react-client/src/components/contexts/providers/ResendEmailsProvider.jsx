@@ -1,24 +1,22 @@
 import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
-import { useAuth } from './AuthContext';
+import { useAuthHook } from './hooks/useAuthHook';
+import { ResendEmailsContext } from '../ResendEmailsContext';
 
-// Create the context for email management
-const ResendEmailContext = createContext();
+// Initial email details
+const initialEmailDetails = {
+    from: 'Acme <acme@example.com>',
+    to: ['recipient@example.com'],
+    subject: 'Hello World',
+    html: '<strong>It works!</strong>'
+};
 
-// Provider Component
-const ResendEmailProvider = ({ children }) => {
-
+// Provider Component as a named function
+export function ResendEmailsProvider({ children }) {
     const [error, setError] = useState(null);
-    const { logout } = useAuth();
-
-    // Initial state for email details
-    const [emailDetails, setEmailDetails] = useState({
-        from: 'Acme <acme@example.com>',
-        to: ['recipient@example.com'],
-        subject: 'Hello World',
-        html: '<strong>It works!</strong>'
-    });
+    const { logout } = useAuthHook();
+    const [emailDetails, setEmailDetails] = useState(initialEmailDetails);
 
     const axiosInstance = useMemo(() => {
         const instance = axios.create({
@@ -28,6 +26,17 @@ const ResendEmailProvider = ({ children }) => {
             },
         });
 
+        instance.interceptors.request.use(
+            (config) => {
+                const token = sessionStorage.getItem('token');
+                if (token) {
+                    config.headers['Authorization'] = `Bearer ${token}`;
+                }
+                return config;
+            },
+            (error) => Promise.reject(error)
+        );
+
         return instance;
     }, []);
 
@@ -36,10 +45,8 @@ const ResendEmailProvider = ({ children }) => {
         let message = '';
 
         if (!response) {
-            // Network error
             message = 'Network error: Unable to connect to the server. Please check your internet connection.';
         } else if (response.data?.error) {
-            // API returned an error object
             message = response.data.error.message;
             console.error('API Error Details:', {
                 status: response.status,
@@ -47,26 +54,21 @@ const ResendEmailProvider = ({ children }) => {
                 responseData: response.data,
             });
         } else if (response.status >= 500) {
-            // Server errors (5xx)
             message = 'Server error: Something went wrong on our end. Please try again later.';
         } else if (response.status === 401) {
-            // Unauthorized
             message = 'Unauthorized access: Your session has expired. Please log in again.';
             logout();
         } else if (response.status >= 400) {
-            // Client errors (4xx)
             message = response.data?.message || 'An unexpected error occurred. Please try again.';
         } else {
-            // Generic error
             message = 'An unexpected error occurred.';
         }
 
-        // Set error state and show a toast notification with the specific message
         setError(message);
         toast.error(message);
     }, [logout]);
 
-    const sendEmail = async (from, to, subject, html) => {
+    const sendEmail = useCallback(async (from, to, subject, html) => {
         try {
             const response = await axiosInstance.post('/api/user/send-email', {
                 from,
@@ -75,29 +77,29 @@ const ResendEmailProvider = ({ children }) => {
                 html
             });
 
-            // Check if the response contains an error
             if (response.data.error) {
                 console.log('Error:', response.data.error);
                 return response.data;
-            } else {
-                console.log('Success:', response.data);
-                return response.data;
             }
+
+            console.log('Success:', response.data);
+            return response.data;
         } catch (error) {
             handleError(error);
             throw error;
         }
-    };
+    }, [axiosInstance, handleError]);
+
+    const value = useMemo(() => ({
+        emailDetails,
+        setEmailDetails,
+        sendEmail,
+        error
+    }), [emailDetails, sendEmail, error]);
 
     return (
-        <ResendEmailContext.Provider value={{ emailDetails, setEmailDetails, sendEmail }}>
+        <ResendEmailsContext.Provider value={value}>
             {children}
-        </ResendEmailContext.Provider>
+        </ResendEmailsContext.Provider>
     );
-};
-
-// Custom hook to access ResendEmail context
-export const useResendEmail = () => useContext(ResendEmailContext);
-
-// Export the context provider
-export { ResendEmailContext, ResendEmailProvider };
+}

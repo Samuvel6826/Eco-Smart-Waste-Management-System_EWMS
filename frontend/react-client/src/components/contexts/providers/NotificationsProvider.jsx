@@ -1,18 +1,17 @@
 import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
 import axios from 'axios';
 import { getToken } from 'firebase/messaging';
-import { requestNotificationPermissionToken, onMessageListener, messaging } from '../../../firebase.config';
-import { useAuth } from './AuthContext';
+import { requestNotificationPermissionToken, onMessageListener, messaging } from '../../../../firebase.config';
+import { NotificationsContext } from '../NotificationsContext';
+import { useAuthHook } from './hooks/useAuthHook';
 import { toast } from 'react-hot-toast';
 
-const NotificationContext = createContext();
-
-export const NotificationProvider = ({ children }) => {
+export function NotificationsProvider({ children }) {
     const [notificationToken, setNotificationToken] = useState(null);
     const [notificationStatus, setNotificationStatus] = useState('pending');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const { logout } = useAuth();
+    const { logout } = useAuthHook();
 
     const axiosInstance = useMemo(() => {
         const instance = axios.create({
@@ -47,20 +46,43 @@ export const NotificationProvider = ({ children }) => {
     }, [logout]);
 
     const registerDeviceToken = useCallback(async (payload) => {
-        if (!notificationToken || !payload.title || !payload.body) return;
+        if (!payload.title || !payload.body) {
+            console.error('Notification payload missing required fields');
+            return;
+        }
 
         try {
+            if (!notificationToken || notificationStatus !== 'granted') {
+                // If push notifications are not available, fall back to toast
+                console.log('Push notifications not available, falling back to toast notification');
+                toast.error(payload.body)
+                return;
+            }
+
             await axiosInstance.post('/api/user/notification-send', {
                 deviceToken: notificationToken,
                 title: payload.title,
                 body: payload.body,
             });
-            // console.log("Device Notification Token:", payload);
         } catch (error) {
-            console.error('Error registering device token:', error.response?.data || error.message);
-            throw error;
+            console.error('Failed to send push notification:', error.response?.data || error.message);
+            // Fallback to toast notification if push notification fails
+            toast(({ visible }) => (
+                <div className="flex flex-col gap-1">
+                    <span className="font-semibold">{payload.body}</span>
+                    {error.response?.data?.message && (
+                        <span className="text-sm text-gray-500">
+                            Error: {error.response.data.message}
+                        </span>
+                    )}
+                </div>
+            ), {
+                duration: 4000,
+                icon: '🔔',
+                position: 'top-right',
+            });
         }
-    }, [axiosInstance, notificationToken]);
+    }, [axiosInstance, notificationToken, notificationStatus]);
 
     const requestPermission = useCallback(async () => {
         if (notificationStatus !== 'pending') return;
@@ -121,13 +143,9 @@ export const NotificationProvider = ({ children }) => {
         [notificationToken, notificationStatus, loading, error, requestPermission, registerDeviceToken]
     );
 
-    return <NotificationContext.Provider value={value}>{children}</NotificationContext.Provider>;
-};
-
-export const useNotification = () => {
-    const context = useContext(NotificationContext);
-    if (!context) {
-        throw new Error('useNotification must be used within a NotificationProvider');
-    }
-    return context;
+    return (
+        <NotificationsContext.Provider value={value}>
+            {children}
+        </NotificationsContext.Provider>
+    )
 };

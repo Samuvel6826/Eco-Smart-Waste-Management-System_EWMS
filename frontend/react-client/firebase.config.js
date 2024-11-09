@@ -19,14 +19,28 @@ const messaging = getMessaging(firebaseApp);
 const database = getDatabase(firebaseApp);
 const storage = getStorage(firebaseApp);
 
+// Check if the browser supports Service Workers
 if ('serviceWorker' in navigator) {
+    // Attempt to register the Firebase Messaging Service Worker
     navigator.serviceWorker
-        .register('/firebase-messaging-sw.js')
+        .register('/firebase-messaging-sw.js', {
+            // Specify the scope if needed (defaults to firebase-messaging-sw.js path)
+            // scope: '/'
+
+            // Enable immediate control of the page
+            immediate: true,
+        })
         .then((registration) => {
-            console.log('Service Worker registered:', registration);
+            // Successfully registered service worker
+            // Registration object contains info about the service worker
+            // including its scope, installing state, and active state
         })
         .catch((err) => {
-            console.error('Service Worker registration failed:', err);
+            // Failed to register service worker
+            // Common errors include:
+            // - Network errors
+            // - Script errors in the service worker file
+            // - Invalid service worker file path
         });
 }
 

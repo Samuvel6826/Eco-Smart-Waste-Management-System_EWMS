@@ -3,9 +3,9 @@ import { Formik, Form, Field } from 'formik';
 import * as Yup from 'yup';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import { useAuth } from '../contexts/AuthContext';
-import { useResendEmail } from '../contexts/ResendEmailContext';
-import { useNotification } from '../contexts/NotificationContext';
+import { useAuthHook } from '../contexts/providers/hooks/useAuthHook';
+import { useResendEmailsHook } from '../contexts/providers/hooks/useResendEmailsHook';
+import { useNotificationsHook } from '../contexts/providers/hooks/useNotificationsHook';
 import PreLoader from '../common/preloader/PreLoader';
 import pkcLogo from "../../assets/pkc-logo.jpeg";
 
@@ -20,9 +20,9 @@ function Login() {
     const [selectedRole, setSelectedRole] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const navigate = useNavigate();
-    const { login } = useAuth();
-    const { registerDeviceToken } = useNotification();
-    const { sendEmail } = useResendEmail();
+    const { login } = useAuthHook();
+    const { registerDeviceToken } = useNotificationsHook();
+    const { sendEmail } = useResendEmailsHook();
 
     const demoCredentials = {
         Admin: { email: 'samuvel6826@gmail.com', password: '1' },
@@ -44,24 +44,21 @@ function Login() {
             const result = await login(values.email, values.password);
 
             if (result.success) {
-                toast.success('Login successful!');
-
                 // Send the email notification
-                await sendEmail(
-                    'onboarding@resend.dev',
-                    values.email,
-                    'Login Successful',
-                    '<p>Congratulations! You have successfully logged in to the EWMS application.</p>'
-                );
-
-                // Construct the payload for registering the device token
-                const payload = {
-                    title: 'EWMS Push Notification',
-                    body: 'Login successful!',
-                };
+                // await sendEmail(
+                //     'ewms.support@resend.dev',
+                //     values.email,
+                //     'Login Successful',
+                //     '<p>Congratulations! You have successfully logged in to the EWMS application.</p>'
+                // );
 
                 // Register the device token with the server
-                await registerDeviceToken(payload);
+                await registerDeviceToken(
+                    {
+                        title: 'EWMS Push Notification',
+                        body: 'Login successful!',
+                    }
+                );
 
                 const route = roleRoutes[result.userData.role] || '/users/bins';
                 navigate(route);

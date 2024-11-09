@@ -1,9 +1,9 @@
 import { Navigate } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuthHook } from "../contexts/providers/hooks/useAuthHook";
 import PreLoader from '../common/preloader/PreLoader';
 
 const ProtectedRoute = ({ children, requiredRoles }) => {
-    const { user, loading, error } = useAuth();
+    const { user, loading, error } = useAuthHook();
 
     if (loading) {
         return <PreLoader />;

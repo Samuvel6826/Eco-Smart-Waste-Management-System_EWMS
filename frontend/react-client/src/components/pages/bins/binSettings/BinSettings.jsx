@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import { useBinsContext } from '../../../contexts/BinsContext';
+import { useBinsHook } from '../../../contexts/providers/hooks/useBinsHook';
 import { Card, CardHeader, CardBody, Typography, Tabs, TabsHeader, TabsBody, Tab, TabPanel, Button } from "@material-tailwind/react";
 import { BinSettingsForm } from './BinSettingsForm';
 import { BinStatus } from './BinStatus';
 import { BinLocation } from './BinLocation';
 
 const BinSettings = () => {
-    const { editBin, fetchBins, bins } = useBinsContext();
+    const { editBin, fetchBins, bins } = useBinsHook();
+    const [isEditing, setIsEditing] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [currentBinData, setCurrentBinData] = useState(null);
     const [activeTab, setActiveTab] = useState("settings");

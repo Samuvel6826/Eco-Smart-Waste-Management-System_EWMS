@@ -12,11 +12,11 @@ import { Toaster } from 'react-hot-toast';
 import ScrollToTopButton from './components/common/ScrollTopBtn';
 
 // Context Providers
-import { AuthProvider } from "./components/contexts/AuthContext";
-import { NotificationProvider } from './components/contexts/NotificationContext';
-import { ResendEmailProvider } from './components/contexts/ResendEmailContext';
-import { BinsProvider } from './components/contexts/BinsContext';
-import { UsersProvider } from './components/contexts/UsersContext';
+import { AuthProvider } from "./components/contexts/providers/AuthProvider";
+import { NotificationsProvider } from './components/contexts/providers/NotificationsProvider';
+import { ResendEmailsProvider } from './components/contexts/providers/ResendEmailsProvider';
+import { BinsProvider } from './components/contexts/providers/BinsProvider';
+import { UsersProvider } from './components/contexts/providers/UsersProvider';
 
 // Lazy-loaded components
 const Login = lazy(() => import('./components/authentication/Login'));
@@ -39,8 +39,8 @@ const Footer = lazy(() => import('./components/pages/footer/Footer'));
 const RootLayout = () => {
   return (
     <AuthProvider>
-      <NotificationProvider>
-        <ResendEmailProvider>
+      <NotificationsProvider>
+        <ResendEmailsProvider>
           <UsersProvider>
             <BinsProvider>
               <ErrorBoundary>
@@ -67,8 +67,8 @@ const RootLayout = () => {
               </ErrorBoundary>
             </BinsProvider>
           </UsersProvider>
-        </ResendEmailProvider>
-      </NotificationProvider>
+        </ResendEmailsProvider>
+      </NotificationsProvider>
     </AuthProvider>
   );
 };
