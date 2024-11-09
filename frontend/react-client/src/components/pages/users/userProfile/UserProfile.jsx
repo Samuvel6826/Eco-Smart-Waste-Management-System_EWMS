@@ -4,8 +4,8 @@ import { Formik, Form } from 'formik';
 import { toast } from 'react-hot-toast';
 import { storage, storageRef, uploadBytes, getDownloadURL } from '../../../../../firebase.config';
 import dayjs from 'dayjs';
-import { useUsersContext } from '../../../contexts/UsersContext';
-import { useAuth } from '../../../contexts/AuthContext';
+import { useAuthHook } from '../../../contexts/providers/hooks/useAuthHook';
+import { useUsersHook } from '../../../contexts/providers/hooks/useUsersHook';
 
 import ProfileHeader from '../helpers/sub/ProfileHeader';
 import PersonalInfoSection from '../helpers/sub/PersonalInfoSection';
@@ -21,8 +21,8 @@ const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
 const UserProfile = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { getUserByEmployeeId, editUser, loading } = useUsersContext();
-    const { user: authUser } = useAuth();
+    const { getUserByEmployeeId, editUser, loading } = useUsersHook();
+    const { user: authUser } = useAuthHook();
     const [isEditing, setIsEditing] = useState(false);
     const [selectedCountry, setSelectedCountry] = useState('');
     const [selectedState, setSelectedState] = useState('');
