@@ -16,6 +16,7 @@ export function PushNotificationsProvider({ children }) {
     const axiosInstance = useMemo(() => {
         const instance = axios.create({
             baseURL: `${import.meta.env.VITE_SERVER_HOST_URL}/api/pushNotification`,
+            withCredentials: true,  // Use withCredentials instead of credentials
             headers: {
                 'Content-Type': 'application/json',
             },

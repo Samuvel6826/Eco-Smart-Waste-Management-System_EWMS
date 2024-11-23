@@ -35,14 +35,6 @@ export const NotificationItem = ({ notification }) => {
     // Get the relative time
     const timeAgo = notificationDate.fromNow();
 
-    // For debugging - you can remove this after confirming it works
-    console.log({
-        original: notificationDateTime,
-        parsed: notificationDate.format('YYYY-MM-DD HH:mm:ss'),
-        timezone: notificationDate.tz(),
-        timeAgo
-    });
-
     const handleMarkAsRead = () => {
         if (!notification.read) {
             markNotificationAsRead(notification._notificationId);
@@ -70,7 +62,8 @@ export const NotificationItem = ({ notification }) => {
                         <Typography variant="small" className="text-gray-500">
                             {timeAgo}
                         </Typography>
-                        <Typography variant="caption" className="text-xs text-gray-400">
+                        {/* Changed variant from "caption" to "small" and added text-xs class */}
+                        <Typography variant="small" className="text-xs text-gray-400">
                             {notificationDate.format('DD/MM/YYYY hh:mm A')}
                         </Typography>
                     </div>

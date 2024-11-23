@@ -39,22 +39,47 @@ app.use(helmet({
     directives: {
       ...helmet.contentSecurityPolicy.getDefaultDirectives(),
       "script-src": ["'self'", "https://eco-smart-waste-management-system-pkc.netlify.app"],
+      "connect-src": ["'self'", "https://eco-smart-waste-management-system-pkc.netlify.app"],
+      "frame-src": ["'self'", "https://eco-smart-waste-management-system-pkc.netlify.app"],
     },
   },
 }));
 
 // CORS configuration
 const corsOptions = {
-  origin: [
-    'https://eco-smart-waste-management-system-pkc.netlify.app',
-    'http://localhost:5173'  // For local development
-  ],
+  origin: function (origin, callback) {
+    const allowedOrigins = [
+      'https://eco-smart-waste-management-system-pkc.netlify.app',
+      'http://localhost:5173',
+      // Add any other frontend origins you need
+    ];
+
+    // Check if origin is undefined (for same-origin requests) or in allowed list
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'Accept',
+    'Origin',
+    'X-Requested-With',
+    'Access-Control-Allow-Credentials'
+  ],
+  exposedHeaders: ['Content-Range', 'X-Content-Range'],
+  maxAge: 86400,
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 };
 
+// In your Express app:
 app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // handle pre-flight requests
 
 // Body parsing middleware
 app.use(express.json());
