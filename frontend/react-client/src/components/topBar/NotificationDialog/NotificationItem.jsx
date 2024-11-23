@@ -98,7 +98,7 @@ export const NotificationItem = ({ notification }) => {
 
             return {
                 timeAgo: diffInHours < 24 ? formattedDate.fromNow() : formattedDate.format('DD/MM/YYYY'),
-                fullDateTime: formattedDate.format('DD/MM/YYYY, hh:mm A')
+                fullDateTime: formattedDate.format('DD/MM/YYYY, hh:mm:ss A') // Updated to include seconds
             };
         } catch (error) {
             console.error('Error getting display times:', error);
