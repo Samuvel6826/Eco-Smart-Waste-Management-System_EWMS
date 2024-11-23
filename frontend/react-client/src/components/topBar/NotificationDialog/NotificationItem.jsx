@@ -13,9 +13,8 @@ dayjs.extend(relativeTime);
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-// Set the default timezone to the user's local timezone
-// This ensures consistent behavior across environments
-dayjs.tz.setDefault(dayjs.tz.guess());
+// Set the default timezone to Asia/Kolkata
+dayjs.tz.setDefault('Asia/Kolkata');
 
 export const NotificationItem = ({ notification }) => {
     const { markNotificationAsRead, clearNotification } = usePushNotificationsHook();
@@ -26,12 +25,23 @@ export const NotificationItem = ({ notification }) => {
     // Combine the date and time parts into a full datetime string
     const notificationDateTime = `${datePart} ${timePart}`;
 
-    // Parse the datetime string and convert to local timezone
-    const notificationDate = dayjs(notificationDateTime, 'DD/MM/YYYY hh:mm:ss A')
-        .tz(dayjs.tz.guess(), true); // true preserves the exact time by shifting to the new timezone
+    // Parse the datetime string in Asia/Kolkata timezone
+    const notificationDate = dayjs.tz(
+        notificationDateTime,
+        'DD/MM/YYYY hh:mm:ss A',
+        'Asia/Kolkata'
+    );
 
     // Get the relative time
     const timeAgo = notificationDate.fromNow();
+
+    // For debugging - you can remove this after confirming it works
+    console.log({
+        original: notificationDateTime,
+        parsed: notificationDate.format('YYYY-MM-DD HH:mm:ss'),
+        timezone: notificationDate.tz(),
+        timeAgo
+    });
 
     const handleMarkAsRead = () => {
         if (!notification.read) {
@@ -56,9 +66,14 @@ export const NotificationItem = ({ notification }) => {
                     <Typography variant="small" className="font-medium">
                         {notification.title}
                     </Typography>
-                    <Typography variant="small" className="text-gray-500" title={notificationDate.format('YYYY-MM-DD HH:mm:ss')}>
-                        {timeAgo}
-                    </Typography>
+                    <div className="flex flex-col items-end">
+                        <Typography variant="small" className="text-gray-500">
+                            {timeAgo}
+                        </Typography>
+                        <Typography variant="caption" className="text-xs text-gray-400">
+                            {notificationDate.format('DD/MM/YYYY hh:mm A')}
+                        </Typography>
+                    </div>
                 </div>
                 <Typography variant="small" className="mt-1 text-gray-700">
                     {notification.body}
