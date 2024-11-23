@@ -19,21 +19,78 @@ dayjs.tz.setDefault('Asia/Kolkata');
 export const NotificationItem = ({ notification }) => {
     const { markNotificationAsRead, clearNotification } = usePushNotificationsHook();
 
-    // Split the timestamp at the comma
-    const [datePart, timePart] = notification.timestamp.split(', ');
+    // Format and validate the timestamp
+    const formatTimestamp = (timestamp) => {
+        try {
+            if (!timestamp) {
+                return {
+                    formattedDate: dayjs().tz('Asia/Kolkata'),
+                    isValid: false
+                };
+            }
 
-    // Combine the date and time parts into a full datetime string
-    const notificationDateTime = `${datePart} ${timePart}`;
+            // Basic validation for timestamp format
+            const timestampRegex = /^\d{2}\/\d{2}\/\d{4},\s+\d{2}:\d{2}:\d{2}\s+[AP]M$/;
+            if (!timestampRegex.test(timestamp)) {
+                console.warn('Invalid timestamp format:', timestamp);
+                return {
+                    formattedDate: dayjs().tz('Asia/Kolkata'),
+                    isValid: false
+                };
+            }
 
-    // Parse the datetime string in Asia/Kolkata timezone
-    const notificationDate = dayjs.tz(
-        notificationDateTime,
-        'DD/MM/YYYY hh:mm:ss A',
-        'Asia/Kolkata'
-    );
+            // Split and parse the timestamp
+            const [datePart, timePart] = timestamp.split(', ');
+            const notificationDateTime = `${datePart} ${timePart}`;
 
-    // Get the relative time
-    const timeAgo = notificationDate.fromNow();
+            // Parse the datetime string in Asia/Kolkata timezone
+            const parsedDate = dayjs.tz(
+                notificationDateTime,
+                'DD/MM/YYYY hh:mm:ss A',
+                'Asia/Kolkata'
+            );
+
+            // Validate the parsed date
+            if (!parsedDate.isValid()) {
+                console.warn('Invalid date after parsing:', notificationDateTime);
+                return {
+                    formattedDate: dayjs().tz('Asia/Kolkata'),
+                    isValid: false
+                };
+            }
+
+            return {
+                formattedDate: parsedDate,
+                isValid: true
+            };
+        } catch (error) {
+            console.error('Error formatting timestamp:', error);
+            return {
+                formattedDate: dayjs().tz('Asia/Kolkata'),
+                isValid: false
+            };
+        }
+    };
+
+    const { formattedDate, isValid } = formatTimestamp(notification.timestamp);
+
+    // Format display times
+    const getDisplayTimes = () => {
+        try {
+            return {
+                timeAgo: formattedDate.fromNow(),
+                fullDateTime: formattedDate.format('DD/MM/YYYY hh:mm A')
+            };
+        } catch (error) {
+            console.error('Error getting display times:', error);
+            return {
+                timeAgo: 'Recently',
+                fullDateTime: 'Date unavailable'
+            };
+        }
+    };
+
+    const { timeAgo, fullDateTime } = getDisplayTimes();
 
     const handleMarkAsRead = () => {
         if (!notification.read) {
@@ -62,9 +119,8 @@ export const NotificationItem = ({ notification }) => {
                         <Typography variant="small" className="text-gray-500">
                             {timeAgo}
                         </Typography>
-                        {/* Changed variant from "caption" to "small" and added text-xs class */}
                         <Typography variant="small" className="text-xs text-gray-400">
-                            {notificationDate.format('DD/MM/YYYY hh:mm A')}
+                            {fullDateTime}
                         </Typography>
                     </div>
                 </div>
