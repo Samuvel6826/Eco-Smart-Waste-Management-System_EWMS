@@ -29,39 +29,38 @@ export const NotificationItem = ({ notification }) => {
                 };
             }
 
-            // Basic validation for timestamp format
-            const timestampRegex = /^\d{2}\/\d{2}\/\d{4},\s+\d{2}:\d{2}:\d{2}\s+[AP]M$/;
-            if (!timestampRegex.test(timestamp)) {
-                console.warn('Invalid timestamp format:', timestamp);
+            // Parse the timestamp directly as a Unix timestamp if it's a number
+            if (typeof timestamp === 'number') {
+                const parsedDate = dayjs(timestamp).tz('Asia/Kolkata');
                 return {
-                    formattedDate: dayjs().tz('Asia/Kolkata'),
-                    isValid: false
+                    formattedDate: parsedDate,
+                    isValid: parsedDate.isValid()
                 };
             }
 
-            // Split and parse the timestamp
-            const [datePart, timePart] = timestamp.split(', ');
-            const notificationDateTime = `${datePart} ${timePart}`;
+            // Handle string timestamp
+            if (typeof timestamp === 'string') {
+                // Try parsing as ISO format first
+                let parsedDate = dayjs(timestamp).tz('Asia/Kolkata');
 
-            // Parse the datetime string in Asia/Kolkata timezone
-            const parsedDate = dayjs.tz(
-                notificationDateTime,
-                'DD/MM/YYYY hh:mm:ss A',
-                'Asia/Kolkata'
-            );
+                // If ISO parsing fails, try the specific format
+                if (!parsedDate.isValid()) {
+                    parsedDate = dayjs.tz(
+                        timestamp,
+                        'DD/MM/YYYY, hh:mm:ss A',
+                        'Asia/Kolkata'
+                    );
+                }
 
-            // Validate the parsed date
-            if (!parsedDate.isValid()) {
-                console.warn('Invalid date after parsing:', notificationDateTime);
                 return {
-                    formattedDate: dayjs().tz('Asia/Kolkata'),
-                    isValid: false
+                    formattedDate: parsedDate,
+                    isValid: parsedDate.isValid()
                 };
             }
 
             return {
-                formattedDate: parsedDate,
-                isValid: true
+                formattedDate: dayjs().tz('Asia/Kolkata'),
+                isValid: false
             };
         } catch (error) {
             console.error('Error formatting timestamp:', error);
@@ -74,17 +73,26 @@ export const NotificationItem = ({ notification }) => {
 
     const { formattedDate, isValid } = formatTimestamp(notification.timestamp);
 
-    // Format display times
+    // Format display times with fallback
     const getDisplayTimes = () => {
         try {
+            if (!isValid) {
+                throw new Error('Invalid date');
+            }
+
+            const now = dayjs().tz('Asia/Kolkata');
+            const diffInHours = now.diff(formattedDate, 'hour');
+
+            // If less than 24 hours, show relative time
+            // Otherwise show the full date
             return {
-                timeAgo: formattedDate.fromNow(),
+                timeAgo: diffInHours < 24 ? formattedDate.fromNow() : formattedDate.format('DD/MM/YYYY'),
                 fullDateTime: formattedDate.format('DD/MM/YYYY hh:mm A')
             };
         } catch (error) {
             console.error('Error getting display times:', error);
             return {
-                timeAgo: 'Recently',
+                timeAgo: 'Unknown time',
                 fullDateTime: 'Date unavailable'
             };
         }
@@ -104,7 +112,8 @@ export const NotificationItem = ({ notification }) => {
 
     return (
         <div
-            className={`flex items-start gap-3 p-3 border-b last:border-0 ${!notification.read ? 'bg-blue-50/50' : ''}`}
+            className={`flex items-start gap-3 p-3 border-b last:border-0 ${!notification.read ? 'bg-blue-50/50' : ''
+                }`}
             onClick={handleMarkAsRead}
         >
             <div className="flex-shrink-0">
