@@ -1,6 +1,12 @@
 const initializeFirebase = require('../config/firebaseConfig');
-const { DateTime } = require('luxon');
+const dayjs = require('dayjs');
+const utc = require('dayjs/plugin/utc');
+const timezone = require('dayjs/plugin/timezone');
 const { logger: customLogger } = require('../utils/logger'); // Import the logger
+
+// Extend dayjs with UTC and timezone plugins
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 // Initialize Firebase and database references
 const admin = initializeFirebase();
@@ -21,7 +27,7 @@ let requestTimerId; // Store the request timer ID
 
 // Format date for Firebase updates
 const getFormattedDate = () => {
-    return DateTime.now().setZone('Asia/Kolkata').toFormat('dd/MM/yyyy, hh:mm:ss a').toUpperCase();
+    return dayjs().tz('Asia/Kolkata').format('DD/MM/YYYY, hh:mm:ss A').toUpperCase();
 };
 
 // Update the status of a device

@@ -1,6 +1,6 @@
 // Import required modules
 const express = require('express');
-const BinsController = require('../controllers/binsController');
+const BinsController = require('../controllers/binControllers');
 const router = express.Router();
 const auth = require('../common/Auth');
 const { logger } = require('../utils/logger');

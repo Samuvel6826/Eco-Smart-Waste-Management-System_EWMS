@@ -135,11 +135,11 @@ const AssignBinLocations = React.memo(({ open, onClose, onAssignSuccess }) => {
     if (state.loading) {
         return (
             <Card className="p-8">
-                <div className="flex items-center justify-center">
-                    <div className="text-center">
-                        <Typography variant="h5" className="mb-4">Loading content...</Typography>
-                        <Spinner className="h-6 w-6" />
-                    </div>
+                <div className="flex flex-col items-center justify-center text-center">
+
+                    <Typography variant="h5" className="mb-4">Loading content...</Typography>
+                    <Spinner className="h-6 w-6" />
+
                 </div>
             </Card>
         );

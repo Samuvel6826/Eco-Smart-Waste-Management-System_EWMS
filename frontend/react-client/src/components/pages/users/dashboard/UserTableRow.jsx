@@ -38,9 +38,16 @@ const UserTableRow = ({
     `;
 
     // Format full name with proper capitalization
-    const fullName = `${user.firstName} ${user.lastName}`.split(' ')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-        .join(' ');
+    const fullName = `${user.firstName} ${user.lastName}`
+        .split(' ') // Split the name into words
+        .map((word, index, arr) => {
+            if (index < arr.length - 1) { // For first name(s)
+                return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+            } else { // For last name
+                return word.toUpperCase();
+            }
+        })
+        .join(' '); // Join the words back into a single string
 
     const ActionButton = ({ icon: Icon, label, color, onClick }) => (
         <Tooltip content={label}>

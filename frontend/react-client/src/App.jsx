@@ -13,17 +13,18 @@ import ScrollToTopButton from './components/common/ScrollTopBtn';
 
 // Context Providers
 import { AuthProvider } from "./components/contexts/providers/AuthProvider";
-import { NotificationsProvider } from './components/contexts/providers/NotificationsProvider';
+import { PushNotificationsProvider } from './components/contexts/providers/PushNotificationsProvider';
 import { ResendEmailsProvider } from './components/contexts/providers/ResendEmailsProvider';
 import { BinsProvider } from './components/contexts/providers/BinsProvider';
 import { UsersProvider } from './components/contexts/providers/UsersProvider';
 
 // Lazy-loaded components
 const Login = lazy(() => import('./components/authentication/Login'));
+const FaceDetection = lazy(() => import('./components/authentication/FaceDetection'));
 const ProtectedRoute = lazy(() => import('./components/authentication/ProtectedRoute'));
 const ErrorFallback = lazy(() => import('./components/errorHandlers/ErrorFallback'));
 const NotAuthorized = lazy(() => import('./components/errorHandlers/NotAuthorized'));
-const Navbar = lazy(() => import('./components/common/Navbar'));
+const TopBar = lazy(() => import('./components/topBar/TopBar'));
 const Dashboard = lazy(() => import('./components/pages/users/dashboard/Dashboard'));
 const CreateUser = lazy(() => import('./components/pages/users/createUser/CreateUser'));
 const UserProfile = lazy(() => import('./components/pages/users/userProfile/UserProfile'));
@@ -39,7 +40,7 @@ const Footer = lazy(() => import('./components/pages/footer/Footer'));
 const RootLayout = () => {
   return (
     <AuthProvider>
-      <NotificationsProvider>
+      <PushNotificationsProvider>
         <ResendEmailsProvider>
           <UsersProvider>
             <BinsProvider>
@@ -68,7 +69,7 @@ const RootLayout = () => {
             </BinsProvider>
           </UsersProvider>
         </ResendEmailsProvider>
-      </NotificationsProvider>
+      </PushNotificationsProvider>
     </AuthProvider>
   );
 };
@@ -78,12 +79,13 @@ const router = createBrowserRouter(
   createRoutesFromElements(
     <Route element={<RootLayout />}>
       <Route path='/login' element={<Login />} />
+      <Route path='/faceDetection' element={<FaceDetection />} />
       <Route path="/error" element={<ErrorFallback />} />
       <Route path="/not-authorized" element={<NotAuthorized />} />
       <Route
         element={
           <>
-            <Navbar />
+            <TopBar />
             <ScrollToTopButton />
             <Outlet />
             <Footer />

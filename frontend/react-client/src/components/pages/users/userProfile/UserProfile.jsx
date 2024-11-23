@@ -165,7 +165,7 @@ const UserProfile = () => {
                 },
                 dateOfBirth: values.dateOfBirth || null,
                 age: values.age ? parseInt(values.age, 10) : null,
-                updatedBy: `${authUser?.role || 'Unknown'} ${authUser?.firstName || ''} ${authUser?.lastName || ''} ${authUser?.employeeId || 'Unknown'}`.trim()
+                updatedBy: `${authUser?.role || 'Unknown'} ${authUser?.employeeId || 'Unknown'} ${authUser?.firstName || ''} ${authUser?.lastName || ''}`.trim()
             };
 
             if (values.newProfilePic) {

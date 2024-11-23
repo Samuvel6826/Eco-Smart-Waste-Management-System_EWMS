@@ -2,9 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
     BsLightbulbFill,
     BsLightbulb,
-    BsMoonFill,
-    BsSunFill,
-    BsGearFill,
+    BsPower,
     BsExclamationTriangleFill,
     BsHouseFill,
     BsGrid
@@ -132,7 +130,7 @@ const LightControls = ({ deviceStates, allDevicesOn, toggleDevice, toggleAllDevi
 
                         {/* Master Control Switch */}
                         <div className="flex items-center gap-4 rounded-full bg-white/10 px-6 py-3">
-                            <span className="text-sm font-medium text-white">All Lights</span>
+                            <span className="text-sm font-medium text-white">All Devices</span>
                             <button
                                 onClick={handleToggleAll}
                                 className={`group relative h-8 w-16 rounded-full transition-all duration-300 
@@ -142,8 +140,8 @@ const LightControls = ({ deviceStates, allDevicesOn, toggleDevice, toggleAllDevi
                                 <span className={`absolute inset-0.5 flex h-7 w-7 transform items-center justify-center rounded-full bg-white shadow-lg transition-all duration-300
                                     ${allDevicesOn ? 'translate-x-8' : 'translate-x-0'}`}>
                                     {allDevicesOn ?
-                                        <BsSunFill className="h-4 w-4 text-yellow-400" /> :
-                                        <BsMoonFill className="h-4 w-4 text-gray-400" />
+                                        <BsPower className="h-4 w-4 text-green-400" /> :
+                                        <BsPower className="h-4 w-4 text-red-400" />
                                     }
                                 </span>
                             </button>
@@ -151,11 +149,11 @@ const LightControls = ({ deviceStates, allDevicesOn, toggleDevice, toggleAllDevi
                     </div>
 
                     {/* Category Controls */}
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    <div className="flex h-full w-full items-center justify-center gap-4">
                         {Object.entries(deviceStates).map(([category, devices]) => (
                             <div
                                 key={category}
-                                className="rounded-lg bg-white/10 p-4"
+                                className="w-full rounded-lg bg-white/10 p-4"
                             >
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
@@ -254,7 +252,7 @@ const LightControls = ({ deviceStates, allDevicesOn, toggleDevice, toggleAllDevi
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className="text-sm text-gray-500">
-                                                "Turn {state === 1 ? 'off' : 'on'} {device}"
+                                                " Turn {state === 1 ? 'off' : 'on'} {device} "
                                             </span>
                                         </td>
                                     </tr>

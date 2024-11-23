@@ -13,8 +13,10 @@ const connectToDatabase = require('./config/mongoDBconfig');
 
 // Import route handlers
 const indexRouter = require('./routes/indexRoutes');
-const usersRouter = require('./routes/usersRoutes');
-const binsRouter = require('./routes/binsRoutes');
+const userRouter = require('./routes/userRoutes');
+const binRouter = require('./routes/binRoutes');
+const pushNotificationRouter = require('./routes/pushNotificationRoutes');
+const emailNotificationRouter = require('./routes/emailNotificationRoutes');
 
 // Initialize Express app
 const app = express();
@@ -67,8 +69,10 @@ app.use(express.static('public'));
 
 // Define Routes
 app.use('/api', indexRouter);
-app.use('/api/user', usersRouter);
-app.use('/api/bin', binsRouter);
+app.use('/api/user', userRouter);
+app.use('/api/bin', binRouter);
+app.use('/api/pushNotification', pushNotificationRouter);
+app.use('/api/emailNotification', emailNotificationRouter);
 
 // 404 Error Handler
 app.use((req, res, next) => {

@@ -1,5 +1,5 @@
 const sanitize = require('../common/Sanitize');
-const UsersModel = require('../models/usersModel');
+const UsersModel = require('../models/userModel');
 const auth = require('../common/Auth');
 const { logger } = require('../utils/logger');
 const { getFormattedDate } = require('../utils/deviceMonitoring');
@@ -248,7 +248,7 @@ const loginUser = async (req, res) => {
             return handleClientError(res, 'Invalid email or password');
         }
 
-        const lastLoginBy = `${user.role || 'Unknown'} ${user.firstName || ''} ${user.lastName || ''} ${user.employeeId || 'Unknown'}`.trim();
+        const lastLoginBy = `${user?.role || 'Unknown'} ${user?.employeeId || 'Unknown'} ${user?.firstName || ''} ${user?.lastName || ''}`.trim();
 
         const lastLoginAt = req.body.lastLoginAt ? sanitize.isString(req.body.lastLoginAt) : getFormattedDate();
 
@@ -315,7 +315,7 @@ const changePassword = async (req, res) => {
         // Use lastPasswordChangedAt and lastPasswordChangedBy from the frontend or provide defaults
         const lastPasswordChangedAt = sanitize.isString(req.body.lastPasswordChangedAt) || getFormattedDate();
         const lastPasswordChangedBy = sanitize.isString(req.body.lastPasswordChangedBy) ||
-            `${user.role || 'Unknown'} ${user.firstName || ''} ${user.lastName || ''} ${user.employeeId || 'Unknown'}`.trim();
+            `${user?.role || 'Unknown'} ${user?.employeeId || 'Unknown'} ${user?.firstName || ''} ${user?.lastName || ''}`.trim();
 
         // Check if password and confirmPassword are provided
         if (!password || !confirmPassword) {

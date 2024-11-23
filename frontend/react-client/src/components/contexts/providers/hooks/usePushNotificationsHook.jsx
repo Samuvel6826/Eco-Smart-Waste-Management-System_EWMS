@@ -1,9 +1,9 @@
 // useNotification.jsx
 import { useContext } from 'react';
-import { NotificationsContext } from '../../NotificationsContext';
+import { PushNotificationsContext } from '../../PushNotificationsContext';
 
-export function useNotificationsHook() {
-    const context = useContext(NotificationsContext);
+export function usePushNotificationsHook() {
+    const context = useContext(PushNotificationsContext);
     if (!context) {
         throw new Error('useNotification must be used within a NotificationProvider');
     }

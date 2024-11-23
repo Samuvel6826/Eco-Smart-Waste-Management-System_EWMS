@@ -1,6 +1,12 @@
 const winston = require('winston');
-const { DateTime } = require('luxon');
+const dayjs = require('dayjs');
+const utc = require('dayjs/plugin/utc');
+const timezone = require('dayjs/plugin/timezone');
 const util = require('util');
+
+// Extend dayjs with UTC and timezone plugins
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 // Configure colors for log levels
 winston.addColors({
@@ -13,10 +19,7 @@ winston.addColors({
 
 // Format date for logs
 const getFormattedDate = () => {
-    return DateTime.now()
-        .setZone('Asia/Kolkata')
-        .toFormat('dd/MM/yyyy, hh:mm:ss a')
-        .toUpperCase();
+    return dayjs().tz('Asia/Kolkata').format('DD/MM/YYYY, hh:mm:ss A');
 };
 
 // Safe stringification function that handles circular references

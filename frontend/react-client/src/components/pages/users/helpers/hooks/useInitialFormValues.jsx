@@ -26,6 +26,6 @@ export const useInitialFormValues = (generateEmployeeId, user) => {
         newProfilePic: undefined,
         previewUrl: '',
         createdAt: getFormattedDateNTime(),
-        createdBy: `${user?.role || 'Unknown'} ${user?.firstName || ''} ${user?.lastName || ''} ${user?.employeeId || 'Unknown'}`
+        createdBy: `${user?.role || 'Unknown'} ${user?.employeeId || 'Unknown'} ${user?.firstName || ''} ${user?.lastName || ''}`
     };
 };

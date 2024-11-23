@@ -74,7 +74,7 @@ export function BinsProvider({ children }) {
         const listener = onValue(binsRef, (snapshot) => {
             const data = snapshot.val();
             if (data) {
-                console.log('Received update from Firebase:', data);
+                // console.log('Received update from Firebase:', data);
                 setBins(data);
             } else {
                 console.warn('Received null data from Firebase');
@@ -99,7 +99,7 @@ export function BinsProvider({ children }) {
         try {
             const response = await axiosInstance.get('/api/bin/list');
             const fetchedBins = response.data || {};
-            console.log('Fetched bins from server:', fetchedBins);
+            // console.log('Fetched bins from server:', fetchedBins);
             setBins(fetchedBins);
             setError(null);
 

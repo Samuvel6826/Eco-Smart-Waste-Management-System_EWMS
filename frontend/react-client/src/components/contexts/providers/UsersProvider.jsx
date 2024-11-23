@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useCallback, useMemo } from
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import { useAuthHook } from './hooks/useAuthHook';
-import { useNotificationsHook } from './hooks/useNotificationsHook';
+import { usePushNotificationsHook } from './hooks/usePushNotificationsHook';
 import { UsersContext } from '../UsersContext';
 
 export function UsersProvider({ children }) {
@@ -10,7 +10,7 @@ export function UsersProvider({ children }) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const { logout } = useAuthHook();
-    const { registerDeviceToken } = useNotificationsHook();
+    const { sendPushNotification } = usePushNotificationsHook();
 
     const axiosInstance = useMemo(() => {
         const instance = axios.create({
@@ -83,10 +83,11 @@ export function UsersProvider({ children }) {
             });
 
             // Send notification
-            await registerDeviceToken(
+            await sendPushNotification(
                 {
                     title: 'EWMS Push Notification',
                     body: `You have been assigned ${assignedBinLocations.length} bin locations`,
+                    notificationType: "Assign"
                 }
             );
 
@@ -98,7 +99,7 @@ export function UsersProvider({ children }) {
         } finally {
             setLoading(false);
         }
-    }, [axiosInstance, handleError, registerDeviceToken]);
+    }, [axiosInstance, handleError, sendPushNotification]);
 
     const fetchUsers = useCallback(async () => {
         setLoading(true);

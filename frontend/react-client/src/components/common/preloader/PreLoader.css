@@ -1,7 +1,7 @@
 @import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@600&display=swap");
 
 #preloader {
-	background: linear-gradient(135deg, #9ddca9, #55b759);
+	background: linear-gradient(135deg, #55b759, #9ddca9);
 	overflow: hidden;
 	height: 100vh;
 	width: 100vw;

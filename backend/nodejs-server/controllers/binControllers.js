@@ -1,5 +1,5 @@
 const admin = require('firebase-admin');
-const { binMetaDataSchema, distanceSchema, heartbeatSchema } = require('../models/binsModel');
+const { binMetaDataSchema, distanceSchema, heartbeatSchema } = require('../models/binModel');
 const { getFormattedDate, updateDeviceStatus } = require('../utils/deviceMonitoring');
 const { logger: customLogger } = require('../utils/logger');
 const { handleClientError, handleServerError, handleNotFoundError, handleDuplicateError } = require('../middlewares/errorHandlers');

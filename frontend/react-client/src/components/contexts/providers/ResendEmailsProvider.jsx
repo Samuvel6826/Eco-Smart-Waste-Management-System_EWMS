@@ -20,7 +20,7 @@ export function ResendEmailsProvider({ children }) {
 
     const axiosInstance = useMemo(() => {
         const instance = axios.create({
-            baseURL: import.meta.env.VITE_SERVER_HOST_URL,
+            baseURL: `${import.meta.env.VITE_SERVER_HOST_URL}/api/emailNotification`,
             headers: {
                 'Content-Type': 'application/json',
             },
@@ -70,7 +70,7 @@ export function ResendEmailsProvider({ children }) {
 
     const sendEmail = useCallback(async (from, to, subject, html) => {
         try {
-            const response = await axiosInstance.post('/api/user/send-email', {
+            const response = await axiosInstance.post('/sendPushNotification', {
                 from,
                 to,
                 subject,

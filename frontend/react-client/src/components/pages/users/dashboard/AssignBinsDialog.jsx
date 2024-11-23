@@ -16,8 +16,8 @@ export function AssignBinsDialog({ open, onClose, onAssignSuccess }) {
         >
             <Suspense
                 fallback={
-                    <div className="flex h-48 items-center justify-center">
-                        <Spinner className="h-8 w-8" />
+                    <div className="flex h-full w-full items-center justify-center">
+                        <Spinner className="flex h-8 w-8 flex-col items-center justify-center" />
                     </div>
                 }
             >
