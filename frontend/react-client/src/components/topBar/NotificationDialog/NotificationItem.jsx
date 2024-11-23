@@ -1,12 +1,21 @@
 import React from 'react';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
 import { Typography, IconButton } from '@material-tailwind/react';
 import { getNotificationIcon } from './utils';
 import { usePushNotificationsHook } from '../../contexts/providers/hooks/usePushNotificationsHook';
 import { FaTrash, FaCheck } from 'react-icons/fa';
 
+// Extend dayjs with necessary plugins
 dayjs.extend(relativeTime);
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+// Set the default timezone to the user's local timezone
+// This ensures consistent behavior across environments
+dayjs.tz.setDefault(dayjs.tz.guess());
 
 export const NotificationItem = ({ notification }) => {
     const { markNotificationAsRead, clearNotification } = usePushNotificationsHook();
@@ -17,8 +26,9 @@ export const NotificationItem = ({ notification }) => {
     // Combine the date and time parts into a full datetime string
     const notificationDateTime = `${datePart} ${timePart}`;
 
-    // Parse the full datetime using dayjs
-    const notificationDate = dayjs(notificationDateTime, 'DD/MM/YYYY hh:mm:ss A');
+    // Parse the datetime string and convert to local timezone
+    const notificationDate = dayjs(notificationDateTime, 'DD/MM/YYYY hh:mm:ss A')
+        .tz(dayjs.tz.guess(), true); // true preserves the exact time by shifting to the new timezone
 
     // Get the relative time
     const timeAgo = notificationDate.fromNow();
@@ -46,7 +56,7 @@ export const NotificationItem = ({ notification }) => {
                     <Typography variant="small" className="font-medium">
                         {notification.title}
                     </Typography>
-                    <Typography variant="small" className="text-gray-500">
+                    <Typography variant="small" className="text-gray-500" title={notificationDate.format('YYYY-MM-DD HH:mm:ss')}>
                         {timeAgo}
                     </Typography>
                 </div>
@@ -61,7 +71,7 @@ export const NotificationItem = ({ notification }) => {
                         variant="text"
                         color="blue"
                         onClick={(e) => {
-                            e.stopPropagation(); // Prevent triggering the parent onClick
+                            e.stopPropagation();
                             handleMarkAsRead();
                         }}
                     >
@@ -73,7 +83,7 @@ export const NotificationItem = ({ notification }) => {
                     variant="text"
                     color="red"
                     onClick={(e) => {
-                        e.stopPropagation(); // Prevent triggering the parent onClick
+                        e.stopPropagation();
                         handleClearNotification();
                     }}
                 >
