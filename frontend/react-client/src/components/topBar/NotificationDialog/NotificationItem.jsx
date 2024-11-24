@@ -24,7 +24,7 @@ const DB_DATE_FORMAT = 'DD/MM/YYYY, hh:mm:ss A';
 const formatTimestamp = (timestamp) => {
     try {
         if (!timestamp) {
-            console.warn('No timestamp provided');
+            // console.warn('No timestamp provided');
             return {
                 formattedDate: dayjs(),
                 isValid: false
@@ -32,8 +32,8 @@ const formatTimestamp = (timestamp) => {
         }
 
         // Debug logging
-        console.log('Received timestamp:', timestamp);
-        console.log('Expected format:', DB_DATE_FORMAT);
+        // console.log('Received timestamp:', timestamp);
+        // console.log('Expected format:', DB_DATE_FORMAT);
 
         // First try parsing with strict mode
         let parsedDate = dayjs(timestamp, DB_DATE_FORMAT, true);
@@ -70,8 +70,8 @@ const formatTimestamp = (timestamp) => {
         };
 
     } catch (error) {
-        console.error('Error formatting timestamp:', error);
-        console.error('Problematic timestamp:', timestamp);
+        // console.error('Error formatting timestamp:', error);
+        // console.error('Problematic timestamp:', timestamp);
         return {
             formattedDate: dayjs(),
             isValid: false
