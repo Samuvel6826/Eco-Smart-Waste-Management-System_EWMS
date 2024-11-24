@@ -12,8 +12,10 @@ export const BinLocation = ({ binData }) => {
 
     // Updated tile layers with all map options
     const tileLayers = {
-        detailed: 'https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png',
-        satellite: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        detailed: 'https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png',  // CyclOSM for detailed outdoor maps
+        hikeBike: 'https://tiles.wmflabs.org/hikebike/{z}/{x}/{y}.png',  // Hike & Bike Map
+        openStreetMap: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',  // OpenStreetMap
+        satellite: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',  // Esri Satellite (best for free & non-commercial use)
         googleRoad: 'https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',  // Google Road Map
         googleSatellite: 'https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',  // Google Satellite
         googleHybrid: 'https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}',    // Google Hybrid (Satellite + Labels)
@@ -22,36 +24,36 @@ export const BinLocation = ({ binData }) => {
 
     const tileAttributions = {
         detailed: '© CyclOSM & OpenStreetMap contributors',
-        satellite: 'Tiles © Esri',
+        openStreetMap: '© OpenStreetMap contributors',
+        satellite: 'Tiles © Esri',  // Esri Satellite attribution
         googleRoad: '© Google Maps',
         googleSatellite: '© Google Maps',
         googleHybrid: '© Google Maps',
-        stadiaSatellite: '© CNES, Distribution Airbus DS, © Airbus DS, © PlanetObserver (Contains Copernicus Data) | © <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> © <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     };
 
     const layerNames = {
-        detailed: 'OSM Detailed',
-        satellite: 'Esri Satellite',
+        detailed: 'CyclOSM',
+        openStreetMap: 'OpenStreetMap',
+        satellite: 'Esri Satellite',  // Renamed to make it more descriptive
         googleRoad: 'Google Roads',
         googleSatellite: 'Google Satellite',
         googleHybrid: 'Google Hybrid',
-        stadiaSatellite: 'Stadia Satellite'
     };
 
     const maxZoomLevels = {
         detailed: 20,
-        satellite: 18,
+        openStreetMap: 20,
+        satellite: 18,  // Esri Satellite's maximum zoom level
         googleRoad: 20,
         googleSatellite: 20,
         googleHybrid: 20,
-        stadiaSatellite: 20
     };
 
-    // Update the layer groups to include Stadia Satellite
+    // Updated layer groups with all options
     const layerGroups = {
-        'OpenStreetMap': ['detailed'],
-        'Google Maps': ['googleRoad', 'googleSatellite', 'googleHybrid'],
-        'Satellite': ['satellite', 'stadiaSatellite']  // Added Stadia Satellite here
+        'OpenStreetMap': ['openStreetMap', 'detailed'],  // Added CyclOSM and Hike & Bike Map
+        'Satellite': ['satellite'],  // Added NASA GIBS
+        'Google Maps': ['googleRoad', 'googleSatellite', 'googleHybrid']
     };
 
     // DMS to Decimal conversion helper function

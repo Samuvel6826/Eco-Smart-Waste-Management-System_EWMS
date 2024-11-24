@@ -54,7 +54,11 @@ export function PushNotificationsProvider({ children }) {
             if (isAuthenticated) {
                 setLoading(true);
                 const response = await axiosInstance.get(`/getUserNotifications?userId=${currentUserId}`);
-                setNotifications(response.data.notifications);
+
+                // Reverse the notifications array to show newest first
+                const reversedNotifications = [...response.data.notifications].reverse();
+
+                setNotifications(reversedNotifications);
             }
         } catch (error) {
             handleError(error);

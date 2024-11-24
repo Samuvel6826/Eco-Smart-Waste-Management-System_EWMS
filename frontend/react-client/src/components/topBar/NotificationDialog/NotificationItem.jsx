@@ -49,9 +49,9 @@ const formatTimestamp = (timestamp) => {
             parsedDate = dayjs(timestamp, 'DD/MM/YYYY, HH:mm:ss', true);
         }
 
-        console.log('Parsed date valid:', parsedDate.isValid());
+        // console.log('Parsed date valid:', parsedDate.isValid());
         if (parsedDate.isValid()) {
-            console.log('Successfully parsed to:', parsedDate.format());
+            // console.log('Successfully parsed to:', parsedDate.format());
         }
 
         if (!parsedDate.isValid()) {
