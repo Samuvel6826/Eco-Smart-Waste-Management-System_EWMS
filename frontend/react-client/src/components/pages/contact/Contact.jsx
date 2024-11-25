@@ -189,7 +189,7 @@ const Contact = () => {
                     <div id='map-container' className='bg-tertiary' data-aos="fade-left">
                         <iframe
                             className='p-2'
-                            src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d1974.5713043044839!2d77.411112!3d8.188386!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3b04f0cf9a74de45%3A0x2b90de40f130de11!2sPioneer%20Kumaraswamy%20College!5e0!3m2!1sen!2sin!4v1730740814148!5m2!1sen!2sin"
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d823.6932474701383!2d77.41071889673826!3d8.188176942873222!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3b04f0cf9a74de45%3A0x2b90de40f130de11!2sPioneer%20Kumaraswamy%20College!5e1!3m2!1sen!2sin!4v1732502159518!5m2!1sen!2sin"
                             width="100%"
                             height="100%"
                             style={{ border: 0 }}

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { FaMapMarkerAlt, FaCompass, FaSearchLocation } from 'react-icons/fa';
+import { FaMapMarkerAlt, FaCompass, FaSearchLocation, FaBatteryThreeQuarters, FaTrash, FaLock } from 'react-icons/fa';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -15,17 +15,17 @@ export const BinLocation = ({ binData }) => {
         detailed: 'https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png',  // CyclOSM for detailed outdoor maps
         hikeBike: 'https://tiles.wmflabs.org/hikebike/{z}/{x}/{y}.png',  // Hike & Bike Map
         openStreetMap: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',  // OpenStreetMap
-        satellite: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',  // Esri Satellite (best for free & non-commercial use)
+        satellite: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',  // Esri Satellite
         googleRoad: 'https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',  // Google Road Map
         googleSatellite: 'https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',  // Google Satellite
-        googleHybrid: 'https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}',    // Google Hybrid (Satellite + Labels)
+        googleHybrid: 'https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}',    // Google Hybrid
         stadiaSatellite: 'https://tiles.stadiamaps.com/tiles/alidade_satellite/{z}/{x}/{y}{r}.jpg'  // Stadia Satellite
     };
 
     const tileAttributions = {
         detailed: '© CyclOSM & OpenStreetMap contributors',
         openStreetMap: '© OpenStreetMap contributors',
-        satellite: 'Tiles © Esri',  // Esri Satellite attribution
+        satellite: 'Tiles © Esri',
         googleRoad: '© Google Maps',
         googleSatellite: '© Google Maps',
         googleHybrid: '© Google Maps',
@@ -34,7 +34,7 @@ export const BinLocation = ({ binData }) => {
     const layerNames = {
         detailed: 'CyclOSM',
         openStreetMap: 'OpenStreetMap',
-        satellite: 'Esri Satellite',  // Renamed to make it more descriptive
+        satellite: 'Esri Satellite',
         googleRoad: 'Google Roads',
         googleSatellite: 'Google Satellite',
         googleHybrid: 'Google Hybrid',
@@ -43,17 +43,29 @@ export const BinLocation = ({ binData }) => {
     const maxZoomLevels = {
         detailed: 20,
         openStreetMap: 20,
-        satellite: 18,  // Esri Satellite's maximum zoom level
+        satellite: 18,
         googleRoad: 20,
         googleSatellite: 20,
         googleHybrid: 20,
     };
 
-    // Updated layer groups with all options
     const layerGroups = {
-        'OpenStreetMap': ['openStreetMap', 'detailed'],  // Added CyclOSM and Hike & Bike Map
-        'Satellite': ['satellite'],  // Added NASA GIBS
+        'OpenStreetMap': ['openStreetMap', 'detailed'],
+        'Satellite': ['satellite'],
         'Google Maps': ['googleRoad', 'googleSatellite', 'googleHybrid']
+    };
+
+    // Helper functions for styling
+    const getBatteryColor = (level) => {
+        if (level >= 70) return 'text-green-500';
+        if (level >= 30) return 'text-yellow-500';
+        return 'text-red-500';
+    };
+
+    const getFillLevelColor = (percentage) => {
+        if (percentage >= 80) return 'text-red-500';
+        if (percentage >= 50) return 'text-yellow-500';
+        return 'text-green-500';
     };
 
     // DMS to Decimal conversion helper function
@@ -91,6 +103,44 @@ export const BinLocation = ({ binData }) => {
 
     const coordinates = parseCoordinates();
 
+    // Create custom popup HTML with the bin details
+    const createPopupContent = (lat, lng) => {
+        return `
+            <div class="min-w-[200px] space-y-2 text-sm">
+                <div class="border-b pb-2 font-bold text-gray-900">
+                    ${binData.binLocation || 'Location Not Specified'}
+                </div>
+                
+                <div class="space-y-1">
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600">Battery</span>
+                        <span class="${getBatteryColor(binData.batteryLevel)}">
+                            ${binData.batteryLevel || 0}%
+                        </span>
+                    </div>
+
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600">Fill Level</span>
+                        <span class="${getFillLevelColor(binData.filledBinPercentage)}">
+                            ${binData.filledBinPercentage || 0}%
+                        </span>
+                    </div>
+
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600">Lid Status</span>
+                        <span class="${binData.binLidStatus === 'Closed' ? 'text-green-500' : 'text-yellow-500'}">
+                            ${binData.binLidStatus || 'Unknown'}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="border-t pt-2 text-xs text-gray-500">
+                    ${lat.toFixed(6)}°N, ${lng.toFixed(6)}°E
+                </div>
+            </div>
+        `;
+    };
+
     const createTileLayer = (style) => {
         let tileLoadingTimeout;
         let hasLoadedTiles = false;
@@ -102,32 +152,27 @@ export const BinLocation = ({ binData }) => {
             updateWhenZooming: false,
             updateWhenIdle: true,
             subdomains: style.startsWith('google') ? ['mt0', 'mt1', 'mt2', 'mt3'] : ['a', 'b', 'c'],
-            // Add timeout to prevent infinite loading
-            timeout: 5000 // 5 seconds timeout for tile loading
+            timeout: 5000
         });
 
-        // Clear previous error when starting to load new tiles
         layer.on('loading', () => {
             setMapError(null);
             hasLoadedTiles = false;
 
-            // Set a timeout to check if tiles have loaded
             clearTimeout(tileLoadingTimeout);
             tileLoadingTimeout = setTimeout(() => {
                 if (!hasLoadedTiles && style.startsWith('google')) {
                     setMapError('Some map tiles may not be visible. You can continue using the map or try a different layer.');
                 }
-            }, 7000); // Check after 7 seconds
+            }, 7000);
         });
 
-        // Track successful tile loads
         layer.on('tileload', () => {
             hasLoadedTiles = true;
             clearTimeout(tileLoadingTimeout);
             setMapError(null);
         });
 
-        // Handle tile errors more gracefully
         layer.on('tileerror', (error) => {
             console.warn('Tile loading issue:', error);
             if (style.startsWith('google')) {
@@ -137,7 +182,6 @@ export const BinLocation = ({ binData }) => {
             }
         });
 
-        // Cleanup on layer removal
         layer.on('remove', () => {
             clearTimeout(tileLoadingTimeout);
         });
@@ -156,29 +200,23 @@ export const BinLocation = ({ binData }) => {
                     zoomControl: false
                 }).setView([lat, lng], 19);
 
-                // Add base tile layer with error handling
                 const layer = createTileLayer(mapStyle);
                 layer.addTo(mapInstance.current);
 
-                // Add marker with custom popup
                 const marker = L.marker([lat, lng], {
                     riseOnHover: true
                 }).addTo(mapInstance.current);
 
-                const popupContent = `
-                    <div class="text-center">
-                        <strong class="mb-1 block">${binData.binLocation || 'Location Not Specified'}</strong>
-                        <span class="text-sm text-gray-600">${lat.toFixed(6)}°N, ${lng.toFixed(6)}°E</span>
-                    </div>
-                `;
-                marker.bindPopup(popupContent).openPopup();
+                const popupContent = createPopupContent(lat, lng);
+                marker.bindPopup(popupContent, {
+                    maxWidth: 300,
+                    className: 'custom-popup'
+                }).openPopup();
 
-                // Add zoom control
                 L.control.zoom({
                     position: 'bottomright'
                 }).addTo(mapInstance.current);
 
-                // Add scale control
                 L.control.scale({
                     metric: true,
                     imperial: false,
@@ -205,7 +243,6 @@ export const BinLocation = ({ binData }) => {
                 }
             });
 
-            // Create new tile layer with error handling
             const layer = createTileLayer(mapStyle);
             layer.addTo(mapInstance.current);
         }
@@ -241,24 +278,39 @@ export const BinLocation = ({ binData }) => {
                 </div>
 
                 {showDetails && (
-                    <div className="mt-4 grid grid-cols-1 gap-4 rounded-lg bg-gray-50 p-4 md:grid-cols-2">
+                    <div className="mt-4 grid grid-cols-1 gap-4 rounded-lg bg-gray-50 p-4 md:grid-cols-3">
                         <div className="space-y-2">
-                            <p className="text-sm font-medium text-gray-700">Location Type</p>
-                            <p className="text-sm text-gray-600">
-                                {binData.locationType || 'Not Specified'}
+                            <div className="flex items-center gap-2">
+                                <FaBatteryThreeQuarters className="h-4 w-4 text-gray-500" />
+                                <p className="text-sm font-medium text-gray-700">Battery Level</p>
+                            </div>
+                            <p className={`text-sm ${getBatteryColor(binData.batteryLevel)}`}>
+                                {binData.batteryLevel || 0}%
                             </p>
                         </div>
                         <div className="space-y-2">
-                            <p className="text-sm font-medium text-gray-700">Last Updated</p>
-                            <p className="text-sm text-gray-600">
-                                {binData.lastUpdated || 'Not Available'}
+                            <div className="flex items-center gap-2">
+                                <FaTrash className="h-4 w-4 text-gray-500" />
+                                <p className="text-sm font-medium text-gray-700">Fill Level</p>
+                            </div>
+                            <p className={`text-sm ${getFillLevelColor(binData.filledBinPercentage)}`}>
+                                {binData.filledBinPercentage || 0}%
+                            </p>
+                        </div>
+                        <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                                <FaLock className="h-4 w-4 text-gray-500" />
+                                <p className="text-sm font-medium text-gray-700">Lid Status</p>
+                            </div>
+                            <p className={`text-sm ${binData.binLidStatus === 'Closed' ? 'text-green-500' : 'text-yellow-500'}`}>
+                                {binData.binLidStatus || 'Unknown'}
                             </p>
                         </div>
                     </div>
                 )}
             </div>
 
-            {/* Layer Switcher with grouped options */}
+            {/* Layer Switcher */}
             <div className="rounded-lg bg-white p-3 shadow-sm">
                 <div className="space-y-3">
                     <span className="text-sm font-medium text-gray-700">Map Style:</span>
@@ -287,7 +339,7 @@ export const BinLocation = ({ binData }) => {
                 </div>
             </div>
 
-            {/* Map Container */}
+            {/* Map Container (continued) */}
             <div className="relative h-[400px] w-full overflow-hidden rounded-lg bg-gray-100">
                 {mapError && (
                     <div className="absolute inset-0 flex items-center justify-center">
