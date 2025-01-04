@@ -38,9 +38,9 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       ...helmet.contentSecurityPolicy.getDefaultDirectives(),
-      "script-src": ["'self'", "https://eco-smart-waste-management-system-pkc.netlify.app"],
-      "connect-src": ["'self'", "https://eco-smart-waste-management-system-pkc.netlify.app"],
-      "frame-src": ["'self'", "https://eco-smart-waste-management-system-pkc.netlify.app"],
+      "script-src": ["'self'", "https://eco-smart-waste-management-system.netlify.app"],
+      "connect-src": ["'self'", "https://eco-smart-waste-management-system.netlify.app"],
+      "frame-src": ["'self'", "https://eco-smart-waste-management-system.netlify.app"],
     },
   },
 }));
@@ -49,7 +49,7 @@ app.use(helmet({
 const corsOptions = {
   origin: function (origin, callback) {
     const allowedOrigins = [
-      'https://eco-smart-waste-management-system-pkc.netlify.app',
+      'https://eco-smart-waste-management-system.netlify.app',
       'http://localhost:5173',
       // Add any other frontend origins you need
     ];
