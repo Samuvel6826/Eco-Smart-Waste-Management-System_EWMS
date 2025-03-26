@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { useAuthHook } from "../contexts/providers/hooks/useAuthHook";
-import { usePushNotificationsHook } from "../contexts/providers/hooks/usePushNotificationsHook"; // New import
+import { useAuthHook } from "../contexts/AuthContext";
+import { usePushNotificationsHook } from "../contexts/PushNotificationsContext"; // New import
 import {
     Navbar,
     Typography,

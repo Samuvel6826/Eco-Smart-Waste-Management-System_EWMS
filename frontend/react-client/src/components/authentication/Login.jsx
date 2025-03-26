@@ -3,9 +3,9 @@ import { Formik, Form, Field } from 'formik';
 import * as Yup from 'yup';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import { useAuthHook } from '../contexts/providers/hooks/useAuthHook';
-import { useResendEmailsHook } from '../contexts/providers/hooks/useResendEmailsHook';
-import { usePushNotificationsHook } from '../contexts/providers/hooks/usePushNotificationsHook';
+import { useAuthHook } from '../contexts/AuthContext';
+import { useResendEmailsHook } from '../contexts/ResendEmailsContext';
+import { usePushNotificationsHook } from '../contexts/PushNotificationsContext';
 import PreLoader from '../common/preloader/PreLoader';
 import pkcLogo from '../../assets/pkc-logo.jpeg';
 

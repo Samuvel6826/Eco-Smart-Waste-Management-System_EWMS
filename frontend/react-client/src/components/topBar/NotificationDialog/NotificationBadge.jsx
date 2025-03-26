@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { IconButton } from '@material-tailwind/react';
 import { FaRegBell } from 'react-icons/fa';
 import { NotificationDialog } from './NotificationDialog';
-import { usePushNotificationsHook } from '../../contexts/providers/hooks/usePushNotificationsHook'; // New import
+import { usePushNotificationsHook } from '../../contexts/PushNotificationsContext'; // New import
 
 // Updated NotificationBadge component
 export const NotificationBadge = () => {

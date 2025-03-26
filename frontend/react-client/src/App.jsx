@@ -12,11 +12,11 @@ import { Toaster } from 'react-hot-toast';
 import ScrollToTopButton from './components/common/ScrollTopBtn';
 
 // Context Providers
-import { AuthProvider } from "./components/contexts/providers/AuthProvider";
-import { PushNotificationsProvider } from './components/contexts/providers/PushNotificationsProvider';
-import { ResendEmailsProvider } from './components/contexts/providers/ResendEmailsProvider';
-import { BinsProvider } from './components/contexts/providers/BinsProvider';
-import { UsersProvider } from './components/contexts/providers/UsersProvider';
+import { AuthProvider } from "./components/contexts/AuthContext";
+import { PushNotificationsProvider } from './components/contexts/PushNotificationsContext';
+import { ResendEmailsProvider } from './components/contexts/ResendEmailsContext';
+import { BinsProvider } from './components/contexts/BinsContext';
+import { UsersProvider } from './components/contexts/UsersContext';
 
 // Lazy-loaded components
 const Login = lazy(() => import('./components/authentication/Login'));

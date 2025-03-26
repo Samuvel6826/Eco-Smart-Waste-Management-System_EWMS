@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import { useBinsHook } from '../../../contexts/providers/hooks/useBinsHook';
+import { useBinsHook } from '../../../contexts/BinsContext';
 import { Card, CardHeader, CardBody, Typography, Tabs, TabsHeader, TabsBody, Tab, TabPanel, Button } from "@material-tailwind/react";
 import { BinSettingsForm } from './BinSettingsForm';
 import { BinStatus } from './BinStatus';

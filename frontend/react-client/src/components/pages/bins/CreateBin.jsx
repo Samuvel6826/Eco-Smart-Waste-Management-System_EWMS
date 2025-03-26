@@ -3,7 +3,7 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { toast } from 'react-hot-toast';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useBinsHook } from '../../contexts/providers/hooks/useBinsHook';
+import { useBinsHook } from '../../contexts/BinsContext';
 
 // Helper function to capitalize the first letter of each word
 const capitalizeWords = (str) => {

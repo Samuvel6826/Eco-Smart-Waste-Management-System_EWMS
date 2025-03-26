@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { useAuthHook } from '../../../contexts/providers/hooks/useAuthHook';
-import { useUsersHook } from '../../../contexts/providers/hooks/useUsersHook';
-import { useBinsHook } from '../../../contexts/providers/hooks/useBinsHook';
+import { useAuthHook } from '../../../contexts/AuthContext';
+import { useUsersHook } from '../../../contexts/UsersContext';
+import { useBinsHook } from '../../../contexts/BinsContext';
 import { toast } from 'react-hot-toast';
 import {
     Card,

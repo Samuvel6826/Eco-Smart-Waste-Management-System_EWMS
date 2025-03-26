@@ -1,8 +1,8 @@
 import React, { useState, forwardRef } from 'react';
 import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
-import { useAuthHook } from '../../contexts/providers/hooks/useAuthHook';
-import { useBinsHook } from '../../contexts/providers/hooks/useBinsHook';
+import { useAuthHook } from '../../contexts/AuthContext';
+import { useBinsHook } from '../../contexts/BinsContext';
 import {
     Card,
     CardBody,

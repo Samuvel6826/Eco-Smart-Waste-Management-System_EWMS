@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
-import { useAuthHook } from '../../../contexts/providers/hooks/useAuthHook';
-import { useUsersHook } from '../../../contexts/providers/hooks/useUsersHook';
+import { useAuthHook } from '../../../contexts/AuthContext';
+import { useUsersHook } from '../../../contexts/UsersContext';
 import {
     Typography,
     Card

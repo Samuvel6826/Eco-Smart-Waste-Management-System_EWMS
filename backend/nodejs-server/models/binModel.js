@@ -12,7 +12,8 @@ const binMetaDataSchema = Joi.object({
         longitude: "longitude"
     }),
     microProcessorStatus: Joi.string().valid('ON', 'OFF').default('OFF'),
-    sensorStatus: Joi.string().valid('ON', 'OFF').default('OFF'),
+    lidSensorStatus: Joi.string().valid('ON', 'OFF').default('OFF'),
+    distanceSensorStatus: Joi.string().valid('ON', 'OFF').default('OFF'),
     binLidStatus: Joi.string().valid('OPEN', 'CLOSED'),
     binActiveStatus: Joi.string().valid('Active', 'inActive').default('inActive'),
     distance: Joi.number().default(0),
@@ -22,7 +23,9 @@ const binMetaDataSchema = Joi.object({
     lastEmptied: Joi.string().default("").allow(""),
     temperature: Joi.string().default('0'), // Added field
     humidity: Joi.string().default('0'), // Added field
-    batteryLevel: Joi.string().default('0') // Added field
+    batteryLevel: Joi.string().default('0'), // Added field
+    createdAt: Joi.date().default(Date.now),
+    updatedAt: Joi.date().default(Date.now)
 });
 
 const distanceSchema = Joi.object({
@@ -33,7 +36,8 @@ const distanceSchema = Joi.object({
         longitude: Joi.string().allow('').default("Longitude"),
     }),
     microProcessorStatus: Joi.string().valid('ON', 'OFF').required(),
-    sensorStatus: Joi.string().valid('ON', 'OFF').required(),
+    lidSensorStatus: Joi.string().valid('ON', 'OFF').default('OFF'),
+    distanceSensorStatus: Joi.string().valid('ON', 'OFF').default('OFF'),
     binLidStatus: Joi.string().valid('OPEN', 'CLOSED').required(),
     binActiveStatus: Joi.string().valid('Active', 'inActive').default('Active'),
     distance: Joi.number().required(),
@@ -42,13 +46,15 @@ const distanceSchema = Joi.object({
     lastEmptied: Joi.string().default("").allow(""),
     temperature: Joi.string().default('0'), // Added field
     humidity: Joi.string().default('0'), // Added field
-    batteryLevel: Joi.string().default('0') // Added field
+    batteryLevel: Joi.string().default('0'), // Added field
+    updatedAt: Joi.date().default(Date.now)
 });
 
 const heartbeatSchema = Joi.object({
     id: Joi.string().required(),
     binLocation: Joi.string().required(),
-    microProcessorStatus: Joi.string().valid('ON', 'OFF').required()
+    microProcessorStatus: Joi.string().valid('ON', 'OFF').required(),
+    updatedAt: Joi.date().default(Date.now)
 });
 
 module.exports = {

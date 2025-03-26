@@ -6,7 +6,7 @@ import timezone from 'dayjs/plugin/timezone';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import { Typography, IconButton } from '@material-tailwind/react';
 import { getNotificationIcon } from './utils';
-import { usePushNotificationsHook } from '../../contexts/providers/hooks/usePushNotificationsHook';
+import { usePushNotificationsHook } from '../../contexts/PushNotificationsContext';
 import { FaTrash, FaCheck } from 'react-icons/fa';
 
 // Extend dayjs with plugins

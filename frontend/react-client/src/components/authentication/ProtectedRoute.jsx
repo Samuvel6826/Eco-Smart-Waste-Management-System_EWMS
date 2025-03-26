@@ -1,5 +1,5 @@
 import { Navigate } from "react-router-dom";
-import { useAuthHook } from "../contexts/providers/hooks/useAuthHook";
+import { useAuthHook } from "../contexts/AuthContext";
 import PreLoader from '../common/preloader/PreLoader';
 
 const ProtectedRoute = ({ children, requiredRoles }) => {

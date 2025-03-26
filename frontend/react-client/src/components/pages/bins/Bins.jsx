@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import { useBinsHook } from '../../contexts/providers/hooks/useBinsHook';
+import { useBinsHook } from '../../contexts/BinsContext';
 import Bin from './Bin';
 import { GoPlus } from "react-icons/go";
 import { FaMapMarkerAlt } from "react-icons/fa";

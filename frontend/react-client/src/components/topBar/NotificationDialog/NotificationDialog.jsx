@@ -16,7 +16,7 @@ import {
     TrashIcon,
     XMarkIcon
 } from '@heroicons/react/24/outline';
-import { usePushNotificationsHook } from '../../contexts/providers/hooks/usePushNotificationsHook';
+import { usePushNotificationsHook } from '../../contexts/PushNotificationsContext';
 import { NotificationItem } from './NotificationItem';
 import { getNotificationIcon, groupNotificationsByDate } from './utils';
 

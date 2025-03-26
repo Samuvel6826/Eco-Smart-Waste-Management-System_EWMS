@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Formik, Form } from 'formik';
 import { useNavigate } from 'react-router-dom';
-import { useAuthHook } from '../../../contexts/providers/hooks/useAuthHook';
-import { useUsersHook } from '../../../contexts/providers/hooks/useUsersHook';
+import { useAuthHook } from '../../../contexts/AuthContext';
+import { useUsersHook } from '../../../contexts/UsersContext';
 import { toast } from 'react-hot-toast';
 import { ROLE_OPTIONS, GENDER_OPTIONS } from '../helpers/constants/userConstants';
 import { getAvatarUrl, FormField } from '../helpers/utils/userUtils';

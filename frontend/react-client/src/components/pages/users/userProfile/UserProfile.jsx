@@ -4,8 +4,8 @@ import { Formik, Form } from 'formik';
 import { toast } from 'react-hot-toast';
 import { storage, storageRef, uploadBytes, getDownloadURL } from '../../../../../firebase.config';
 import dayjs from 'dayjs';
-import { useAuthHook } from '../../../contexts/providers/hooks/useAuthHook';
-import { useUsersHook } from '../../../contexts/providers/hooks/useUsersHook';
+import { useAuthHook } from '../../../contexts/AuthContext';
+import { useUsersHook } from '../../../contexts/UsersContext';
 
 import ProfileHeader from '../helpers/sub/ProfileHeader';
 import PersonalInfoSection from '../helpers/sub/PersonalInfoSection';
